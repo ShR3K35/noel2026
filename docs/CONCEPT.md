@@ -16,9 +16,9 @@ Le principe de coach qui guide tout : *en reprise, on ne rate pas par manque d'i
 | Santé | Questionnaire type PAR-Q (cœur, douleurs thoraciques, vertiges, articulations, traitement, grossesse) | Un « oui » → message clair « avis médical conseillé avant de commencer » + programme marche douce uniquement |
 | Profil | Âge, taille, poids (facultatif), dernière pratique sportive (jamais / > 2 ans / < 6 mois) | Niveau de départ et vitesse de progression |
 | Gênes | Genoux, dos, chevilles, essoufflement | Limite la course et l'inclinaison, privilégie la marche en côte |
-| Objectif | Santé & forme · Perte de poids · Courir 30 min sans s'arrêter · Courir 5 km | Choix de la filière de programme |
+| Objectif | Choix d'un programme dans le catalogue (§6) : courir 10 min, 30 min, 45 min, 1 h, 5 km, 10 km, améliorer ses performances… | Le programme est ensuite construit sur mesure |
 | Tapis | Préréglé Domyos Run100 : 14 km/h max, inclinaison manuelle 0 % ou 3 % | Les séances ne proposent jamais un réglage impossible |
-| Capteurs | Appairage ceinture cardio + boîtier ESP32 (facultatifs, voir §6) ; FC de repos mesurée 2 min assis | Zones cardiaques personnelles, suivi automatique |
+| Capteurs | Appairage ceinture cardio + boîtier ESP32 (facultatifs, voir §9) ; FC de repos mesurée 2 min assis | Zones cardiaques personnelles, suivi automatique |
 | Emploi du temps | Jours possibles, durée disponible par jour (15 / 20 / 30 / 45 min), moment préféré | Planification de la semaine |
 
 ### Test initial sur le tapis (12 min, séance n°1)
@@ -102,15 +102,17 @@ Effort ressenti (1–10) · Douleur (aucune / gêne / douleur + zone) · Séance
 1. **Aujourd'hui** — la séance du jour en une phrase (« 30 min · marche/course · facile »), bouton Démarrer, boutons « version courte » et « reporter ».
 2. **Séance guidée** — très gros chiffres lisibles depuis le tapis : *vitesse cible* à côté de la *vitesse réelle* (ESP32), *FC et zone* en couleur (ceinture), inclinaison, compte à rebours du bloc, bloc suivant. Le bloc ne démarre que lorsque la vitesse cible est atteinte. Annonce vocale + vibration à chaque changement, écran toujours allumé, bouton « trop dur » (baisse la suite de la séance de 5–10 %).
 3. **Bilan de séance** — les 3 questions de ressenti + un mot du coach.
-4. **Ma semaine** — calendrier, séances déplaçables par glisser-déposer.
-5. **Progrès** — évolution de la VR, minutes de course continue, régularité (semaines tenues, pas de « série » qui se casse au premier raté).
-6. **Profil** — objectif, disponibilités, tapis, gênes déclarées.
+4. **Prochaines séances** — les 2 semaines à venir en détail (date, type, durée, contenu bloc par bloc), séances déplaçables par glisser-déposer ; au-delà, la trame du programme semaine par semaine jusqu'à l'objectif, marquée « prévisionnel » car elle s'ajuste aux retours de séance.
+5. **Historique** — toutes les séances passées et leurs statistiques (§7).
+6. **Progrès** — évolution de la VR, minutes de course continue, régularité (semaines tenues, pas de « série » qui se casse au premier raté).
+7. **Programmes** — programme en cours, catalogue, programmes effectués (§6).
+8. **Profil** — disponibilités, tapis, capteurs, comptes connectés (Strava…), gênes déclarées.
 
 Ton du coach : direct, bienveillant, jamais culpabilisant. Il explique toujours *pourquoi* (« semaine allégée : c'est là que ton corps assimile »).
 
 ---
 
-## 5. Exemple : N2, objectif « courir 30 min », 3 × 30 min/semaine
+## 5. Exemple : N2, programme « Courir 30 min », 3 × 30 min/semaine
 
 | Sem. | Séance A | Séance B | Séance C |
 |---|---|---|---|
@@ -128,7 +130,95 @@ Les durées et vitesses réelles sont recalculées selon la VR et les retours de
 
 ---
 
-## 6. Capteurs : ceinture cardio et boîtier ESP32
+## 6. Programmes
+
+### Catalogue
+| Programme | Pour qui (prérequis) | Durée indicative | Validation |
+|---|---|---|---|
+| Courir 10 min | Débutant complet, N1/N2 | 4–6 sem. | 10 min de course continue |
+| Courir 30 min | Tient 10 min, ou N2/N3 | 8–12 sem. | 30 min continues |
+| Courir 45 min | Tient 30 min | 6–8 sem. | 45 min continues |
+| Courir 1 h | Tient 45 min | 8 sem. | 60 min continues |
+| Courir 5 km | Tient 10 min | 8–10 sem. | 5 km sans marcher |
+| Courir 10 km | Tient 5 km ou 45 min | 10–12 sem. | 10 km sans marcher |
+| Améliorer mes performances | Tient 30 min | 8 sem., renouvelable | Chrono sur 5 km (ou 10 km) amélioré vs test de départ |
+| Santé & forme / Perte de poids | Tous, y compris N1 marche seule | 8 sem., renouvelable | Régularité tenue, minutes actives par semaine |
+
+« Améliorer mes performances » introduit le travail d'allure : seuil, fractionné long, sortie longue. Limite matérielle à connaître : le Run100 plafonne à 14 km/h (4'17''/km), les fractions rapides sont bornées à cette vitesse.
+
+### Un programme sur mesure, pas un tableau figé
+À partir du **même objectif**, deux utilisateurs n'ont pas le même programme. Le générateur combine :
+- le **niveau** issu du test (point de départ dans la progression) ;
+- les **disponibilités** (2, 3 ou 4 séances, durées par jour) → nombre de semaines et répartition ;
+- l'**âge, les gênes et le poids** → progression plus lente, davantage de marche en côte, moins d'impact ;
+- les **retours de séance** → le planning se recalcule en cours de route (§2, §3).
+
+**Objectif trop ambitieux pour le niveau** : l'app ne refuse pas, elle allonge. Un sédentaire qui choisit « Courir 10 km » obtient un programme en étapes (10 min → 30 min → 5 km → 10 km) avec la durée réelle annoncée avant de s'engager (« environ 6 mois à 3 séances/semaine ») et une date d'arrivée estimée, mise à jour au fil des semaines.
+
+### Un seul programme à la fois
+- Un programme **actif** au maximum. En choisir un autre demande de terminer ou d'arrêter le programme en cours, qui est archivé comme « interrompu » avec son avancement.
+- **Pause** possible (vacances, maladie) : le programme se fige et reprend avec la règle de retour après arrêt (§3).
+- **Fin de programme** : séance de validation, bilan (avant/après), puis proposition du programme suivant logique (30 min → 45 min ou 5 km) ou d'un programme d'entretien. Jamais de vide après une réussite.
+
+### Programmes effectués
+Liste chronologique. Pour chacun : objectif, dates de début et de fin, statut (**réussi / terminé sans validation / interrompu**), séances réalisées sur prévues, VR et FC de repos avant/après, résultat de la séance de validation. Un appui ouvre le détail et la liste des séances du programme.
+
+---
+
+## 7. Historique des séances et statistiques
+
+### Liste
+Séances triées par date, filtrables par programme, type de séance et période. Chaque ligne : date, type, durée, distance, ressenti. Les séances hors programme (marche libre) y figurent aussi.
+
+### Fiche d'une séance
+| Donnée | Source |
+|---|---|
+| Durée totale et temps actif, distance | ESP32, sinon calcul à partir des consignes |
+| Vitesse moyenne / max, allure moyenne (min/km) | ESP32 |
+| Inclinaison, dénivelé équivalent | ESP32 (ou saisie) |
+| FC moyenne / max, temps passé par zone, récupération à 1 min | Ceinture |
+| Calories estimées | FC + profil si ceinture, sinon vitesse + poids ; toujours affichées comme estimation |
+| Réalisé vs prévu, bloc par bloc | Consignes du coach comparées aux mesures |
+| Ressenti, douleur, note libre, mot du coach | Bilan de séance |
+
+Graphiques vitesse et FC dans le temps, avec les blocs de la séance en fond. Une donnée non mesurée est marquée « estimée » ou absente — jamais inventée.
+
+### Statistiques cumulées
+- Totaux par semaine, mois, programme et depuis le début : séances, temps, distance, calories.
+- Tendances : VR, FC de repos, FC à allure donnée, récupération cardiaque.
+- Records personnels : plus longue course continue, plus longue distance, meilleur 1 km / 5 km / 10 km.
+- Assiduité : séances tenues sur prévues.
+
+---
+
+## 8. Export et synchronisation
+
+### Export d'une séance (manuel)
+Depuis la fiche de séance, bouton « Exporter / Partager » :
+- **FIT** (format par défaut) — standard Garmin, accepté presque partout ; gère proprement une activité en intérieur sans GPS : sport course à pied, sous-type tapis, vitesse, distance, FC, inclinaison, tours = blocs de la séance.
+- **TCX** — alternative XML, également acceptée par Strava et la plupart des plateformes.
+- **CSV** — pour un tableur.
+
+Le GPX n'est pas proposé : sans trace GPS il perd la distance sur la plupart des plateformes. Export groupé de tout l'historique (archive ZIP) pour sauvegarde ou changement de téléphone.
+
+### Strava — envoi automatique
+- Connexion du compte une fois (OAuth, autorisation d'écriture d'activités), puis envoi automatique du fichier FIT à la fin de chaque séance ; file d'attente et nouvel essai s'il n'y a pas de réseau. Réglage : automatique / demander à chaque fois / désactivé.
+- Activité créée comme course en intérieur, titre = nom de la séance, description = programme et semaine.
+- **Contrainte technique** : l'API Strava exige une clé d'application. Pour un usage personnel sans serveur, vous créez votre propre « application API » sur votre compte Strava (gratuit, limitée à un seul sportif tant que Strava ne l'a pas validée — suffisant ici) et saisissez la clé dans l'app. Une diffusion publique demanderait un petit serveur relais et la validation de Strava.
+
+### Decathlon Coach — à confirmer
+Il n'existe, à notre connaissance, **aucune API publique documentée** permettant à une app tierce d'envoyer une séance vers Decathlon Coach. Le « Hub » Decathlon récupère les activités de Garmin, Polar, Coros et Fitbit, mais pas celles de Strava (le lien Strava ne fonctionne que de Decathlon vers Strava). Stratégie retenue :
+1. **Dès la première version** : export FIT + partage Android, pour import manuel dans Decathlon Coach (fonction d'import à vérifier dans l'app sur votre téléphone).
+2. **Piste automatique à instruire** : demande d'accès partenaire à l'API Decathlon ; écriture de la séance dans Health Connect, si Decathlon Coach sait le lire (non confirmé).
+3. Si aucune piste n'aboutit, l'envoi automatique vers Decathlon Coach ne sera pas possible et l'app le dira clairement plutôt que d'afficher une option qui ne marche pas.
+
+Anti-doublon : si le lien Decathlon → Strava est actif dans votre compte Decathlon, une séance envoyée aux deux pourrait apparaître deux fois sur Strava ; l'app le signale à la connexion.
+
+**Health Connect** (Android) : écriture de chaque séance, pour la retrouver dans Google Fit, Samsung Health, etc.
+
+---
+
+## 9. Capteurs : ceinture cardio et boîtier ESP32
 
 ### Ceinture cardiaque thoracique
 Toute ceinture Bluetooth Low Energy standard (profil *Heart Rate*, 0x180D : Polar H9/H10, Garmin HRM-Dual, Decathlon, Coospo…). Appairage une fois, reconnexion automatique au début de séance. Les ceintures ANT+ seules ne sont pas compatibles.
@@ -155,26 +245,28 @@ Le Run100 de base (14 km/h, inclinaison manuelle 0/3 %) n'est pas connecté ; le
 
 ---
 
-## 7. Architecture envisagée (pour la phase de développement)
+## 10. Architecture envisagée (pour la phase de développement)
 
 - **Kotlin + Jetpack Compose**, 100 % hors ligne, sans compte, données sur le téléphone (Room).
 - **Couche Bluetooth LE** : deux clients standards (Heart Rate, FTMS) derrière une interface commune, simulables pour les tests.
 - **Firmware ESP32** (Arduino/PlatformIO, C++) dans un dossier `firmware/` du même dépôt.
-- **Moteur de coaching en Kotlin pur**, séparé de l'interface : bilan → niveau, générateur de semaine, règles d'adaptation. Entièrement couvert par tests unitaires (c'est le cœur du produit).
+- **Modèle de données** : Profil · Programme (un seul actif, les autres archivés) · Séance planifiée · Séance réalisée (résumé + échantillons vitesse/FC/inclinaison à 1 Hz) · Tours.
+- **Export** : encodeurs FIT / TCX / CSV en Kotlin pur, testés par relecture des fichiers produits ; envoi Strava en tâche de fond (WorkManager) avec file d'attente.
+- **Moteur de coaching en Kotlin pur**, séparé de l'interface : bilan → niveau, générateur de programme et de semaine, règles d'adaptation. Entièrement couvert par tests unitaires (c'est le cœur du produit).
 - Notifications et rappels via WorkManager ; synthèse vocale Android pour le guidage.
 - Compilation de l'APK par GitHub Actions (pas de SDK Android dans cet environnement).
 
 ### Feuille de route
-- **MVP** : bilan, test initial, programmes N1–N3, séance guidée, retour de séance, planification hebdo, rappels, **ceinture cardio** (standard, sans matériel à fabriquer).
-- **V1** : **boîtier ESP32** (firmware + étalonnage), écran Progrès avec courbes FC/vitesse, re-tests, lecture de l'agenda, filières perte de poids et 5 km.
-- **V2** : export Health Connect / Strava, renforcement au poids du corps en complément.
+- **MVP** : bilan, test initial, programmes « Courir 10 min » et « Courir 30 min », un seul programme actif, séance guidée, retour de séance, prochaines séances, rappels, historique avec fiche de séance, export FIT/TCX manuel, **ceinture cardio**.
+- **V1** : **boîtier ESP32** (firmware + étalonnage), reste du catalogue (45 min, 1 h, 5 km, 10 km, performances), programmes effectués, statistiques cumulées et records, **envoi automatique Strava**, Health Connect.
+- **V2** : Decathlon Coach automatique (si une voie est confirmée), lecture de l'agenda, renforcement au poids du corps en complément.
 
 ---
 
-## 8. Suite
+## 11. Suite
 
-1. Retours sur ce concept (niveaux, objectifs, ton du coach, priorités du MVP).
-2. Vérification du tapis : modèle exact (Run100 ou Run100E), accès au rouleau avant.
+1. Retours sur ce concept (programmes, statistiques, ton du coach, priorités du MVP).
+2. Vérifications : modèle exact du tapis (Run100 ou Run100E), accès au rouleau avant, présence d'un import de fichier dans Decathlon Coach.
 3. Développement du MVP, en commençant par le moteur de coaching et ses tests.
 
 **Limite à garder en tête** : l'app donne des conseils d'entraînement, pas un avis médical — d'où le questionnaire santé et les consignes d'arrêt.
@@ -184,3 +276,5 @@ Le Run100 de base (14 km/h, inclinaison manuelle 0/3 %) n'est pas connecté ; le
 - Caractéristiques du Run100 : [Decathlon support](https://support.decathlon.co.uk/run100), [fiche Run100](https://decathlon.ch/en/p/tapis-de-course-14km-h-et-compact-run100/_/R-p-346612)
 - Run100E et FTMS : [Decathlon/domyos-developers](https://www.github.com/Decathlon/domyos-developers)
 - Boîtier ESP32 → FTMS : [lefty01/ESP32_TTGO_FTMS](https://www.github.com/lefty01/ESP32_TTGO_FTMS), [Hackaday — Add Bluetooth to Treadmill](https://hackaday.io/project/175237-add-bluetooth-to-treadmill)
+- Strava : [envoi d'activités](https://developers.strava.com/docs/uploads/), [limites de l'API](https://developers.strava.com/docs/rate-limits/)
+- Decathlon : [FAQ du Hub](https://hub.decathlon.com/faq), [FitnessSyncer — Decathlon Coach](https://www.fitnesssyncer.com/support/decathlon-coach)
