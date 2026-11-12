@@ -45,6 +45,7 @@ sealed interface Screen {
     data class Detail(val id: String) : Screen
     data object Sensors : Screen
     data object Calibration : Screen
+    data object RestingHr : Screen
 }
 
 class AppViewModel(app: Application) : AndroidViewModel(app) {
@@ -264,6 +265,13 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun exportCsv(id: String): String = Export.csv(samples(id))
 
     // ---------- Capteurs ----------
+
+    /** Connecte la ceinture si elle est associée et pas déjà connectée ou en cours de connexion. */
+    fun ensureHeartRate() {
+        val prof = state.profile ?: return
+        if (prof.hrAddress.isBlank() || !ble.available()) return
+        if (ble.hrLink.value == fr.relance.app.ble.Link.OFF) ble.connectHeartRate(prof.hrAddress)
+    }
 
     fun reconnectSensors() {
         val prof = state.profile ?: return

@@ -2,6 +2,7 @@ package fr.relance.app
 
 import fr.relance.app.core.BleParsers
 import fr.relance.app.core.BlockKind
+import fr.relance.app.core.RestingHr
 import fr.relance.app.core.Calibration
 import fr.relance.app.core.Coach
 import fr.relance.app.core.Export
@@ -302,6 +303,16 @@ class CoreTest {
         val t = BleParsers.treadmill(byteArrayOf(0x04, 0x00, 0xBC.toByte(), 0x02, 0xD2.toByte(), 0x04, 0x00))!!
         assertEquals(7.0, t.speedKmh!!, 0.001)
         assertNull(t.inclinePct)
+    }
+
+    @Test fun restingHeartRateIsTheMedianAfterSettling() {
+        // 30 s d'installation plus agitées, puis 90 s autour de 62 avec deux parasites.
+        val samples = List(30) { 80 } + List(88) { 61 + it % 3 } + listOf(180, 0)
+        assertEquals(RestingHr.Result.Ok(62), RestingHr.compute(samples))
+        // Trop de secondes sans signal.
+        assertEquals(RestingHr.Result.NotEnoughData, RestingHr.compute(List(30) { 70 } + List(50) { 60 } + List(40) { 0 }))
+        // Pas au calme.
+        assertEquals(RestingHr.Result.Implausible(125), RestingHr.compute(List(120) { 125 }))
     }
 
     @Test fun historyAggregates() {

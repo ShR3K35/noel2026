@@ -21,6 +21,7 @@ import fr.relance.app.ui.CatalogueScreen
 import fr.relance.app.ui.DetailScreen
 import fr.relance.app.ui.HomeScreen
 import fr.relance.app.ui.OnboardingScreen
+import fr.relance.app.ui.RestingHrScreen
 import fr.relance.app.ui.Screen
 import fr.relance.app.ui.SensorsScreen
 import fr.relance.app.ui.SessionScreen
@@ -45,6 +46,7 @@ class MainActivity : ComponentActivity() {
                         is Screen.Detail -> DetailScreen(vm, screen.id)
                         Screen.Sensors -> SensorsScreen(vm)
                         Screen.Calibration -> CalibrationScreen(vm)
+                        Screen.RestingHr -> RestingHrScreen(vm)
                     }
                 }
             }

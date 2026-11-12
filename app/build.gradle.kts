@@ -13,8 +13,8 @@ android {
         applicationId = "fr.relance.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
-        versionName = "0.2.0"
+        versionCode = 3
+        versionName = "0.3.0"
     }
 
     // Clé de signature de développement, volontairement versionnée : elle garantit que
@@ -49,7 +49,11 @@ android {
     testOptions {
         unitTests.isIncludeAndroidResources = true
         // Les tests d'interface enregistrent une capture de chaque écran dans app/build/shots.
-        unitTests.all { it.systemProperty("roborazzi.test.record", "true") }
+        unitTests.all {
+            it.systemProperty("roborazzi.test.record", "true")
+            // Une JVM par classe de test : les données enregistrées par un test d'interface ne fuient pas dans le suivant.
+            it.forkEvery = 1
+        }
     }
 }
 

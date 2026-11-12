@@ -374,6 +374,7 @@ private fun ProfileTab(vm: AppViewModel) {
     Card {
         Strong("Fréquence cardiaque de repos")
         Stepper("${profile.restHr}", "bpm", { vm.updateProfile { it.copy(restHr = (it.restHr - 1).coerceAtLeast(35)) } }, { vm.updateProfile { it.copy(restHr = (it.restHr + 1).coerceAtMost(110)) } })
+        Btn("Mesurer avec ma ceinture", Modifier.fillMaxWidth(), filled = false, height = 48.dp) { vm.open(Screen.RestingHr) }
         Small("Zones cardiaques calculées avec un maximum de ${Physio.maxHr(profile)} bpm" + if (profile.hrMedication) " — peu fiables avec ton traitement : fie-toi au ressenti." else ".")
         Strong("Poids")
         Stepper("${profile.weightKg.toInt()}", "kg", { vm.updateProfile { it.copy(weightKg = (it.weightKg - 1).coerceAtLeast(35.0)) } }, { vm.updateProfile { it.copy(weightKg = (it.weightKg + 1).coerceAtMost(200.0)) } })
