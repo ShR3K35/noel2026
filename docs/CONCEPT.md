@@ -100,13 +100,26 @@ Effort ressenti (1–10) · Douleur (aucune / gêne / douleur + zone) · Séance
 ## 4. Écrans principaux
 
 1. **Aujourd'hui** — la séance du jour en une phrase (« 30 min · marche/course · facile »), bouton Démarrer, boutons « version courte » et « reporter ».
-2. **Séance guidée** — très gros chiffres lisibles depuis le tapis : *vitesse cible* à côté de la *vitesse réelle* (ESP32), *FC et zone* en couleur (ceinture), inclinaison, compte à rebours du bloc, bloc suivant. Le bloc ne démarre que lorsque la vitesse cible est atteinte. Annonce vocale + vibration à chaque changement, écran toujours allumé, bouton « trop dur » (baisse la suite de la séance de 5–10 %).
+2. **Séance guidée** — très gros chiffres lisibles depuis le tapis : *vitesse cible* à côté de la *vitesse réelle* (ESP32), *FC et zone* en couleur (ceinture), inclinaison, compte à rebours du bloc, bloc suivant. Le bloc ne démarre que lorsque la vitesse cible est atteinte. Un **coureur animé** illustre l'effort (voir ci-dessous). Annonce vocale + vibration à chaque changement, écran toujours allumé, bouton « trop dur » (baisse la suite de la séance de 5–10 %).
 3. **Bilan de séance** — les 3 questions de ressenti + un mot du coach.
 4. **Prochaines séances** — les 2 semaines à venir en détail (date, type, durée, contenu bloc par bloc), séances déplaçables par glisser-déposer ; au-delà, la trame du programme semaine par semaine jusqu'à l'objectif, marquée « prévisionnel » car elle s'ajuste aux retours de séance.
 5. **Historique** — toutes les séances passées et leurs statistiques (§7).
 6. **Progrès** — évolution de la VR, minutes de course continue, régularité (semaines tenues, pas de « série » qui se casse au premier raté).
 7. **Programmes** — programme en cours, catalogue, programmes effectués (§6).
 8. **Profil** — disponibilités, tapis, capteurs, comptes connectés (Strava…), gênes déclarées.
+
+### Le coureur animé
+
+Pendant la séance, un personnage court à l'écran. Sa cadence suit en continu la **vitesse du tapis** s'il est connecté, sinon la **vitesse demandée** par le bloc en cours ; en pause, il s'arrête et souffle. Son attitude rend visible le « test de la parole » :
+
+| État | Mouvement | Attitude |
+|---|---|---|
+| Arrêt | Debout, respiration lente | — |
+| Marche | Pas de marche, bras souples | Il chante (notes de musique) ou discute (bulle) |
+| Trot | Foulée de course, léger rebond | Il parle (bulle) |
+| Course rapide | Foulée ample, buste penché | Il transpire (gouttes), plus de bulle |
+
+Les seuils entre états sont calés sur les allures de l'utilisateur : un débutant transpire déjà à une vitesse où un coureur confirmé parle encore. L'animation se coupe dans le profil et respecte le réglage système de réduction des animations.
 
 Ton du coach : direct, bienveillant, jamais culpabilisant. Il explique toujours *pourquoi* (« semaine allégée : c'est là que ton corps assimile »).
 
