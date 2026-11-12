@@ -44,6 +44,7 @@ sealed interface Screen {
     data object Bilan : Screen
     data class Detail(val id: String) : Screen
     data object Sensors : Screen
+    data object Calibration : Screen
 }
 
 class AppViewModel(app: Application) : AndroidViewModel(app) {

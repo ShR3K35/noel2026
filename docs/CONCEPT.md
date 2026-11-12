@@ -244,7 +244,7 @@ Le Run100 de base (14 km/h, inclinaison manuelle 0/3 %) n'est pas connecté ; le
 | Vitesse | Capteur à effet Hall + petit aimant collé sur le rouleau avant (ou capteur infrarouge + repère sur la bande) | Impulsions comptées par l'ESP32 → vitesse et distance |
 | Inclinaison | Accéléromètre (MPU6050 ou équivalent) fixé sur le châssis du plateau | Angle mesuré → 0 % ou 3 % détecté tout seul |
 
-- **Lecture seule, non invasif** : aucun branchement sur l'électronique ni le secteur du tapis, alimentation USB séparée. Le boîtier ne *commande* jamais le tapis — la clé de sécurité et la console restent les seuls maîtres. Pas de perte de garantie.
+- **Lecture seule, non invasif** : aucun branchement sur l'électronique ni le secteur du tapis, alimentation USB séparée. Le boîtier ne *commande* jamais le tapis — la clé de sécurité et la console restent les seuls maîtres. Monté sur l'embout du rouleau arrière, il ne demande pas d'ouvrir le capot ; si le capot moteur doit être ouvert, vérifier d'abord les conditions de garantie. Guide : [MONTAGE.md](MONTAGE.md).
 - **Protocole standard FTMS** (Fitness Machine Service, *Treadmill Data*) : l'app parle un standard, pas un format maison. Bénéfices : le boîtier marche aussi avec Zwift/Kinomap, et l'app marchera plus tard avec n'importe quel tapis connecté (dont le Run100E).
 - **Étalonnage guidé dans l'app** : 3 paliers (4, 8, 12 km/h) comparés à l'affichage de la console, puis mise à zéro de l'inclinaison tapis à plat.
 - Base existante à adapter plutôt que repartir de zéro : projet open source `lefty01/ESP32_TTGO_FTMS` (vitesse + inclinaison → FTMS).

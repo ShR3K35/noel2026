@@ -192,6 +192,9 @@ fun SensorsScreen(vm: AppViewModel) {
                             (if (speed != null) " · ${Fmt.kmh(speed ?: 0.0)} km/h" else "") +
                             (if (incline != null) " · ${Fmt.kmh(incline ?: 0.0)} %" else "")
                     )
+                    val calib by ble.calibrationUm.collectAsState()
+                    if (tmLink == Link.CONNECTED && calib != null)
+                        Btn("Étalonner le tapis", filled = true, height = 48.dp) { vm.open(Screen.Calibration) }
                     Btn("Oublier ce tapis", filled = false, height = 48.dp) { vm.forgetTreadmill() }
                 }
                 Small("Lecture seule : l'app ne commande jamais le tapis.")

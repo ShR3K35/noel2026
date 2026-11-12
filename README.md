@@ -4,7 +4,7 @@ App Android de remise au sport sur tapis de course : un coach qui s'adapte à to
 
 ## Installer l'app
 
-**[Télécharger l'APK (relance.apk)](apk/relance.apk?raw=true)** — version 0.1.0, Android 8 ou plus récent.
+**[Télécharger l'APK (relance.apk)](apk/relance.apk?raw=true)** — version 0.2.0, Android 8 ou plus récent.
 
 1. Ouvre ce lien depuis le téléphone, ou copie le fichier `apk/relance.apk` dessus.
 2. Ouvre le fichier et accepte l'installation depuis cette source (Android le demande pour toute app hors Play Store).
@@ -31,22 +31,31 @@ Le coureur animé, à l'arrêt, en marche, au trot et en course rapide :
 - **Historique** : statistiques par séance (durée, distance, allure, cardio et zones, calories estimées), courbes, cumuls et records.
 - **Export** : chaque séance en TCX (accepté par Strava et Garmin Connect) ou en CSV.
 - **Capteurs Bluetooth** : ceinture cardio standard, et tapis ou boîtier ESP32 parlant FTMS, en lecture seule.
+- **Étalonnage du boîtier** : trois paliers de marche, bande à vide, pour caler la vitesse mesurée sur celle de la console.
+
+## Boîtier pour Domyos Run100
+
+Le Run100 classique n'est pas connecté : un boîtier ESP32 (environ 20 €) compte les tours d'un rouleau grâce à un aimant et un capteur à effet Hall, et envoie vitesse et distance à l'app.
+
+- [Guide de montage](docs/MONTAGE.md) : liste d'achat, câblage, pose, mise en service.
+- [Programme du boîtier](firmware/README.md) : à charger une fois dans l'ESP32 avec PlatformIO.
 
 ## Ce qui n'y est pas encore
 
 - Envoi automatique vers Strava (l'export TCX s'importe à la main sur strava.com) et vers Decathlon Coach.
 - Export au format FIT.
 - Rappels par notification.
-- Firmware du boîtier ESP32 pour le Domyos Run100.
+- Mesure de l'inclinaison par le boîtier (l'app utilise l'inclinaison prévue par la séance).
 
 ## État des vérifications
 
 L'app a été construite et testée sans téléphone ni émulateur :
 
-- le moteur de coaching, l'export et le décodage Bluetooth sont couverts par 23 tests unitaires ;
-- un test parcourt toute l'interface (bilan de départ, séance, bilan, fiche, arrêt de programme) et produit les captures ci-dessus.
+- le moteur de coaching, l'export, l'étalonnage et le décodage Bluetooth sont couverts par 25 tests unitaires ;
+- le programme du boîtier compile pour ESP32 et sa logique de mesure passe 7 tests ; une trame qu'il produit est décodée par l'app dans les tests ;
+- des tests parcourent toute l'interface (bilan de départ, séance, bilan, fiche, arrêt de programme, étalonnage) et produisent les captures ci-dessus.
 
-**Non vérifié sur un vrai appareil** : la connexion Bluetooth à une ceinture ou à un tapis, les annonces vocales, l'enregistrement du fichier d'export, et le comportement quand l'app passe en arrière-plan pendant une séance (garde l'écran de séance ouvert : il reste allumé).
+**Non vérifié sur un vrai appareil** : le boîtier monté sur un vrai tapis, la connexion Bluetooth à une ceinture ou au boîtier, les annonces vocales, l'enregistrement du fichier d'export, et le comportement quand l'app passe en arrière-plan pendant une séance (garde l'écran de séance ouvert : il reste allumé).
 
 ## Construire l'APK
 

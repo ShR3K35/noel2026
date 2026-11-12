@@ -29,8 +29,17 @@ import org.robolectric.annotation.GraphicsMode
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(sdk = [34], qualifiers = "w411dp-h891dp-420dpi")
 class UiSmokeTest {
-    @get:Rule
     val rule = createAndroidComposeRule<MainActivity>()
+
+    /** Efface les données enregistrées par un test précédent avant le lancement de l'activité. */
+    @get:Rule
+    val chain: org.junit.rules.RuleChain = org.junit.rules.RuleChain
+        .outerRule(object : org.junit.rules.ExternalResource() {
+            override fun before() {
+                org.robolectric.RuntimeEnvironment.getApplication().filesDir.listFiles()?.forEach { it.deleteRecursively() }
+            }
+        })
+        .around(rule)
 
     private fun shot(name: String) = rule.onRoot().captureRoboImage("build/shots/$name.png")
     private fun tap(text: String) = rule.onAllNodesWithText(text).onFirst().performClick()

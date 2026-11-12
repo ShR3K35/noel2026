@@ -16,6 +16,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import fr.relance.app.ui.AppViewModel
 import fr.relance.app.ui.BilanScreen
 import fr.relance.app.ui.C
+import fr.relance.app.ui.CalibrationScreen
 import fr.relance.app.ui.CatalogueScreen
 import fr.relance.app.ui.DetailScreen
 import fr.relance.app.ui.HomeScreen
@@ -43,6 +44,7 @@ class MainActivity : ComponentActivity() {
                         Screen.Bilan -> BilanScreen(vm)
                         is Screen.Detail -> DetailScreen(vm, screen.id)
                         Screen.Sensors -> SensorsScreen(vm)
+                        Screen.Calibration -> CalibrationScreen(vm)
                     }
                 }
             }

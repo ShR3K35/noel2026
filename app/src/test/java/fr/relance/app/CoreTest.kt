@@ -2,6 +2,7 @@ package fr.relance.app
 
 import fr.relance.app.core.BleParsers
 import fr.relance.app.core.BlockKind
+import fr.relance.app.core.Calibration
 import fr.relance.app.core.Coach
 import fr.relance.app.core.Export
 import fr.relance.app.core.Feedback
@@ -276,6 +277,31 @@ class CoreTest {
         assertEquals(8.0, full.speedKmh!!, 0.001)
         assertEquals(-1.0, full.inclinePct!!, 0.001)
         assertNull(BleParsers.treadmill(byteArrayOf(0x00)))
+    }
+
+    @Test fun calibrationCorrectsTheDistancePerTurn() {
+        // Le boîtier lit 10 % trop vite : la distance par tour doit baisser de 10 %.
+        val pts = Calibration.STEPS.map { Calibration.Point(it, it * 1.1) }
+        val um = Calibration.newDistance(157_080, pts)!!
+        assertEquals(142_800.0, um.toDouble(), 50.0)
+        assertEquals(10.0, Calibration.errorPercent(pts), 0.01)
+        // Un point aberrant (console mal réglée) est écarté.
+        assertEquals(um, Calibration.newDistance(157_080, pts + Calibration.Point(6.0, 1.0)))
+        assertNull(Calibration.newDistance(157_080, listOf(Calibration.Point(6.0, 0.0))))
+        assertNull(Calibration.newDistance(70_000, listOf(Calibration.Point(3.0, 5.0))))
+        assertEquals(123_456L, Calibration.decode(Calibration.encode(123_456)))
+        assertNull(Calibration.decode(byteArrayOf(1, 2)))
+        assertTrue(Calibration.isStable(listOf(4.4, 4.5, 4.5, 4.5, 4.6)))
+        assertFalse(Calibration.isStable(listOf(4.0, 4.5, 4.5, 4.5, 4.6)))
+        assertFalse(Calibration.isStable(listOf(4.5, 4.5)))
+        assertFalse(Calibration.isStable(listOf(0.0, 0.0, 0.0, 0.0, 0.0)))
+    }
+
+    @Test fun firmwareFramesAreDecodedByTheApp() {
+        // Mêmes octets que test_frame_encoding dans firmware/test/test_speed : 7,0 km/h, 1 234 m.
+        val t = BleParsers.treadmill(byteArrayOf(0x04, 0x00, 0xBC.toByte(), 0x02, 0xD2.toByte(), 0x04, 0x00))!!
+        assertEquals(7.0, t.speedKmh!!, 0.001)
+        assertNull(t.inclinePct)
     }
 
     @Test fun historyAggregates() {

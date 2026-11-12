@@ -38,6 +38,9 @@ class BleManager(private val ctx: Context) {
         val FTMS_SERVICE: UUID = UUID.fromString("00001826-0000-1000-8000-00805f9b34fb")
         val TREADMILL_DATA: UUID = UUID.fromString("00002acd-0000-1000-8000-00805f9b34fb")
         val CCCD: UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
+        /** Service propre au boîtier Relance : distance parcourue par la bande pour un tour de rouleau. */
+        val CALIB_SERVICE: UUID = UUID.fromString("6f1e0001-5c3a-4b8e-9d2f-7a1c0e5b9a01")
+        val CALIB_CHAR: UUID = UUID.fromString("6f1e0002-5c3a-4b8e-9d2f-7a1c0e5b9a01")
     }
 
     val hr = MutableStateFlow<Int?>(null)
@@ -47,6 +50,10 @@ class BleManager(private val ctx: Context) {
     val treadmillLink = MutableStateFlow(Link.OFF)
     val found = MutableStateFlow<List<FoundDevice>>(emptyList())
     val scanning = MutableStateFlow(false)
+    /** Distance par tour de rouleau du boîtier, en micromètres ; null si le tapis n'a pas ce réglage. */
+    val calibrationUm = MutableStateFlow<Long?>(null)
+    /** Dernier envoi d'étalonnage : null tant que rien n'est envoyé, puis true ou false. */
+    val calibrationSaved = MutableStateFlow<Boolean?>(null)
 
     private var hrGatt: BluetoothGatt? = null
     private var treadmillGatt: BluetoothGatt? = null
@@ -117,10 +124,33 @@ class BleManager(private val ctx: Context) {
 
     fun disconnectTreadmill() {
         close(treadmillGatt); treadmillGatt = null; speed.value = null; incline.value = null; treadmillLink.value = Link.OFF
+        calibrationUm.value = null
     }
 
     fun shutdown() {
         stopScan(); disconnectHeartRate(); disconnectTreadmill()
+    }
+
+    /** Envoie une nouvelle distance par tour au boîtier, qui la garde en mémoire. */
+    fun writeCalibration(um: Long): Boolean {
+        val gatt = treadmillGatt ?: return false
+        if (!hasPermissions()) return false
+        val ch = gatt.getService(CALIB_SERVICE)?.getCharacteristic(CALIB_CHAR) ?: return false
+        val bytes = fr.relance.app.core.Calibration.encode(um)
+        calibrationSaved.value = null
+        return try {
+            if (Build.VERSION.SDK_INT >= 33) {
+                gatt.writeCharacteristic(ch, bytes, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT) == 0
+            } else {
+                @Suppress("DEPRECATION")
+                ch.value = bytes
+                ch.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+                @Suppress("DEPRECATION")
+                gatt.writeCharacteristic(ch)
+            }
+        } catch (e: Exception) {
+            false
+        }
     }
 
     private fun close(gatt: BluetoothGatt?) {
@@ -172,6 +202,33 @@ class BleManager(private val ctx: Context) {
                 gatt.writeDescriptor(descriptor)
             }
             link.value = Link.CONNECTED
+        }
+
+        override fun onDescriptorWrite(gatt: BluetoothGatt, descriptor: BluetoothGattDescriptor, status: Int) {
+            // Une opération GATT à la fois : la lecture de l'étalonnage attend la fin de l'abonnement.
+            if (heartRate) return
+            val ch = gatt.getService(CALIB_SERVICE)?.getCharacteristic(CALIB_CHAR) ?: return
+            gatt.readCharacteristic(ch)
+        }
+
+        @Deprecated("Appelé avant Android 13")
+        override fun onCharacteristicRead(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, status: Int) {
+            @Suppress("DEPRECATION")
+            if (status == BluetoothGatt.GATT_SUCCESS) handleCalibration(characteristic.uuid, characteristic.value ?: return)
+        }
+
+        override fun onCharacteristicRead(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, value: ByteArray, status: Int) {
+            if (status == BluetoothGatt.GATT_SUCCESS) handleCalibration(characteristic.uuid, value)
+        }
+
+        override fun onCharacteristicWrite(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, status: Int) {
+            if (characteristic.uuid != CALIB_CHAR) return
+            calibrationSaved.value = status == BluetoothGatt.GATT_SUCCESS
+            if (status == BluetoothGatt.GATT_SUCCESS) gatt.readCharacteristic(characteristic)
+        }
+
+        private fun handleCalibration(uuid: UUID, value: ByteArray) {
+            if (uuid == CALIB_CHAR) fr.relance.app.core.Calibration.decode(value)?.let { calibrationUm.value = it }
         }
 
         @Deprecated("Appelé avant Android 13")
