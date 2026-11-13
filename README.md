@@ -4,7 +4,7 @@ App Android de remise au sport sur tapis de course : un coach qui s'adapte à to
 
 ## Installer l'app
 
-**[Télécharger l'APK (relance.apk)](apk/relance.apk?raw=true)** — version 0.7.0, Android 8 ou plus récent.
+**[Télécharger l'APK (relance.apk)](apk/relance.apk?raw=true)** — version 0.8.0, Android 8 ou plus récent.
 
 1. Ouvre ce lien depuis le téléphone, ou copie le fichier `apk/relance.apk` dessus.
 2. Ouvre le fichier et accepte l'installation depuis cette source (Android le demande pour toute app hors Play Store).
@@ -24,7 +24,7 @@ Le coureur animé, à l'arrêt, en marche, au trot et en course rapide :
 
 - **Bilan de départ** : questions de santé, profil, zones sensibles, test de marche, jours et durée disponibles.
 - **Programmes sur mesure** : courir 10 min, 30 min, 45 min, 1 h, 5 km, 10 km, améliorer ses performances, santé et forme. Un seul programme à la fois, avec pause, arrêt et liste des programmes effectués.
-- **Planning** : toutes les semaines jusqu'à l'objectif, à déplier une par une ; chaque séance s'ouvre sur son détail bloc par bloc (durées, vitesses, inclinaison, distance et calories estimées). Une semaine allégée sur quatre avec test de forme. Une séance manquée glisse, elle n'est jamais doublée.
+- **Planning** : toutes les semaines jusqu'à l'objectif, à déplier une par une ; chaque séance s'ouvre sur son détail bloc par bloc (durées, vitesses, inclinaison, distance et calories estimées). Une semaine allégée sur quatre avec test de forme. Un palier se valide après 2 séances clés : à 1 séance par semaine, le programme est deux fois plus long ; à 2, 3 ou 4 séances, sa durée ne change pas et les séances en plus sont de l'endurance. Une séance manquée glisse, elle n'est jamais doublée.
 - **Séance en avance** : la prochaine séance peut se faire avant sa date ; les suivantes avancent d'autant.
 - **Annuler une séance** depuis sa fiche : la dernière séance du programme est annulée « pour la refaire » (le programme revient à son état d'avant et elle redevient la prochaine séance) ; une séance plus ancienne est seulement retirée de l'historique.
 - **Séance guidée** : compte à rebours par bloc, vitesse à régler, annonces vocales, version courte « je n'ai que 15 min », bouton « trop dur ».
