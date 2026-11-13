@@ -13,8 +13,8 @@ android {
         applicationId = "fr.relance.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 9
-        versionName = "0.9.0"
+        versionCode = 11
+        versionName = "0.9.2"
         // Adresse du catalogue publié depuis l'interface coach.
         buildConfigField("String", "CATALOG_URL", "\"" + (project.findProperty("relance.catalogUrl") ?: "https://relance-coach.netlify.app/api/catalog") + "\"")
     }

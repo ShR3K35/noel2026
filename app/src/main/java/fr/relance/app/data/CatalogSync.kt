@@ -84,13 +84,24 @@ class CatalogSync(private val dir: File, private val fixedUrl: String? = null) {
                         saveMeta(Meta(c.getHeaderField("ETag") ?: "", now, now))
                         if (catalog.version == previous && file.exists()) Result.UpToDate(catalog.version) else Result.Updated(catalog)
                     }
+                    404 -> Result.Failed("Aucun catalogue à cette adresse (erreur 404). Vérifie l'adresse : elle doit finir par /api/catalog.")
                     else -> Result.Failed("Le serveur des programmes a répondu ${c.responseCode}.")
                 }
             } finally {
                 c.disconnect()
             }
+        } catch (e: java.net.UnknownHostException) {
+            Result.Failed("Serveur introuvable : vérifie la connexion Internet du téléphone, ou l'adresse du serveur.")
+        } catch (e: java.net.SocketTimeoutException) {
+            Result.Failed("Le serveur des programmes ne répond pas. Réessaie dans un moment.")
+        } catch (e: java.net.MalformedURLException) {
+            Result.Failed("Adresse du serveur invalide : $url")
+        } catch (e: kotlinx.serialization.SerializationException) {
+            Result.Failed("Le catalogue reçu est illisible pour cette version de l'app. Mets l'app à jour.")
+        } catch (e: SecurityException) {
+            Result.Failed("L'app n'a pas accès à Internet.")
         } catch (e: Exception) {
-            Result.Failed("Pas de connexion au serveur des programmes.")
+            Result.Failed("Pas de connexion au serveur des programmes (${e.javaClass.simpleName}).")
         }
     }
 

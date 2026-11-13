@@ -65,8 +65,15 @@ fun DayPicker(days: Set<Int>, onChange: (Set<Int>) -> Unit) {
 
 @Composable
 fun MinutesPicker(minutes: Int, onChange: (Int) -> Unit) {
-    val options = listOf(15, 20, 30, 45)
-    ChipRow(options.map { "$it min" }, options.indexOf(minutes)) { onChange(options[it]) }
+    val options = listOf(30, 45, 60, 90, 120)
+    ChipRow(options.map(::availability), options.indexOf(minutes)) { onChange(options[it]) }
+}
+
+/** 30 → « 30 min », 60 → « 1 h », 90 → « 1 h 30 ». */
+fun availability(minutes: Int): String = when {
+    minutes < 60 -> "$minutes min"
+    minutes % 60 == 0 -> "${minutes / 60} h"
+    else -> "${minutes / 60} h ${"%02d".format(minutes % 60)}"
 }
 
 /** Le catalogue, avec les durées calculées pour ce profil. */
@@ -234,7 +241,7 @@ fun OnboardingScreen(vm: AppViewModel) {
                     Small("Tu pourras raccourcir une séance le jour même.")
                     val n = Coach.trainingDays(draft).size
                     Card(color = C.Soft) {
-                        Strong(if (days.isEmpty()) "Choisis au moins un jour" else "$n séance${if (n > 1) "s" else ""} par semaine · $minutes min")
+                        Strong(if (days.isEmpty()) "Choisis au moins un jour" else "$n séance${if (n > 1) "s" else ""} par semaine · ${availability(minutes)}")
                         Body(
                             when {
                                 days.isEmpty() -> "Sans jour coché, impossible de planifier."

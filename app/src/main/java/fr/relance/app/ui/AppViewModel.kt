@@ -101,6 +101,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         catalogVersion = Catalogs.current.version
         catalogCheckedAt = catalogSync.meta().checkedAt
         var loaded = store.load()
+        // Disponibilités proposées : 30 min à 2 h. Un ancien profil à 15 ou 20 min passe à 30 min.
+        loaded.profile?.let { if (it.minutesPerSession < 30) loaded = loaded.copy(profile = it.copy(minutesPerSession = 30)) }
         loaded.program?.let { p ->
             val prof = loaded.profile
             val migrated = if (prof != null) Coach.migrate(p, prof) else p

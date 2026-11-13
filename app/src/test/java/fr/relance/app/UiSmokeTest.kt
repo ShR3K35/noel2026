@@ -53,6 +53,9 @@ class UiSmokeTest {
         tap("Continuer"); shot("03-genes")
         tap("Continuer"); shot("04-test")
         tap("Continuer"); shot("05-emploi-du-temps")
+        // Disponibilités : de 30 min à 2 h, plus de 15 ni de 20 min.
+        listOf("30 min", "45 min", "1 h", "1 h 30", "2 h").forEach { rule.onNodeWithText(it).assertIsDisplayed() }
+        assertEquals(0, rule.onAllNodesWithText("15 min").fetchSemanticsNodes().size)
         tap("Continuer"); shot("06-objectif")
         tap("Voir mon programme")
         rule.waitForIdle()

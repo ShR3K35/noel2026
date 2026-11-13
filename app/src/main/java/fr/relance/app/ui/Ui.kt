@@ -126,13 +126,13 @@ fun Btn(
 
 /** Choix sélectionnable : la sélection se lit par le remplissage, pas seulement par la teinte. */
 @Composable
-fun Chip(text: String, selected: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
+fun Chip(text: String, selected: Boolean, modifier: Modifier = Modifier, padding: Dp = 10.dp, onClick: () -> Unit) {
     val shape = RoundedCornerShape(12.dp)
     Box(
         modifier.heightIn(min = 48.dp).clip(shape).background(if (selected) C.Accent else C.Card)
             .border(1.5.dp, if (selected) C.Accent else C.Line, shape)
             .semantics { this.selected = selected }
-            .clickable(role = Role.Button, onClick = onClick).padding(horizontal = 10.dp),
+            .clickable(role = Role.Button, onClick = onClick).padding(horizontal = padding),
         contentAlignment = Alignment.Center,
     ) {
         Text(
@@ -144,8 +144,10 @@ fun Chip(text: String, selected: Boolean, modifier: Modifier = Modifier, onClick
 
 @Composable
 fun ChipRow(options: List<String>, selected: Int, onSelect: (Int) -> Unit) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        options.forEachIndexed { i, o -> Chip(o, i == selected, Modifier.weight(1f)) { onSelect(i) } }
+    // Beaucoup de choix : moins de marge, pour que « 30 min » tienne sur une ligne.
+    val dense = options.size >= 5
+    Row(horizontalArrangement = Arrangement.spacedBy(if (dense) 6.dp else 8.dp)) {
+        options.forEachIndexed { i, o -> Chip(o, i == selected, Modifier.weight(1f), if (dense) 2.dp else 10.dp) { onSelect(i) } }
     }
 }
 
