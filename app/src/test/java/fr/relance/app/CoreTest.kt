@@ -79,10 +79,45 @@ class CoreTest {
 
     @Test fun weeksIncludeDeloadWeeks() {
         val l = ladder(ProgramType.RUN_30, n2)
-        assertTrue(Coach.weeksFor(t(ProgramType.RUN_30), l.size) > l.size)
-        assertEquals(8 + 2, Coach.weeksFor(t(ProgramType.HEALTH), ladder(ProgramType.HEALTH, n2).size))
+        assertTrue(Coach.weeksFor(t(ProgramType.RUN_30), l.size, 3) > l.size)
+        assertEquals(8 + 2, Coach.weeksFor(t(ProgramType.HEALTH), ladder(ProgramType.HEALTH, n2).size, 3))
         assertEquals(8, ladder(ProgramType.HEALTH, n2.copy(level = Level.N1)).size)
         assertEquals(15, ladder(ProgramType.HEALTH, n2.copy(level = Level.N1)).first().p("minutes"))
+    }
+
+    @Test fun fewerTrainingDaysMakeALongerProgram() {
+        // Un palier = 2 séances clés : à 1 séance par semaine, chaque palier prend deux semaines.
+        val weeks = (1..4).map { n ->
+            val prof = n2.copy(days = listOf(1, 3, 5, 7).take(n).toSet())
+            val p = Coach.newProgram(ProgramType.RUN_30, prof, today)
+            val plan = Coach.plan(p, prof, today)
+            // L'estimation affichée correspond au planning réel.
+            assertEquals("à $n séance(s)", p.weeksPlanned, plan.map { it.week }.distinct().size)
+            // Chaque palier est joué au moins deux fois en séance clé.
+            val keySessions = plan.filter { it.isKey && !it.deload }.groupBy { it.detail }
+            assertTrue(keySessions.values.all { it.size >= 2 })
+            p.weeksPlanned
+        }
+        assertTrue(weeks[0] > weeks[1] * 1.7)
+        assertEquals(weeks[1], weeks[2])
+        assertEquals(weeks[2], weeks[3])
+        // Un coach qui veut aller plus vite à 3 jours met trois séances clés : le programme raccourcit.
+        val fast = t(ProgramType.RUN_30).copy(weekPatterns = mapOf("1" to "K", "2" to "KK", "3" to "KKK", "4" to "KEKR"))
+        val prof3 = n2.copy(days = setOf(1, 3, 5))
+        assertTrue(Coach.weeksFor(fast, ladder(ProgramType.RUN_30, prof3).size, 3) < weeks[2])
+    }
+
+    @Test fun anIncompleteKeySessionDoesNotCountTowardTheStep() {
+        val prof = n2.copy(days = setOf(1, 4))
+        var p = Coach.newProgram(ProgramType.RUN_30, prof, today)
+        val s = Coach.sessionFor(p, prof, today)
+        p = Coach.applyFeedback(p, prof, s, Feedback(rpe = 6, completed = false), today).program
+        assertEquals(0, p.keysInStep)
+        p = Coach.applyFeedback(p, prof, Coach.sessionFor(p, prof, today + 3), Feedback(rpe = 6), today + 3).program
+        assertEquals(0, p.stepIndex) // la séance reprise au palier précédent ne compte pas non plus
+        p = Coach.applyFeedback(p, prof, Coach.sessionFor(p, prof, today + 7), Feedback(rpe = 6), today + 7).program
+        p = Coach.applyFeedback(p, prof, Coach.sessionFor(p, prof, today + 10), Feedback(rpe = 6), today + 10).program
+        assertEquals(1, p.stepIndex)
     }
 
     @Test fun lockedProgramsExplainWhy() {

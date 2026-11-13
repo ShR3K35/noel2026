@@ -90,15 +90,39 @@ export function resolve(t: ProgramTemplate, p: Profile, c: Catalog): ResolvedSte
   return steps;
 }
 
-export function weeksFor(stepCount: number, deloadEvery: number): number {
+/** Séquence des rôles (K, E, R) d'une semaine à `n` séances. */
+export function patternFor(t: ProgramTemplate, n: number): string {
+  const keys = Object.keys(t.weekPatterns);
+  const maxKey = keys.reduce((a, b) => ((Number(b) || 0) > (Number(a) || 0) ? b : a), keys[0]);
+  return t.weekPatterns[String(n)] ?? t.weekPatterns[maxKey] ?? "K";
+}
+
+export const keysPerWeek = (t: ProgramTemplate, n: number) => [...patternFor(t, n)].filter((c) => c === "K").length;
+export const keysPerStepOf = (t: ProgramTemplate) => Math.max(1, t.keysPerStep ?? 2);
+
+/** Durée en semaines : un palier se valide après `keysPerStep` séances clés ; rien ne progresse en semaine allégée. */
+export function weeksFor(stepCount: number, deloadEvery: number, kpw = 1, kps = 1): number {
+  kpw = Math.max(1, kpw);
+  kps = Math.max(1, kps);
   let week = 0;
   let step = 0;
-  while (step < stepCount) {
-    if (!(deloadEvery > 0 && week % deloadEvery === deloadEvery - 1 && step > 0)) step++;
+  let keys = 0;
+  while (step < stepCount && week < 2000) {
+    const deload = deloadEvery > 0 && week % deloadEvery === deloadEvery - 1 && step > 0;
+    if (!deload) for (let i = 0; i < kpw; i++) {
+      if (step < stepCount && ++keys >= kps) {
+        step++;
+        keys = 0;
+      }
+    }
     week++;
   }
   return week;
 }
+
+/** Durée d'un programme pour un nombre de séances par semaine. */
+export const programWeeks = (t: ProgramTemplate, stepCount: number, sessionsPerWeek: number) =>
+  weeksFor(stepCount, t.deload.every, keysPerWeek(t, sessionsPerWeek), keysPerStepOf(t));
 
 export function lockedReason(t: ProgramTemplate, p: Profile): string | null {
   if (p.healthFlag && !t.requires.allowHealthFlag) return "Avis médical conseillé avant de courir";
@@ -218,7 +242,7 @@ export const minutesOf = (s: PlannedSession) => Math.floor((s.blocks.reduce((a, 
 // ---------- Progression (sans retours de séance) ----------
 
 export function newState(t: ProgramTemplate, p: Profile, c: Catalog): ProgramState {
-  return { template: t, catalog: c, steps: resolve(t, p, c), stepIndex: 0, week: 0, sessionInWeek: 0, speedFactor: 1 };
+  return { template: t, catalog: c, steps: resolve(t, p, c), stepIndex: 0, week: 0, sessionInWeek: 0, keysInStep: 0, speedFactor: 1 };
 }
 
 const isDeload = (st: ProgramState) => {
@@ -242,9 +266,7 @@ export function sessionFor(st: ProgramState, p: Profile, day: number, cap = 0): 
   const special = (id: string, params: Record<string, number>, capp: number) => build(typeOf(st, id), params, p, s, day, st.week, false, deload, capp);
   if (deload && t.deload.testAtEnd && n >= 2 && slot === n - 1) return special(c.specials.test, {}, 0);
 
-  const keys = Object.keys(t.weekPatterns);
-  const maxKey = keys.reduce((a, b) => ((Number(b) || 0) > (Number(a) || 0) ? b : a), keys[0]);
-  const pattern = t.weekPatterns[String(n)] ?? t.weekPatterns[maxKey] ?? "K";
+  const pattern = patternFor(t, n);
   const role = pattern[Math.min(slot, pattern.length - 1)] ?? "K";
   if (role === "R") return special(c.specials.recovery, {}, cap);
   if (role === "E") {
@@ -270,12 +292,17 @@ export function sessionFor(st: ProgramState, p: Profile, day: number, cap = 0): 
   return build(type, params, p, s, day, st.week, true, deload, cap);
 }
 
+/** Séance faite (et réussie) : un palier se valide après `keysPerStep` séances clés hors semaine allégée. */
 export function advance(st: ProgramState, p: Profile): ProgramState {
+  const n = trainingDays(p).length;
+  const pattern = patternFor(st.template, n);
+  const role = pattern[Math.min(st.sessionInWeek, pattern.length - 1)] ?? "K";
   let q = { ...st, sessionInWeek: st.sessionInWeek + 1 };
-  if (q.sessionInWeek >= trainingDays(p).length) {
-    const next = isDeload(st) ? st.stepIndex : st.stepIndex + 1;
-    q = { ...q, sessionInWeek: 0, week: st.week + 1, stepIndex: next };
+  if (role === "K" && !isDeload(st)) {
+    const keys = st.keysInStep + 1;
+    q = keys < keysPerStepOf(st.template) ? { ...q, keysInStep: keys } : { ...q, keysInStep: 0, stepIndex: st.stepIndex + 1 };
   }
+  if (q.sessionInWeek >= n) q = { ...q, sessionInWeek: 0, week: st.week + 1 };
   return q;
 }
 

@@ -627,6 +627,7 @@
     "every": 4,
     "testAtEnd": true
    },
+   "keysPerStep": 2,
    "weekPatterns": {
     "1": "K",
     "2": "KK",
@@ -893,6 +894,7 @@
     "every": 4,
     "testAtEnd": true
    },
+   "keysPerStep": 2,
    "weekPatterns": {
     "1": "K",
     "2": "KK",
@@ -1201,6 +1203,7 @@
     "every": 4,
     "testAtEnd": true
    },
+   "keysPerStep": 2,
    "weekPatterns": {
     "1": "K",
     "2": "KK",
@@ -1560,6 +1563,7 @@
     "every": 4,
     "testAtEnd": true
    },
+   "keysPerStep": 2,
    "weekPatterns": {
     "1": "K",
     "2": "KK",
@@ -1993,6 +1997,7 @@
     "every": 4,
     "testAtEnd": true
    },
+   "keysPerStep": 2,
    "weekPatterns": {
     "1": "K",
     "2": "KK",
@@ -2426,6 +2431,7 @@
     "every": 4,
     "testAtEnd": true
    },
+   "keysPerStep": 2,
    "weekPatterns": {
     "1": "K",
     "2": "KK",
@@ -2662,6 +2668,7 @@
     "every": 4,
     "testAtEnd": true
    },
+   "keysPerStep": 2,
    "weekPatterns": {
     "1": "K",
     "2": "KK",
@@ -2955,6 +2962,7 @@
     "every": 4,
     "testAtEnd": true
    },
+   "keysPerStep": 2,
    "weekPatterns": {
     "1": "K",
     "2": "KK",

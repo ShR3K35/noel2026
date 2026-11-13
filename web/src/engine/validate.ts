@@ -105,6 +105,11 @@ export function validateProgram(t: ProgramTemplate, c: Catalog): Issue[] {
     else if (pattern.length !== Number(n)) issues.push({ level: "warning", where, message: `Semaine à ${n} séance(s) : la séquence « ${pattern} » compte ${pattern.length} séance(s).` });
     if (!pattern.includes("K")) issues.push({ level: "warning", where, message: `Semaine à ${n} séance(s) : aucune séance clé, le programme n'avancera pas.` });
   }
+  const kps = Math.max(1, t.keysPerStep ?? 2);
+  for (const [n, pattern] of Object.entries(t.weekPatterns)) {
+    const k = [...pattern].filter((c) => c === "K").length;
+    if (k > kps) issues.push({ level: "warning", where, message: `Semaine à ${n} séance(s) : ${k} séances clés pour ${kps} par palier, un palier dure moins d'une semaine. Progression rapide pour une reprise.` });
+  }
   if (t.deload.every <= 0) issues.push({ level: "warning", where, message: "Pas de semaine allégée : le corps a besoin d'une semaine plus légère toutes les 3 à 5 semaines." });
   else if (t.deload.every > 6) issues.push({ level: "warning", where, message: `Une semaine allégée toutes les ${t.deload.every} semaines, c'est rare pour une reprise (3 à 5 conseillé).` });
   if (t.goal.kind === "distance" && !(t.goal.km > 0)) issues.push({ level: "error", where, message: "Objectif en distance sans distance." });

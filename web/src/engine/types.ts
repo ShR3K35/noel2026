@@ -68,6 +68,8 @@ export interface ProgramTemplate {
   id: string; name: string; validation: string; description: string; order: number; enabled: boolean;
   goal: Goal; requires: Requires; recommend: RecommendRule[];
   steps: StepT[]; startAtMastered: boolean; easy: EasyT; deload: DeloadT;
+  /** Séances clés à réussir pour valider un palier (2 par défaut). */
+  keysPerStep?: number;
   weekPatterns: Record<string, string>; weekNotes: Record<string, string>;
 }
 
@@ -94,5 +96,5 @@ export interface ResolvedStep { sessions: SessionRef[]; note: string }
 /** Position dans un programme (sous-ensemble de Program côté app, sans l'adaptation aux retours de séance). */
 export interface ProgramState {
   template: ProgramTemplate; catalog: Catalog; steps: ResolvedStep[];
-  stepIndex: number; week: number; sessionInWeek: number; speedFactor: number;
+  stepIndex: number; week: number; sessionInWeek: number; keysInStep: number; speedFactor: number;
 }

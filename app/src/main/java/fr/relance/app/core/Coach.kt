@@ -39,13 +39,15 @@ object Coach {
     fun ladderFor(t: ProgramTemplate, p: Profile, c: Catalog = Catalogs.current): List<ResolvedStep> =
         Templates.resolve(t, p, c.paces) { c.type(it) }
 
-    fun weeksFor(t: ProgramTemplate, steps: Int): Int = Templates.weeksFor(steps, t.deload.every)
+    /** Durée prévue pour `sessionsPerWeek` séances par semaine. */
+    fun weeksFor(t: ProgramTemplate, steps: Int, sessionsPerWeek: Int): Int =
+        Templates.weeksFor(steps, t.deload.every, Templates.keysPerWeek(t, sessionsPerWeek), t.keysPerStep)
 
     fun newProgram(t: ProgramTemplate, p: Profile, today: Long, c: Catalog = Catalogs.current): Program {
         val steps = ladderFor(t, p, c)
         val draft = Program(
             id = "p$today-${t.id}-${System.nanoTime() % 100000}", templateId = t.id, name = t.name, validation = t.validation,
-            startDay = today, steps = steps, snapshot = snapshotOf(t, c), vrStart = p.vr, weeksPlanned = weeksFor(t, steps.size),
+            startDay = today, steps = steps, snapshot = snapshotOf(t, c), vrStart = p.vr, weeksPlanned = weeksFor(t, steps.size, sessionsPerWeek(p)),
             startLevel = p.level, startLongestRun = p.longestRunMin,
         )
         return draft.copy(sessionsPlanned = plan(draft, p, today).size)
@@ -62,7 +64,7 @@ object Coach {
         val steps = ladderFor(t, profile, Catalogs.builtin)
         return p.copy(
             templateId = t.id, name = t.name, validation = t.validation, steps = steps, snapshot = snapshotOf(t, Catalogs.builtin),
-            stepIndex = p.stepIndex.coerceAtMost(steps.size - 1), weeksPlanned = weeksFor(t, steps.size), type = null,
+            stepIndex = p.stepIndex.coerceAtMost(steps.size - 1), weeksPlanned = weeksFor(t, steps.size, sessionsPerWeek(profile)), type = null,
         )
     }
 
@@ -83,7 +85,7 @@ object Coach {
         val steps = ladderFor(snap.template, start, catalog)
         return p.copy(
             snapshot = snap, pending = null, steps = steps, name = snap.template.name, validation = snap.template.validation,
-            stepIndex = p.stepIndex.coerceAtMost(maxOf(0, steps.size - 1)), weeksPlanned = weeksFor(snap.template, steps.size),
+            stepIndex = p.stepIndex.coerceAtMost(maxOf(0, steps.size - 1)), weeksPlanned = weeksFor(snap.template, steps.size, sessionsPerWeek(profile)),
         )
     }
 
@@ -134,7 +136,7 @@ object Coach {
         }
         if (deload && t.deload.testAtEnd && n >= 2 && slot == n - 1) return special(p, sp.test, profile, s, day, emptyMap(), 0)!!
 
-        val pattern = t.weekPatterns[n.toString()] ?: t.weekPatterns[t.weekPatterns.keys.maxByOrNull { it.toIntOrNull() ?: 0 }] ?: "K"
+        val pattern = Templates.patternFor(t, n)
         val role = pattern.getOrElse(slot.coerceAtMost(pattern.length - 1)) { 'K' }
         if (role == 'R') return special(p, sp.recovery, profile, s, day, emptyMap(), cap)!!
         if (role == 'E') {
@@ -155,18 +157,30 @@ object Coach {
         return Templates.build(type, params, profile, s, day, p.week, true, deload, cap)
     }
 
-    /** Position suivante dans le programme, une fois la séance courante faite. */
-    fun advance(p: Program, profile: Profile): Program {
+    /**
+     * Position suivante dans le programme, une fois la séance courante faite. Un palier se valide après
+     * `keysPerStep` séances clés réussies : moins de séances par semaine, progression plus lente.
+     * `countsKey` = false pour une séance clé écourtée, qui ne compte pas.
+     */
+    fun advance(p: Program, profile: Profile, countsKey: Boolean = true): Program {
         if (p.testNext) return p.copy(testNext = false)
+        val t = p.snapshot?.template
+        val n = sessionsPerWeek(profile)
+        val pattern = t?.let { Templates.patternFor(it, n) } ?: "K"
+        val role = pattern.getOrElse(p.sessionInWeek.coerceAtMost(pattern.length - 1)) { 'K' }
         var q = p.copy(sessionInWeek = p.sessionInWeek + 1, fallbackNext = false, flatWalkNext = false)
-        if (q.sessionInWeek >= sessionsPerWeek(profile)) {
-            val last = p.steps.size - 1
-            val next = when {
-                isDeload(p) || p.repeatWeek -> p.stepIndex
-                p.skipStep && p.stepIndex + 2 <= last -> p.stepIndex + 2
-                else -> p.stepIndex + 1
+        // Ne comptent pas : semaine allégée, marche à plat après une gêne, séance reprise au palier précédent.
+        if (role == 'K' && countsKey && !isDeload(p) && !p.flatWalkNext && !p.fallbackNext) {
+            val keys = p.keysInStep + 1
+            q = when {
+                keys < max(1, t?.keysPerStep ?: 2) -> q.copy(keysInStep = keys)
+                p.repeatWeek -> q.copy(keysInStep = 0, repeatWeek = false)
+                p.skipStep && p.stepIndex + 2 <= p.steps.size - 1 -> q.copy(keysInStep = 0, stepIndex = p.stepIndex + 2, skipStep = false)
+                else -> q.copy(keysInStep = 0, stepIndex = p.stepIndex + 1, skipStep = false)
             }
-            q = q.copy(sessionInWeek = 0, week = p.week + 1, stepIndex = next, repeatWeek = false, skipStep = false)
+        }
+        if (q.sessionInWeek >= n) {
+            q = q.copy(sessionInWeek = 0, week = p.week + 1)
             q.pending?.let { q = withSnapshot(q, it, profile) }
         }
         return q
@@ -243,7 +257,7 @@ object Coach {
         if (fb.completed && longestRunMin > prof.longestRunMin) prof = prof.copy(longestRunMin = longestRunMin)
 
         // Les consignes pour la séance suivante se posent après l'avancée, qui efface celles de la séance faite.
-        q = advance(q, prof).copy(
+        q = advance(q, prof, countsKey = fb.completed).copy(
             sessionsDone = q.sessionsDone + 1, lastSessionDay = today,
             fallbackNext = !fb.completed, flatWalkNext = fb.pain != Pain.NONE,
         )
@@ -271,7 +285,7 @@ object Coach {
         val gap = today - p.lastSessionDay
         if (gap < 14) return p
         return p.copy(
-            stepIndex = max(0, p.stepIndex - 2), sessionInWeek = 0, testNext = gap >= 28,
+            stepIndex = max(0, p.stepIndex - 2), sessionInWeek = 0, keysInStep = 0, testNext = gap >= 28,
             lastSessionDay = today - 1, recentRpe = emptyList(),
         )
     }

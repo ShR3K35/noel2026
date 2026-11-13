@@ -80,7 +80,7 @@ fun CatalogueList(profile: Profile, selected: ProgramTemplate?, onSelect: (Progr
                 if (type.id == advised?.id && locked == null) Label("Conseillé pour toi", if (isSel) Color.White else C.Accent)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Text(type.name, color = fg, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-                    Text(locked ?: "${Coach.weeksFor(type, ladder.size)} semaines", color = if (isSel) Color.White else C.Muted, fontSize = 13.sp)
+                    Text(locked ?: "${Coach.weeksFor(type, ladder.size, Coach.sessionsPerWeek(profile))} semaines", color = if (isSel) Color.White else C.Muted, fontSize = 13.sp)
                 }
                 if (locked == null && isSel && type.description.isNotBlank()) Small(type.description, Color.White)
                 if (locked == null && isSel) {

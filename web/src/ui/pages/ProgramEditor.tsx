@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { minutesOf, newState, plan, weeksFor } from "../../engine/engine";
+import { minutesOf, newState, plan, programWeeks, trainingDays } from "../../engine/engine";
 import type { Catalog, Level, ProgramTemplate, SessionRef, StepT } from "../../engine/types";
 import { LEVELS } from "../../engine/types";
 import { REFERENCE_PROFILES } from "../../engine/validate";
@@ -154,7 +154,7 @@ function Preview({ t, catalog }: { t: ProgramTemplate; catalog: Catalog }) {
       ) : (
         <>
           <p className="small" style={{ margin: 0 }}>
-            {result.st.steps.length} paliers retenus · {weeksFor(result.st.steps.length, t.deload.every)} semaines · {result.sessions.length} séances
+            {result.st.steps.length} paliers retenus · {programWeeks(t, result.st.steps.length, trainingDays(profile).length)} semaines · {result.sessions.length} séances
             · {profile.days.length} séances/semaine
           </p>
           <svg viewBox={`0 0 300 80`} width="100%" role="img" aria-label="Minutes d'entraînement par semaine">
@@ -280,6 +280,23 @@ export function ProgramEditor({ id }: { id: string }) {
                     onChange={(e) => set((p) => { p.weekPatterns[n] = e.target.value.toUpperCase().replace(/[^KER]/g, ""); })} />
                 </Field>
               ))}
+            </div>
+            <div className="row" style={{ alignItems: "flex-end" }}>
+              <Field label="Séances clés par palier" hint="Un palier est validé après ce nombre de séances clés réussies.">
+                <Num label="Séances clés par palier" value={t.keysPerStep ?? 2} min={1} max={6} onChange={(v) => set((p) => { p.keysPerStep = Math.max(1, Math.round(v)); })} />
+              </Field>
+              <div className="small" style={{ flex: 1, minWidth: 240 }}>
+                <span className="label">Durée selon les jours</span>
+                <div className="row" style={{ marginTop: 4 }}>
+                  {[1, 2, 3, 4].map((n) => {
+                    const prof = { ...REFERENCE_PROFILES[1].profile, days: [1, 3, 5, 7].slice(0, n) };
+                    let w = "—";
+                    try { w = String(programWeeks(t, newState(t, prof, draft).steps.length, n)); } catch { /* incomplet */ }
+                    return <span key={n} className="tag">{n} j/sem : {w} sem.</span>;
+                  })}
+                </div>
+                <span className="muted">Pour un N2. Moins de séances clés par semaine, programme plus long.</span>
+              </div>
             </div>
             <h3>Séances d'endurance (E)</h3>
             <div className="row" style={{ alignItems: "flex-end" }}>

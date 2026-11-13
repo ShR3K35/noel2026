@@ -109,6 +109,8 @@ data class Program(
     val stepIndex: Int = 0,
     val week: Int = 0,
     val sessionInWeek: Int = 0,
+    /** Séances clés déjà réussies sur le palier en cours. */
+    val keysInStep: Int = 0,
     val speedFactor: Double = 1.0,
     val repeatWeek: Boolean = false,
     val skipStep: Boolean = false,

@@ -82,6 +82,8 @@ data class ProgramTemplate(
     val goal: Goal = Goal(), val requires: Requires = Requires(), val recommend: List<RecommendRule> = emptyList(),
     val steps: List<StepT> = emptyList(), val startAtMastered: Boolean = true,
     val easy: EasyT = EasyT(), val deload: DeloadT = DeloadT(),
+    /** Séances clés à réussir pour valider un palier : moins de jours par semaine, programme plus long. */
+    val keysPerStep: Int = 2,
     /** Séquence des rôles d'une semaine selon le nombre de séances : K clé, E endurance, R récupération. */
     val weekPatterns: Map<String, String> = mapOf("1" to "K", "2" to "KK", "3" to "KEK", "4" to "KEKR"),
     /** Mot du coach par numéro de semaine (« 1 », « 2 »…). */
@@ -177,11 +179,30 @@ object Templates {
         return steps
     }
 
-    fun weeksFor(stepCount: Int, deloadEvery: Int): Int {
+    /** Séquence des rôles (K, E, R) d'une semaine à `n` séances. */
+    fun patternFor(t: ProgramTemplate, n: Int): String =
+        t.weekPatterns[n.toString()] ?: t.weekPatterns[t.weekPatterns.keys.maxByOrNull { it.toIntOrNull() ?: 0 }] ?: "K"
+
+    fun keysPerWeek(t: ProgramTemplate, n: Int): Int = patternFor(t, n).count { it == 'K' }
+
+    /**
+     * Durée en semaines : un palier se valide après `keysPerStep` séances clés, semaines allégées comprises
+     * (pas de progression pendant une semaine allégée).
+     */
+    fun weeksFor(stepCount: Int, deloadEvery: Int, keysPerWeek: Int = 1, keysPerStep: Int = 1): Int {
+        val kpw = max(1, keysPerWeek)
+        val kps = max(1, keysPerStep)
         var week = 0
         var step = 0
-        while (step < stepCount) {
-            if (!(deloadEvery > 0 && week % deloadEvery == deloadEvery - 1 && step > 0)) step++
+        var keys = 0
+        while (step < stepCount && week < 2000) {
+            val deload = deloadEvery > 0 && week % deloadEvery == deloadEvery - 1 && step > 0
+            if (!deload) repeat(kpw) {
+                if (step < stepCount && ++keys >= kps) {
+                    step++
+                    keys = 0
+                }
+            }
             week++
         }
         return week

@@ -1,4 +1,4 @@
-import { newState, weeksFor } from "../../engine/engine";
+import { newState, programWeeks, trainingDays } from "../../engine/engine";
 import type { ProgramTemplate } from "../../engine/types";
 import { REFERENCE_PROFILES } from "../../engine/validate";
 import { clone, useRoute, useStore } from "../store";
@@ -10,7 +10,7 @@ export function blankProgram(id: string): ProgramTemplate {
     steps: [{ sessions: [{ type: "walk", params: { minutes: 20 } }], levels: ["N1", "N2", "N3", "N4"], note: "" }],
     startAtMastered: true,
     easy: { types: ["hill", "walk"], fallback: "walk", startMinutes: 15, stepMinutes: 5, maxMinutes: 30 },
-    deload: { every: 4, testAtEnd: true, factor: 0.7 },
+    deload: { every: 4, testAtEnd: true, factor: 0.7 }, keysPerStep: 2,
     weekPatterns: { "1": "K", "2": "KK", "3": "KEK", "4": "KEKR" }, weekNotes: {},
   };
 }
@@ -64,7 +64,7 @@ export function Programs() {
           let weeks = "—";
           try {
             const st = newState(p, ref, draft);
-            weeks = String(weeksFor(st.steps.length, p.deload.every));
+            weeks = String(programWeeks(p, st.steps.length, trainingDays(ref).length));
           } catch { /* programme incomplet */ }
           return (
             <div key={p.id} className="card">

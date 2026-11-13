@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import catalogJson from "../../../catalog/catalog.json";
 import fixtures from "./fixtures.json";
-import { newState, plan, weeksFor } from "./engine";
+import { newState, plan, programWeeks } from "./engine";
 import type { Catalog, Profile } from "./types";
 
 const catalog = catalogJson as unknown as Catalog;
@@ -18,7 +18,7 @@ describe("le simulateur calcule exactement comme l'app", () => {
       const t = catalog.programs.find((p) => p.id === f.program)!;
       const st = newState(t, f.profile, catalog);
       expect(st.steps.length).toBe(f.steps);
-      expect(weeksFor(st.steps.length, t.deload.every)).toBe(f.weeks);
+      expect(programWeeks(t, st.steps.length, new Set(f.profile.days).size > 4 ? 4 : new Set(f.profile.days).size)).toBe(f.weeks);
       const got = plan(st, f.profile, f.startDay).map((s) => ({
         day: s.day, kind: s.kind, title: s.title, detail: s.detail, isKey: s.isKey, week: s.week, deload: s.deload,
         blocks: s.blocks.map((b) => [b.kind, b.seconds, b.speedKmh, b.inclinePct]),

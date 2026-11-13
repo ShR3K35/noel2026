@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { kcalPerMin, lockedReason, minutesOf, newState, plan, recommended, speedsFor, weeksFor } from "../../engine/engine";
+import { kcalPerMin, lockedReason, minutesOf, newState, plan, programWeeks, recommended, speedsFor, trainingDays } from "../../engine/engine";
 import type { Level, PlannedSession, Profile } from "../../engine/types";
 import { LEVEL_LABELS, LEVELS } from "../../engine/types";
 import { REFERENCE_PROFILES } from "../../engine/validate";
@@ -100,7 +100,7 @@ export function Simulator({ programId }: { programId?: string }) {
           {sim?.ok && (
             <section className="card">
               <div className="row between">
-                <h2>{sim.sessions.length} séances · {weeksFor(sim.st.steps.length, t.deload.every)} semaines</h2>
+                <h2>{sim.sessions.length} séances · {programWeeks(t, sim.st.steps.length, trainingDays(profile).length)} semaines</h2>
                 <span className="small muted">
                   {sim.sessions.length ? `Du ${dateOf(sim.sessions[0].day)} au ${dateOf(sim.sessions[sim.sessions.length - 1].day)}` : ""}
                   {" · "}{Math.round(sim.sessions.reduce((a, s) => a + minutesOf(s), 0) / 60)} h au total
