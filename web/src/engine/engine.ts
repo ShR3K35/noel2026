@@ -219,8 +219,7 @@ export function expand(blocks: BlockT[], params: Record<string, number>, s: Spee
       const n = Math.max(0, roundInt(params[b.repeat ?? ""] ?? evalMinutes(b.repeat ?? "0", params)));
       for (let i = 0; i < n; i++) out.push(...expand(b.blocks ?? [], params, s, p));
     } else {
-      const minutes = Math.max(1, evalMinutes(b.minutes, params));
-      out.push({ kind: b.kind as BlockKind, seconds: roundInt(minutes * 60), speedKmh: speedOf(b.pace, b.paceFactor ?? 1, s, p, b.kmh ?? 0), inclinePct: inclineOf(b.incline, p) });
+      out.push({ kind: b.kind as BlockKind, seconds: blockSeconds(evalMinutes(b.minutes, params)), speedKmh: speedOf(b.pace, b.paceFactor ?? 1, s, p, b.kmh ?? 0), inclinePct: inclineOf(b.incline, p) });
     }
   }
   return out;
@@ -228,7 +227,23 @@ export function expand(blocks: BlockT[], params: Record<string, number>, s: Spee
 
 function totalMinutes(blocks: BlockT[], params: Record<string, number>): number {
   return blocks.reduce((sum, b) =>
-    sum + (b.kind === "REPEAT" ? (params[b.repeat ?? ""] ?? 0) * totalMinutes(b.blocks ?? [], params) : Math.max(1, evalMinutes(b.minutes, params))), 0);
+    sum + (b.kind === "REPEAT" ? (params[b.repeat ?? ""] ?? 0) * totalMinutes(b.blocks ?? [], params) : blockSeconds(evalMinutes(b.minutes, params)) / 60), 0);
+}
+
+/** Plus court bloc possible : 10 s (lignes droites). */
+export const MIN_BLOCK_SEC = 10;
+
+/** Durée d'un bloc : une durée nulle ou négative vaut 1 min (comme avant) ; sinon à la seconde, 10 s au moins. */
+export const blockSeconds = (minutes: number): number => (minutes <= 0 ? 60 : Math.max(MIN_BLOCK_SEC, roundInt(minutes * 60)));
+
+/** Une séance de ce type contient-elle de la course ? */
+export const hasRunning = (blocks: BlockT[]): boolean =>
+  blocks.some((b) => (b.kind === "REPEAT" ? hasRunning(b.blocks ?? []) : b.kind === "RUN" || b.kind === "FAST"));
+
+/** La veille ou le lendemain de `day` est aussi un jour d'entraînement. */
+export function adjacentTrainingDay(p: Profile, day: number): boolean {
+  const days = trainingDays(p);
+  return days.includes(dayOfWeek(day - 1)) || days.includes(dayOfWeek(day + 1));
 }
 
 function fill(text: string, params: Record<string, number>, s: Speeds, p: Profile): string {
@@ -323,7 +338,10 @@ export function sessionFor(st: ProgramState, p: Profile, day: number, cap = 0): 
   if (role === "E") {
     // Séance d'endurance propre au palier, si le coach l'a prévue.
     const own = st.steps[Math.min(Math.max(st.stepIndex - (deload ? 1 : 0), 0), Math.max(0, st.steps.length - 1))]?.easy;
-    const ownType = own ? c.sessionTypes.find((x) => x.id === own.type) : undefined;
+    let ownType = own ? c.sessionTypes.find((x) => x.id === own.type) : undefined;
+    // Jamais deux séances de course à moins de 48 h : l'endurance par défaut remplace une endurance avec course
+    // placée la veille ou le lendemain d'un autre jour d'entraînement.
+    if (ownType && hasRunning(ownType.blocks) && adjacentTrainingDay(p, day)) ownType = undefined;
     if (own && ownType) {
       const ps: Record<string, number> = {};
       for (const d of ownType.params) ps[d.name] = d.default;

@@ -1,5 +1,5 @@
 // Garde-fous : erreurs (bloquent la publication) et avertissements de coach (à lire, non bloquants).
-import { dayOfWeek, evalMinutes, forLevel, levelsOf, minutesOf, newState, plan } from "./engine";
+import { dayOfWeek, evalMinutes, forLevel, levelsOf, minutesOf, newState, patternFor, plan } from "./engine";
 import type { BlockT, Catalog, Level, Profile, ProgramTemplate, SessionType } from "./types";
 
 export interface Issue {
@@ -114,7 +114,9 @@ export function validateProgram(t0: ProgramTemplate, c: Catalog): Issue[] {
       const kps = Math.max(1, t.keysPerStep ?? 2);
       if (k > kps) push({ level: "warning", where: w0, message: `${lv} · semaine à ${n} séance(s) : ${k} séances clés pour ${kps} par palier, un palier dure moins d'une semaine. Progression rapide pour une reprise.` });
     }
-    if (t.deload.every <= 0) push({ level: "warning", where: w0, message: `${lv} : pas de semaine allégée. Prévois une semaine plus légère toutes les 3 à 5 semaines, ou des semaines répétées.` });
+    // Paliers tenus au moins deux semaines (à 3 séances) : ce sont des semaines répétées, la stabilité tient lieu d'allègement.
+    const weeksPerStep = Math.max(1, t.keysPerStep ?? 2) / Math.max(1, [...patternFor(t, 3)].filter((ch) => ch === "K").length);
+    if (t.deload.every <= 0 && weeksPerStep < 2) push({ level: "warning", where: w0, message: `${lv} : pas de semaine allégée. Prévois une semaine plus légère toutes les 3 à 5 semaines, ou des semaines répétées.` });
     else if (t.deload.every > 6) push({ level: "warning", where: w0, message: `${lv} : une semaine allégée toutes les ${t.deload.every} semaines, c'est rare pour une reprise (3 à 5 conseillé).` });
     // Règle de coach : un seul curseur à la fois d'un palier au suivant.
     for (let i = 1; i < t.steps.length; i++) {
@@ -158,7 +160,10 @@ export function simulateWarnings(t: ProgramTemplate, c: Catalog): Issue[] {
     });
     const weeks = [...weekly.keys()].sort((a, b) => a - b);
     // On compare chaque semaine à la dernière semaine normale : une semaine allégée ne sert pas de référence.
+    // La hausse permise s'étale sur les semaines tenues au même niveau : +10 % par semaine en moyenne.
     let ref: number | null = null;
+    // Semaines normales tenues au niveau actuel (une semaine allégée ne compte pas).
+    let held = 0;
     for (const wk of weeks) {
       const cur = weekly.get(wk)!;
       const deload = sessions.find((s) => s.week === wk)?.deload;
@@ -167,12 +172,14 @@ export function simulateWarnings(t: ProgramTemplate, c: Catalog): Issue[] {
         const prev = weekly.get(ref)!;
         const w = `entre les semaines ${ref + 1} et ${wk + 1}`;
         // En dessous de 30 min de course par semaine, on progresse par paliers : la règle des +10 % ne s'applique qu'au-delà.
-        if (prev.run >= 30 && cur.run > prev.run * 1.1 && cur.run - prev.run > 10) {
-          add(`${name} : la course passe de ${Math.round(prev.run)} à ${Math.round(cur.run)} min par semaine ${w} (plus de +10 %).`);
+        const h = Math.max(1, held);
+        if (prev.run >= 30 && cur.run > prev.run * (1 + 0.1 * h) && cur.run - prev.run > 10) {
+          add(`${name} : la course passe de ${Math.round(prev.run)} à ${Math.round(cur.run)} min par semaine ${w} (plus de +10 %${h > 1 ? ` par semaine en moyenne sur ${h} semaines` : ""}).`);
         } else if (cur.total > prev.total * 1.25 && cur.total - prev.total > 15) {
           add(`${name} : le volume total passe de ${prev.total} à ${cur.total} min ${w} (plus de +25 %).`);
         }
       }
+      held = ref != null && cur.run > weekly.get(ref)!.run + 0.5 ? 1 : held + 1;
       ref = wk;
     }
     const longest = Math.max(...sessions.map(minutesOf));

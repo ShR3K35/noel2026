@@ -27,3 +27,20 @@ describe("le simulateur calcule exactement comme l'app", () => {
     });
   }
 });
+
+describe("blocs courts et 48 h", () => {
+  it("garde un bloc à la seconde, 10 s au moins, et 1 min pour une durée nulle", async () => {
+    const { blockSeconds } = await import("./engine");
+    expect(blockSeconds(0.33)).toBe(20);
+    expect(blockSeconds(0.05)).toBe(10);
+    expect(blockSeconds(0)).toBe(60);
+    expect(blockSeconds(-1)).toBe(60);
+  });
+  it("repère un autre jour d'entraînement la veille ou le lendemain", async () => {
+    const { adjacentTrainingDay } = await import("./engine");
+    const p = { age: 40, weightKg: 70, level: "N2", vr: 5, longestRunMin: 0, healthFlag: false, days: [1, 3, 6], minutesPerSession: 30, inclinePct: 3, treadmillMaxKmh: 14 } as const;
+    // 20409 = lundi 16 novembre 2026.
+    expect(adjacentTrainingDay({ ...p, days: [1, 3, 6] }, 20409 + 2)).toBe(false);
+    expect(adjacentTrainingDay({ ...p, days: [1, 2, 3] }, 20409 + 1)).toBe(true);
+  });
+});

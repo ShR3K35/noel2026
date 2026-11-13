@@ -15,7 +15,9 @@ Format d'échange d'un programme Relance, pour l'import et l'export dans l'inter
 - **Mêmes noms que le moteur** : un programme exporté se réimporte à l'identique.
 - **Vitesses** : relatives à la vitesse de référence du sportif (conseillé) ou fixes en km/h (`pace: "kmh"`), toujours plafonnées à la vitesse maximale de son tapis.
 - **Endurance par palier** : un palier peut fixer sa propre séance d'endurance (`steps[i].easy`), par exemple une marche dont la durée suit un tableau.
-- **Durées** : décimales autorisées (1,25 min = 1 min 15 s), affichées avec `{param:min}`.
+- **Durées** : décimales autorisées (1,25 min = 1 min 15 s ; 0,33 min = 20 s, 10 s au moins), affichées avec `{param:min}`.
+- **Saut de palier** : `allowSkip: false` tient chaque palier jusqu'au bout, même après deux séances faciles.
+- **48 h** : une endurance de palier avec course, la veille ou le lendemain d'un autre jour d'entraînement, est remplacée par l'endurance par défaut du programme.
 
 ## À l'import
 

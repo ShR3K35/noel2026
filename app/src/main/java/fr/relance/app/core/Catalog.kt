@@ -105,6 +105,11 @@ data class ProgramTemplate(
     val weekPatterns: Map<String, String> = mapOf("1" to "K", "2" to "KK", "3" to "KEK", "4" to "KEKR"),
     /** Mot du coach par numéro de semaine (« 1 », « 2 »…). */
     val weekNotes: Map<String, String> = emptyMap(),
+    /**
+     * Deux séances faciles de suite font sauter un palier. À désactiver pour un programme dont chaque palier doit être
+     * tenu jusqu'au bout (méthode Daniels : on ne va pas plus vite que le plan, même quand c'est facile).
+     */
+    val allowSkip: Boolean = true,
     /** Variantes par niveau. Un niveau absent n'a pas accès au programme. Vide : ancien format (`steps` filtrés par niveau). */
     val variants: Map<Level, VariantT> = emptyMap(),
 ) {
@@ -342,11 +347,10 @@ object Templates {
                 val n = (params[b.repeat] ?: evalMinutes(b.repeat, params)).roundToInt().coerceAtLeast(0)
                 repeat(n) { out += expand(b.blocks, params, s, p, warnings) }
             } else {
-                val minutes = max(1.0, evalMinutes(b.minutes, params))
                 val raw = rawSpeedOf(b.pace, b.paceFactor, s, p, b.kmh)
                 val v = speedOf(b.pace, b.paceFactor, s, p, b.kmh)
                 if (warnings != null) conflict(b.pace, raw, v, p)?.let { warnings += it }
-                out += Block(kindOf(b.kind), (minutes * 60).roundToInt(), v, inclineOf(b.incline, p))
+                out += Block(kindOf(b.kind), blockSeconds(evalMinutes(b.minutes, params)), v, inclineOf(b.incline, p))
             }
         }
         return out
@@ -400,8 +404,21 @@ object Templates {
 
     private fun totalMinutes(blocks: List<BlockT>, params: Map<String, Double>): Double = blocks.sumOf { b ->
         if (b.kind == "REPEAT") (params[b.repeat] ?: 0.0) * totalMinutes(b.blocks, params)
-        else max(1.0, evalMinutes(b.minutes, params))
+        else blockSeconds(evalMinutes(b.minutes, params)) / 60.0
     }
+
+    /** Plus court bloc possible : 10 s (lignes droites). */
+    const val MIN_BLOCK_SEC = 10
+
+    /**
+     * Durée d'un bloc en secondes. Une durée nulle ou négative (paramètre trop petit, ex. « minutes-6 » avec 5 min)
+     * vaut 1 min, comme avant ; une durée positive est gardée à la seconde, avec 10 s au moins.
+     */
+    fun blockSeconds(minutes: Double): Int = if (minutes <= 0) 60 else max(MIN_BLOCK_SEC, (minutes * 60).roundToInt())
+
+    /** Une séance de ce type contient-elle de la course ? */
+    fun hasRunning(blocks: List<BlockT>): Boolean =
+        blocks.any { b -> if (b.kind == "REPEAT") hasRunning(b.blocks) else b.kind == "RUN" || b.kind == "FAST" }
 
     /** Allègement d'une semaine de récupération : moins de répétitions, des durées plus courtes. */
     fun deloaded(params: Map<String, Double>, factor: Double): Map<String, Double> = params.mapValues { (k, v) ->

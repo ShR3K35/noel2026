@@ -59,6 +59,7 @@ function normalizeProgram(p: ProgramTemplate, order: number): ProgramTemplate {
     steps: [],
     startAtMastered: p.startAtMastered ?? true,
     keysPerStep: p.keysPerStep ?? 2,
+    ...(p.allowSkip === false ? { allowSkip: false } : {}),
     easy: p.easy ? clone(p.easy) : { types: ["hill", "walk"], fallback: "walk", startMinutes: 15, stepMinutes: 5, maxMinutes: 30 },
     deload: p.deload ? { factor: 0.7, ...clone(p.deload) } : { every: 4, testAtEnd: true, factor: 0.7 },
     weekPatterns: p.weekPatterns ? clone(p.weekPatterns) : { "1": "K", "2": "KK", "3": "KEK", "4": "KEKR" },

@@ -353,6 +353,10 @@ export function ProgramEditor({ id }: { id: string }) {
               <label className="check"><input type="checkbox" checked={t.startAtMastered} onChange={(e) => set((p) => { p.startAtMastered = e.target.checked; })} />Démarrer au dernier palier déjà maîtrisé</label>
               <span className="small muted">Un sportif qui court déjà 20 min saute les paliers plus faciles.</span>
             </div>
+            <div className="row">
+              <label className="check"><input type="checkbox" checked={t.allowSkip !== false} onChange={(e) => set((p) => { if (e.target.checked) delete p.allowSkip; else p.allowSkip = false; })} />Deux séances faciles de suite font sauter un palier</label>
+              <span className="small muted">À décocher pour tenir chaque palier jusqu'au bout (méthode Daniels).</span>
+            </div>
             <h3>Conseillé à</h3>
             {t.recommend.map((r, i) => (
               <div key={i} className="row">

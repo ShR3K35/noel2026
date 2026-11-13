@@ -74,3 +74,18 @@ describe("contrat d'import relance.program v1", () => {
     expect(merged.programs.find((p) => p.id === "run-30")!.name).toBe("Courir 30 min");
   });
 });
+
+describe("saut de palier", () => {
+  it("garde allowSkip à l'import et à l'export", () => {
+    const raw = readFileSync(new URL("../../../contract/examples/courir-30-min-daniels.json", import.meta.url), "utf8");
+    const r = parseProgramFile(raw, catalog);
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    const out = applyImport(catalog, r.plan, false);
+    const p = out.catalog.programs.find((x) => x.id === out.programId)!;
+    expect(p.allowSkip).toBe(false);
+    expect(exportProgram(p, out.catalog).program.allowSkip).toBe(false);
+    // Paliers tenus deux semaines, sorties faciles plafonnées : aucun avertissement de coach.
+    expect(validateCatalog(out.catalog).filter((i) => i.where.program === out.programId)).toEqual([]);
+  });
+});

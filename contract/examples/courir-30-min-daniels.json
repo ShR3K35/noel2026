@@ -4,7 +4,7 @@
   "meta": {
     "source": "Conçu par Claude à partir de l'analyse critique des programmes Relance face à la méthode de Jack Daniels (Daniels' Running Formula)",
     "generatedAt": "2026-11-13T18:00:00Z",
-    "rationale": "Principes repris de Daniels pour les débutants (son plan « blanc ») : uniquement de l'allure facile, où l'on peut parler ; une charge gardée deux semaines avant d'augmenter (4 séances clés par palier, au lieu d'un palier par semaine) ; des séances de durée voisine (30 à 42 min) dont seule la part de trot grandit ; pas de semaine allégée ni de test, la stabilité en tient lieu ; à partir de 20 min de trot par séance, la séance du milieu de semaine devient une sortie facile en marche-course, d'abord très courte (6 min de trot) puis jusqu'à 20 min, pour augmenter la fréquence avant la durée : la séance la plus longue reste sous 40 % du trot hebdomadaire à 3 séances, et le trot hebdomadaire ne monte pas de plus de 30 % par quinzaine au-delà de 30 min (soit environ 12 % par semaine en moyenne, au lieu de 20 à 33 % chaque semaine dans « Courir 30 min »). Aucune allure n'est calculée par un indice VDOT : cet indice demande une performance à fond, déconseillée en reprise, et ses tables commencent au-delà de ce niveau. Le trot suit le « trot facile » calibré du sportif (ou le repli de l'app). Limites connues : les lignes droites de 15 à 20 s de Daniels ne sont pas incluses (un bloc dure au moins 1 min dans le moteur) ; la règle « deux séances faciles font sauter un palier » de l'app reste active ; à 3 jours consécutifs, deux séances de trot peuvent se suivre à moins de 48 h : préférer des jours espacés. N1 démarre par de la marche et garde des séances du milieu en marche. N3 part des fractions de 2 min, N4 des fractions de 5 min. Durée à 2 séances ou plus par semaine : N1 24 semaines, N2 20, N3 16, N4 12. Après le programme, un chrono sur 5 km ou un test de 12 min permettra de calculer un VDOT pour un programme de performance."
+    "rationale": "Principes repris de Daniels pour les débutants (son plan « blanc ») : uniquement de l'allure facile, où l'on peut parler ; une charge gardée deux semaines avant d'augmenter (4 séances clés par palier, au lieu d'un palier par semaine) ; des séances de durée voisine (30 à 42 min) dont seule la part de trot grandit ; pas de semaine allégée ni de test, la stabilité en tient lieu ; à partir de 20 min de trot par séance, la séance du milieu de semaine devient une sortie facile en marche-course, d'abord très courte (6 min de trot) puis jusqu'à 20 min, pour augmenter la fréquence avant la durée : la séance la plus longue reste sous 40 % du trot hebdomadaire à 3 séances, et le trot hebdomadaire ne monte pas de plus de 30 % par quinzaine au-delà de 30 min (soit environ 12 % par semaine en moyenne, au lieu de 20 à 33 % chaque semaine dans « Courir 30 min »). Aucune allure n'est calculée par un indice VDOT : cet indice demande une performance à fond, déconseillée en reprise, et ses tables commencent au-delà de ce niveau. Le trot suit le « trot facile » calibré du sportif (ou le repli de l'app). Les sorties faciles des quatre derniers paliers se terminent par 4 lignes droites de 20 s (accélérations relâchées à l'allure rapide du profil, 1 min de marche entre), comme Daniels les ajoute aux sorties faciles. Le saut de palier est désactivé (allowSkip : false) : on ne va pas plus vite que le plan, même quand c'est facile. Si la veille ou le lendemain est aussi un jour d'entraînement, l'app remplace la sortie facile avec trot par une marche, pour garder 48 h entre deux séances de trot. N1 démarre par de la marche et garde des séances du milieu en marche. N3 part des fractions de 2 min, N4 des fractions de 5 min. Durée à 2 séances ou plus par semaine : N1 24 semaines, N2 20, N3 16, N4 12. Après le programme, un chrono sur 5 km ou un test de 12 min permettra de calculer un VDOT pour un programme de performance."
   },
   "program": {
     "id": "courir-30-min-daniels",
@@ -319,13 +319,15 @@
                 }
               }
             ],
-            "note": "27 min de trot : fractions de 9 min. Sortie facile : 14 min de trot.",
+            "note": "27 min de trot : fractions de 9 min. Sortie facile : 10 min de trot (10 × 1 min), puis 4 lignes droites de 20 s.",
             "easy": {
-              "type": "intervals",
+              "type": "trot-facile-lignes-droites",
               "params": {
-                "a": 2,
+                "a": 1,
                 "b": 1,
-                "reps": 7
+                "reps": 10,
+                "strides": 4,
+                "stride": 0.33
               }
             }
           },
@@ -340,13 +342,15 @@
                 }
               }
             ],
-            "note": "30 min de trot en trois blocs de 10 min. Sortie facile : 18 min de trot.",
+            "note": "30 min de trot en trois blocs de 10 min. Sortie facile : 14 min de trot (7 × 2 min), puis 4 lignes droites de 20 s.",
             "easy": {
-              "type": "intervals",
+              "type": "trot-facile-lignes-droites",
               "params": {
-                "a": 3,
+                "a": 2,
                 "b": 1,
-                "reps": 6
+                "reps": 7,
+                "strides": 4,
+                "stride": 0.33
               }
             }
           },
@@ -361,13 +365,15 @@
                 }
               }
             ],
-            "note": "30 min de trot en deux blocs de 15 min. Sortie facile : 20 min de trot.",
+            "note": "30 min de trot en deux blocs de 15 min. Sortie facile : 18 min de trot (6 × 3 min), puis 4 lignes droites de 20 s.",
             "easy": {
-              "type": "intervals",
+              "type": "trot-facile-lignes-droites",
               "params": {
-                "a": 5,
+                "a": 3,
                 "b": 1,
-                "reps": 4
+                "reps": 6,
+                "strides": 4,
+                "stride": 0.33
               }
             }
           },
@@ -380,15 +386,26 @@
                 }
               }
             ],
-            "note": "30 min continues. Objectif atteint après quatre séances réussies. Sortie facile : 20 min.",
+            "note": "30 min continues. Objectif atteint après quatre séances réussies. Sortie facile : 20 min de trot (4 × 5 min), puis 4 lignes droites de 20 s.",
             "easy": {
-              "type": "continuous",
+              "type": "trot-facile-lignes-droites",
               "params": {
-                "minutes": 20
+                "a": 5,
+                "b": 1,
+                "reps": 4,
+                "strides": 4,
+                "stride": 0.33
               }
             }
           }
-        ]
+        ],
+        "weekNotes": {
+          "1": "Méthode Daniels : une seule allure, facile. Tu dois pouvoir parler en trottant ; si ce n'est pas le cas, ralentis. Chaque palier dure deux semaines.",
+          "2": "Même séance que la semaine dernière, et c'est voulu : le corps s'adapte quand la charge reste stable.",
+          "3": "Nouveau palier. La durée de la séance change peu, c'est la part de trot qui grandit.",
+          "9": "Bientôt la sortie facile du milieu de semaine : courir un peu plus souvent avant de courir plus longtemps.",
+          "13": "Nouveauté : quelques lignes droites de 20 s en fin de sortie facile. Accélère progressivement, reste relâché, ce n'est pas un sprint."
+        }
       },
       "N3": {
         "description": "Tu trottes déjà par petits bouts : départ aux fractions de 2 min.",
@@ -472,13 +489,15 @@
                 }
               }
             ],
-            "note": "27 min de trot : fractions de 9 min. Sortie facile : 14 min de trot.",
+            "note": "27 min de trot : fractions de 9 min. Sortie facile : 10 min de trot (10 × 1 min), puis 4 lignes droites de 20 s.",
             "easy": {
-              "type": "intervals",
+              "type": "trot-facile-lignes-droites",
               "params": {
-                "a": 2,
+                "a": 1,
                 "b": 1,
-                "reps": 7
+                "reps": 10,
+                "strides": 4,
+                "stride": 0.33
               }
             }
           },
@@ -493,13 +512,15 @@
                 }
               }
             ],
-            "note": "30 min de trot en trois blocs de 10 min. Sortie facile : 18 min de trot.",
+            "note": "30 min de trot en trois blocs de 10 min. Sortie facile : 14 min de trot (7 × 2 min), puis 4 lignes droites de 20 s.",
             "easy": {
-              "type": "intervals",
+              "type": "trot-facile-lignes-droites",
               "params": {
-                "a": 3,
+                "a": 2,
                 "b": 1,
-                "reps": 6
+                "reps": 7,
+                "strides": 4,
+                "stride": 0.33
               }
             }
           },
@@ -514,13 +535,15 @@
                 }
               }
             ],
-            "note": "30 min de trot en deux blocs de 15 min. Sortie facile : 20 min de trot.",
+            "note": "30 min de trot en deux blocs de 15 min. Sortie facile : 18 min de trot (6 × 3 min), puis 4 lignes droites de 20 s.",
             "easy": {
-              "type": "intervals",
+              "type": "trot-facile-lignes-droites",
               "params": {
-                "a": 5,
+                "a": 3,
                 "b": 1,
-                "reps": 4
+                "reps": 6,
+                "strides": 4,
+                "stride": 0.33
               }
             }
           },
@@ -533,15 +556,24 @@
                 }
               }
             ],
-            "note": "30 min continues. Objectif atteint après quatre séances réussies. Sortie facile : 20 min.",
+            "note": "30 min continues. Objectif atteint après quatre séances réussies. Sortie facile : 20 min de trot (4 × 5 min), puis 4 lignes droites de 20 s.",
             "easy": {
-              "type": "continuous",
+              "type": "trot-facile-lignes-droites",
               "params": {
-                "minutes": 20
+                "a": 5,
+                "b": 1,
+                "reps": 4,
+                "strides": 4,
+                "stride": 0.33
               }
             }
           }
-        ]
+        ],
+        "weekNotes": {
+          "1": "Méthode Daniels : une seule allure, facile. Tu dois pouvoir parler en trottant ; si ce n'est pas le cas, ralentis. Chaque palier dure deux semaines.",
+          "2": "Même séance que la semaine dernière, et c'est voulu : le corps s'adapte quand la charge reste stable.",
+          "3": "Nouveau palier. La durée de la séance change peu, c'est la part de trot qui grandit."
+        }
       },
       "N4": {
         "description": "Reprise après une coupure : départ aux fractions de 5 min.",
@@ -599,13 +631,15 @@
                 }
               }
             ],
-            "note": "27 min de trot : fractions de 9 min. Sortie facile : 14 min de trot.",
+            "note": "27 min de trot : fractions de 9 min. Sortie facile : 10 min de trot (10 × 1 min), puis 4 lignes droites de 20 s.",
             "easy": {
-              "type": "intervals",
+              "type": "trot-facile-lignes-droites",
               "params": {
-                "a": 2,
+                "a": 1,
                 "b": 1,
-                "reps": 7
+                "reps": 10,
+                "strides": 4,
+                "stride": 0.33
               }
             }
           },
@@ -620,13 +654,15 @@
                 }
               }
             ],
-            "note": "30 min de trot en trois blocs de 10 min. Sortie facile : 18 min de trot.",
+            "note": "30 min de trot en trois blocs de 10 min. Sortie facile : 14 min de trot (7 × 2 min), puis 4 lignes droites de 20 s.",
             "easy": {
-              "type": "intervals",
+              "type": "trot-facile-lignes-droites",
               "params": {
-                "a": 3,
+                "a": 2,
                 "b": 1,
-                "reps": 6
+                "reps": 7,
+                "strides": 4,
+                "stride": 0.33
               }
             }
           },
@@ -641,13 +677,15 @@
                 }
               }
             ],
-            "note": "30 min de trot en deux blocs de 15 min. Sortie facile : 20 min de trot.",
+            "note": "30 min de trot en deux blocs de 15 min. Sortie facile : 18 min de trot (6 × 3 min), puis 4 lignes droites de 20 s.",
             "easy": {
-              "type": "intervals",
+              "type": "trot-facile-lignes-droites",
               "params": {
-                "a": 5,
+                "a": 3,
                 "b": 1,
-                "reps": 4
+                "reps": 6,
+                "strides": 4,
+                "stride": 0.33
               }
             }
           },
@@ -660,17 +698,129 @@
                 }
               }
             ],
-            "note": "30 min continues. Objectif atteint après quatre séances réussies. Sortie facile : 20 min.",
+            "note": "30 min continues. Objectif atteint après quatre séances réussies. Sortie facile : 20 min de trot (4 × 5 min), puis 4 lignes droites de 20 s.",
             "easy": {
-              "type": "continuous",
+              "type": "trot-facile-lignes-droites",
               "params": {
-                "minutes": 20
+                "a": 5,
+                "b": 1,
+                "reps": 4,
+                "strides": 4,
+                "stride": 0.33
               }
             }
           }
-        ]
+        ],
+        "weekNotes": {
+          "1": "Méthode Daniels : une seule allure, facile. Tu dois pouvoir parler en trottant ; si ce n'est pas le cas, ralentis. Chaque palier dure deux semaines.",
+          "2": "Même séance que la semaine dernière, et c'est voulu : le corps s'adapte quand la charge reste stable.",
+          "3": "Nouveau palier. La durée de la séance change peu, c'est la part de trot qui grandit.",
+          "5": "Nouveauté : quelques lignes droites de 20 s en fin de sortie facile. Accélère progressivement, reste relâché, ce n'est pas un sprint."
+        }
       }
-    }
+    },
+    "allowSkip": false
   },
-  "sessionTypes": []
+  "sessionTypes": [
+    {
+      "id": "trot-facile-lignes-droites",
+      "name": "Trot facile + lignes droites",
+      "kind": "INTERVALS",
+      "title": "Sortie facile et lignes droites",
+      "detail": "{reps} × ({a:min} de trot / {b:min} de marche), puis {strides} lignes droites de {stride:min}",
+      "purpose": "Sortie facile, puis quelques accélérations courtes et relâchées pour la foulée (méthode Daniels). Ce n'est pas un sprint : on accélère progressivement, on reste détendu, on récupère en marchant.",
+      "params": [
+        {
+          "name": "a",
+          "label": "Trot",
+          "default": 5,
+          "min": 1,
+          "max": 30,
+          "unit": "min"
+        },
+        {
+          "name": "b",
+          "label": "Marche",
+          "default": 1,
+          "min": 0.5,
+          "max": 5,
+          "unit": "min"
+        },
+        {
+          "name": "reps",
+          "label": "Répétitions",
+          "default": 4,
+          "min": 1,
+          "max": 12,
+          "unit": "fois"
+        },
+        {
+          "name": "strides",
+          "label": "Lignes droites",
+          "default": 4,
+          "min": 2,
+          "max": 8,
+          "unit": "fois"
+        },
+        {
+          "name": "stride",
+          "label": "Durée d'une ligne droite",
+          "default": 0.33,
+          "min": 0.17,
+          "max": 0.5,
+          "unit": "min"
+        }
+      ],
+      "blocks": [
+        {
+          "kind": "WARMUP",
+          "minutes": "3",
+          "pace": "warm",
+          "incline": "0"
+        },
+        {
+          "kind": "REPEAT",
+          "repeat": "reps",
+          "blocks": [
+            {
+              "kind": "RUN",
+              "minutes": "a",
+              "pace": "run",
+              "incline": "0"
+            },
+            {
+              "kind": "WALK",
+              "minutes": "b",
+              "pace": "warm",
+              "incline": "0"
+            }
+          ]
+        },
+        {
+          "kind": "REPEAT",
+          "repeat": "strides",
+          "blocks": [
+            {
+              "kind": "FAST",
+              "minutes": "stride",
+              "pace": "fast",
+              "incline": "0"
+            },
+            {
+              "kind": "WALK",
+              "minutes": "1",
+              "pace": "warm",
+              "incline": "0"
+            }
+          ]
+        },
+        {
+          "kind": "COOLDOWN",
+          "minutes": "3",
+          "pace": "warm",
+          "incline": "0"
+        }
+      ]
+    }
+  ]
 }

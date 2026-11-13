@@ -4,7 +4,7 @@ App Android de remise au sport sur tapis de course : un coach qui s'adapte à to
 
 ## Installer l'app
 
-**[Télécharger l'APK (relance.apk)](apk/relance.apk?raw=true)** — version 0.10.1, Android 8 ou plus récent.
+**[Télécharger l'APK (relance.apk)](apk/relance.apk?raw=true)** — version 0.10.2, Android 8 ou plus récent.
 
 1. Ouvre ce lien depuis le téléphone, ou copie le fichier `apk/relance.apk` dessus.
 2. Ouvre le fichier et accepte l'installation depuis cette source (Android le demande pour toute app hors Play Store).

@@ -148,6 +148,12 @@ object Coach {
 
     // ---------- Construction des séances ----------
 
+    /** La veille ou le lendemain de `day` est aussi un jour d'entraînement. */
+    fun adjacentTrainingDay(p: Profile, day: Long): Boolean {
+        val days = trainingDays(p)
+        return dayOfWeek(day - 1) in days || dayOfWeek(day + 1) in days
+    }
+
     private fun deloadEvery(p: Program) = p.snapshot?.template?.deload?.every ?: 4
 
     private fun isDeload(p: Program): Boolean = deloadEvery(p).let { it > 0 && p.week % it == it - 1 } && p.stepIndex > 0
@@ -183,7 +189,10 @@ object Coach {
             val wanted = if (e.types.isEmpty()) e.fallback else e.types[p.week % e.types.size]
             // Séance d'endurance propre au palier, si le coach l'a prévue (ex. : marche de 25 puis 30 min).
             val own = p.steps.getOrNull((p.stepIndex - (if (deload) 1 else 0)).coerceIn(0, maxOf(0, p.steps.size - 1)))?.easy
-            val ownType = own?.let { snap.type(it.type) }
+            var ownType = own?.let { snap.type(it.type) }
+            // Jamais deux séances de course à moins de 48 h : une séance d'endurance avec course, la veille ou le
+            // lendemain d'un autre jour d'entraînement, laisse place à l'endurance par défaut du programme (marche, côte).
+            if (ownType != null && Templates.hasRunning(ownType.blocks) && adjacentTrainingDay(profile, day)) ownType = null
             if (own != null && ownType != null) {
                 val ps = ownType.params.associate { it.name to it.default } + own.params
                 return Templates.build(ownType, if (deload) Templates.deloaded(ps, t.deload.factor) else ps, profile, s, day, p.week, false, deload, cap)
@@ -276,6 +285,10 @@ object Coach {
                 recent.size == 2 && recent.all { it >= 8 } -> {
                     msgs += "Deux séances dures de suite : on rejoue cette semaine, un peu moins vite. Ce n'est pas un recul, c'est le bon dosage."
                     q.copy(repeatWeek = true, speedFactor = max(0.8, q.speedFactor * 0.95), recentRpe = emptyList())
+                }
+                recent.size == 2 && recent.all { it <= 4 } && !q.repeatWeek && q.snapshot?.template?.allowSkip == false -> {
+                    msgs += "Deux séances faciles de suite : c'est le signe que la base s'installe. Ce programme garde son rythme : chaque palier est tenu jusqu'au bout."
+                    q.copy(recentRpe = emptyList())
                 }
                 recent.size == 2 && recent.all { it <= 4 } && !q.repeatWeek -> {
                     msgs += "Deux séances faciles de suite : tu sauteras un palier la semaine prochaine."

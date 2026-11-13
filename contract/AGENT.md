@@ -17,15 +17,16 @@ Tu es un coach de reprise sportive sur tapis de course. Tu conçois des programm
   "meta": { "source", "generatedAt", "rationale" },
   "program": {
     "id", "name", "validation", "description", "goal", "requires", "recommend",
-    "keysPerStep", "startAtMastered", "deload", "weekPatterns", "easy", "weekNotes",
+    "keysPerStep", "startAtMastered", "allowSkip", "deload", "weekPatterns", "easy", "weekNotes",
     "variants": { "N1": { "steps": [ … ] }, "N2": { … } } },
   "sessionTypes": [ … types de séance nouveaux … ] }
 ```
 
 - **Niveaux** : N1 redémarrage (sédentaire, marche lente), N2 marcheur (marche active à 5–6 km/h), N3 marche / course (court déjà par petits bouts), N4 reprise course (ancien coureur, arrêt de moins de 6 mois).
 - **Palier** (`steps[i]`) : la ou les séances **clés** d'une semaine type (`sessions`, plusieurs = jouées à tour de rôle), éventuellement sa séance d'**endurance** propre (`easy`), et une note pour le coach (`note`, non montrée au sportif).
-- **Progression** : un palier est validé après `keysPerStep` séances clés réussies (2 conseillé). Une semaine allégée toutes les `deload.every` semaines (0 = jamais) : le palier précédent y est joué allégé, puis un test de forme si `testAtEnd`.
+- **Progression** : un palier est validé après `keysPerStep` séances clés réussies (2 conseillé). Deux séances jugées faciles de suite font sauter un palier, sauf si `allowSkip` vaut `false` (chaque palier tenu jusqu'au bout). Une semaine allégée toutes les `deload.every` semaines (0 = jamais) : le palier précédent y est joué allégé, puis un test de forme si `testAtEnd`.
 - **Semaine type** (`weekPatterns`) : rôle de chaque séance selon le nombre de séances par semaine choisi par le sportif. `K` clé, `E` endurance, `R` récupération. Conseillé : `{"1":"K","2":"KK","3":"KEK","4":"KEKR"}`.
+- **48 h** : une séance d'endurance propre au palier qui contient de la course est remplacée par l'endurance par défaut (`easy`, de préférence sans course) quand la veille ou le lendemain est aussi un jour d'entraînement.
 - **Endurance** (`easy`) : séance E par défaut (types à tour de rôle, durée de départ, + par semaine, maximum). Un palier peut imposer la sienne avec `steps[i].easy`, par exemple une marche de 25 puis 30 min.
 - **Mot du coach** (`weekNotes`) : un message par numéro de semaine (« 1 », « 9 »…), affiché au sportif.
 - **Réglages par niveau** : une variante peut redéfinir `keysPerStep`, `startAtMastered`, `easy`, `deload`, `weekPatterns`, `weekNotes` et `description`. Les réglages absents reprennent ceux du programme.
@@ -55,7 +56,7 @@ La liste à jour, avec tous les détails, est dans le catalogue publié : https:
 Ajoute-le dans `sessionTypes` quand aucun type existant ne convient (échauffement plus long, vitesses fixes, enchaînement particulier).
 
 - **`blocks`** : `WARMUP`, `WALK`, `HILL`, `RUN`, `FAST`, `COOLDOWN`, ou `REPEAT` (avec `repeat` = nom du paramètre et `blocks` répétés).
-- **`minutes`** (une chaîne) : `"7"`, `"a"` ou `"minutes-6"`. Les durées peuvent être décimales : `1.25` = 1 min 15 s.
+- **`minutes`** (une chaîne) : `"7"`, `"a"` ou `"minutes-6"`. Les durées peuvent être décimales : `1.25` = 1 min 15 s, `0.33` = 20 s (10 s au moins ; une durée nulle ou négative vaut 1 min).
 - **`pace`** :
   - `warm` ×0,8 VR, `recovery` ×0,75, `walk` ×0,95, `hill` ×0,85 ;
   - `run` ×1,2 VR (entre 6 et 10 km/h), `tempo` ×1,12 de `run`, `fast` ×1,25 de `run` ;

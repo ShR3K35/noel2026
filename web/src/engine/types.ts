@@ -78,6 +78,8 @@ export interface ProgramTemplate {
   steps: StepT[]; startAtMastered: boolean; easy: EasyT; deload: DeloadT;
   /** Séances clés à réussir pour valider un palier (2 par défaut). */
   keysPerStep?: number;
+  /** Deux séances faciles de suite font sauter un palier (vrai par défaut). */
+  allowSkip?: boolean;
   weekPatterns: Record<string, string>; weekNotes: Record<string, string>;
   /** Variantes par niveau ; vide : ancien format (paliers filtrés par niveau). */
   variants?: Partial<Record<Level, VariantT>>;

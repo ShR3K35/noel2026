@@ -163,6 +163,7 @@
         },
         "keysPerStep": { "type": "integer", "minimum": 1, "maximum": 6, "description": "Séances clés réussies pour valider un palier (2 conseillé)." },
         "startAtMastered": { "type": "boolean", "description": "Démarrer au dernier palier déjà maîtrisé par le sportif." },
+        "allowSkip": { "type": "boolean", "description": "Deux séances faciles de suite font sauter un palier (vrai par défaut). false : chaque palier est tenu jusqu'au bout." },
         "easy": { "$ref": "#/$defs/easy" },
         "deload": { "$ref": "#/$defs/deload" },
         "weekPatterns": { "$ref": "#/$defs/weekPatterns" },
