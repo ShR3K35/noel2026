@@ -115,7 +115,7 @@ class SessionEngine(val session: PlannedSession, private val profile: Profile) {
         val recovery = if (endHr > 0 && postHr.size >= 55) max(0, endHr - postHr.last()) else 0
         return CompletedSession(
             id = id, startMillis = startMillis, day = day,
-            programId = program?.id ?: "", programLabel = program?.type?.label ?: "", week = session.week,
+            programId = program?.id ?: "", programLabel = program?.name ?: "", week = session.week,
             kind = session.kind, title = session.title, detail = session.detail,
             plannedSeconds = session.blocks.sumOf { it.seconds },
             durationSec = elapsed, distanceM = distanceM,

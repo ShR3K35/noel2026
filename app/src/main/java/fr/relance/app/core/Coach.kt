@@ -1,6 +1,5 @@
 package fr.relance.app.core
 
-import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -13,19 +12,6 @@ data class FeedbackResult(val program: Program, val profile: Profile, val messag
  * une semaine sur quatre est allégée, et les retours de séance déplacent l'utilisateur sur l'échelle.
  */
 object Coach {
-    /** Paliers marche / course vers une course continue longue. */
-    private val INTERVALS = listOf(
-        Step(StepKind.INTERVALS, 1, 3, 6), Step(StepKind.INTERVALS, 2, 2, 6), Step(StepKind.INTERVALS, 3, 2, 5),
-        Step(StepKind.INTERVALS, 5, 2, 4), Step(StepKind.INTERVALS, 8, 2, 3),
-    )
-
-    /** Version courte, pour l'objectif « courir 10 min ». */
-    private val INTERVALS_SHORT = listOf(
-        Step(StepKind.INTERVALS, 1, 3, 6), Step(StepKind.INTERVALS, 2, 2, 6),
-        Step(StepKind.INTERVALS, 4, 2, 4), Step(StepKind.INTERVALS, 6, 2, 3),
-    )
-    private val CONTINUOUS = listOf(15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 70, 80, 90, 100)
-
     // ---------- Emploi du temps ----------
 
     /** Jours retenus pour s'entraîner : 4 au maximum en reprise, répartis dans la semaine. */
@@ -42,239 +28,102 @@ object Coach {
 
     // ---------- Catalogue ----------
 
-    fun targetMinutes(type: ProgramType, p: Profile): Int {
-        val run = Physio.speedsFor(p).run
-        return when (type) {
-            ProgramType.RUN_10 -> 10
-            ProgramType.RUN_30 -> 30
-            ProgramType.RUN_45 -> 45
-            ProgramType.RUN_60 -> 60
-            ProgramType.RUN_5K -> ceil(5 / run * 60).toInt()
-            ProgramType.RUN_10K -> ceil(10 / run * 60).toInt()
-            else -> 0
-        }
+    private fun snapshotOf(t: ProgramTemplate, c: Catalog): ProgramSnapshot {
+        val ids = HashSet<String>()
+        t.steps.forEach { st -> st.sessions.forEach { ids += it.type } }
+        ids += t.easy.types; ids += t.easy.fallback
+        ids += c.specials.test; ids += c.specials.recovery; ids += c.specials.flatWalk
+        return ProgramSnapshot(t, c.sessionTypes.filter { it.id in ids }, c.paces, c.specials, c.version)
     }
 
-    /** Raison pour laquelle un programme n'est pas encore accessible, ou null s'il l'est. */
-    fun lockedReason(type: ProgramType, p: Profile): String? = when {
-        type == ProgramType.HEALTH -> null
-        p.healthFlag -> "Avis médical conseillé avant de courir"
-        type == ProgramType.PERF && p.longestRunMin < 30 -> "Après 30 min de course continue"
-        else -> null
-    }
+    fun ladderFor(t: ProgramTemplate, p: Profile, c: Catalog = Catalogs.current): List<ResolvedStep> =
+        Templates.resolve(t, p, c.paces) { c.type(it) }
 
-    fun recommended(p: Profile): ProgramType = when {
-        p.healthFlag -> ProgramType.HEALTH
-        p.longestRunMin >= 60 -> ProgramType.PERF
-        p.longestRunMin >= 45 -> ProgramType.RUN_60
-        p.longestRunMin >= 30 -> ProgramType.RUN_45
-        p.longestRunMin >= 10 -> ProgramType.RUN_30
-        p.level == Level.N1 -> ProgramType.RUN_10
-        else -> ProgramType.RUN_30
-    }
+    fun weeksFor(t: ProgramTemplate, steps: Int): Int = Templates.weeksFor(steps, t.deload.every)
 
-    fun ladderFor(type: ProgramType, p: Profile): List<Step> {
-        if (type == ProgramType.HEALTH) {
-            val base = if (p.level == Level.N1) 15 else 20
-            return listOf(0, 5, 5, 10, 10, 15, 15, 20).map { Step(StepKind.WALK, base + it) }
-        }
-        if (type == ProgramType.PERF) return (0 until 8).map { Step(StepKind.PERF, it) }
-
-        val target = targetMinutes(type, p)
-        val conts = if (target <= 10) listOf(10) else CONTINUOUS.filter { it < target } + target
-        if (p.longestRunMin >= 10) {
-            val start = min(p.longestRunMin, target) / 5 * 5
-            return (listOf(max(10, start)) + conts.filter { it > p.longestRunMin })
-                .map { Step(StepKind.CONTINUOUS, it) }
-        }
-        val short = target <= 10
-        val walks = when (p.level) {
-            Level.N1 -> if (short) listOf(15, 20) else listOf(15, 20, 25)
-            Level.N2 -> if (short) listOf(20) else listOf(20, 25)
-            else -> emptyList()
-        }.map { Step(StepKind.WALK, it) }
-        val all = if (short) INTERVALS_SHORT else INTERVALS
-        // Un ancien coureur saute les premiers paliers de marche / course.
-        val intervals = if (p.level == Level.N4) all.drop(all.size - 2) else all
-        return walks + intervals + conts.map { Step(StepKind.CONTINUOUS, it) }
-    }
-
-    /** Durée en semaines, semaines allégées comprises. */
-    fun weeksFor(ladder: List<Step>): Int {
-        var week = 0
-        var step = 0
-        while (step < ladder.size) {
-            if (!(week % 4 == 3 && step > 0)) step++
-            week++
-        }
-        return week
-    }
-
-    /** Durée de la plus longue séance du programme, pour prévenir si elle dépasse le temps disponible. */
-    fun longestSessionMinutes(ladder: List<Step>): Int = ladder.maxOfOrNull {
-        when (it.kind) {
-            StepKind.WALK -> it.a
-            StepKind.INTERVALS -> 6 + it.reps * (it.a + it.b)
-            StepKind.CONTINUOUS -> it.a + 10
-            StepKind.PERF -> 45
-        }
-    } ?: 0
-
-    fun newProgram(type: ProgramType, p: Profile, today: Long): Program {
-        val ladder = ladderFor(type, p)
+    fun newProgram(t: ProgramTemplate, p: Profile, today: Long, c: Catalog = Catalogs.current): Program {
+        val steps = ladderFor(t, p, c)
         val draft = Program(
-            id = "p$today-${type.name}-${System.nanoTime() % 100000}",
-            type = type, startDay = today, ladder = ladder, vrStart = p.vr,
-            weeksPlanned = weeksFor(ladder),
+            id = "p$today-${t.id}-${System.nanoTime() % 100000}", templateId = t.id, name = t.name, validation = t.validation,
+            startDay = today, steps = steps, snapshot = snapshotOf(t, c), vrStart = p.vr, weeksPlanned = weeksFor(t, steps.size),
         )
         return draft.copy(sessionsPlanned = plan(draft, p, today).size)
     }
 
+    /** Raccourci pour les programmes de la première version (tests, migration). */
+    fun newProgram(type: ProgramType, p: Profile, today: Long): Program =
+        newProgram(Catalogs.current.program(type.id) ?: Catalogs.builtin.program(type.id)!!, p, today)
+
+    /** Programme créé avant le catalogue : on le reconstruit depuis le catalogue intégré, à la même position. */
+    fun migrate(p: Program, profile: Profile): Program {
+        if (p.snapshot != null) return p
+        val t = Catalogs.builtin.program(p.type?.id ?: "run-30") ?: return p
+        val steps = ladderFor(t, profile, Catalogs.builtin)
+        return p.copy(
+            templateId = t.id, name = t.name, validation = t.validation, steps = steps, snapshot = snapshotOf(t, Catalogs.builtin),
+            stepIndex = p.stepIndex.coerceAtMost(steps.size - 1), weeksPlanned = weeksFor(t, steps.size), type = null,
+        )
+    }
+
+    fun recommended(p: Profile, c: Catalog = Catalogs.current): ProgramTemplate? = Templates.recommended(c, p)
+
+    fun lockedReason(t: ProgramTemplate, p: Profile): String? = Templates.lockedReason(t, p)
+
+    /** Durée de la plus longue séance clé d'un programme pour ce profil, pour prévenir si elle dépasse le temps disponible. */
+    fun longestSessionMinutes(t: ProgramTemplate, p: Profile, c: Catalog = Catalogs.current): Int {
+        val speeds = Physio.speedsFor(p, 1.0, c.paces)
+        return ladderFor(t, p, c).flatMap { it.sessions }.maxOfOrNull { ref ->
+            val type = c.type(ref.type) ?: return@maxOfOrNull 0
+            Templates.build(type, ref.params, p, speeds, 0, 0, true, false, 0).minutes
+        } ?: 0
+    }
+
     // ---------- Construction des séances ----------
 
-    private fun isDeload(p: Program): Boolean = p.week % 4 == 3 && p.stepIndex > 0
+    private fun deloadEvery(p: Program) = p.snapshot?.template?.deload?.every ?: 4
 
-    private fun reduced(s: Step): Step = when (s.kind) {
-        StepKind.INTERVALS -> s.copy(reps = max(2, ceil(s.reps * 0.7).toInt()))
-        StepKind.PERF -> s
-        else -> s.copy(a = max(10, (s.a * 0.7 / 5).roundToInt() * 5))
+    private fun isDeload(p: Program): Boolean = deloadEvery(p).let { it > 0 && p.week % it == it - 1 } && p.stepIndex > 0
+
+    private fun special(p: Program, id: String, profile: Profile, speeds: Speeds, day: Long, params: Map<String, Double>, cap: Int): PlannedSession? {
+        val type = p.snapshot?.type(id) ?: Catalogs.current.type(id) ?: return null
+        return Templates.build(type, params, profile, speeds, day, p.week, false, isDeload(p), cap)
     }
-
-    private fun m(minutes: Int) = minutes * 60
-
-    private fun walkSession(day: Long, p: Program, minutes: Int, s: Speeds, title: String, key: Boolean, deload: Boolean): PlannedSession {
-        val body = max(4, minutes - 6)
-        return PlannedSession(
-            day, SessionKind.WALK, title, "$minutes min, marche à ${Fmt.kmh(s.walk)} km/h",
-            listOf(
-                Block(BlockKind.WARMUP, m(3), s.warm), Block(BlockKind.WALK, m(body), s.walk),
-                Block(BlockKind.COOLDOWN, m(3), s.warm),
-            ),
-            key, p.week, deload,
-        )
-    }
-
-    private fun hillSession(day: Long, p: Program, minutes: Int, s: Speeds, incline: Double, deload: Boolean): PlannedSession {
-        val body = max(4, minutes - 6)
-        val pct = Fmt.kmh(incline).removeSuffix(",0")
-        return PlannedSession(
-            day, SessionKind.HILL, "Marche en côte $pct %",
-            "$minutes min · inclinaison $pct % à régler avant le départ",
-            listOf(
-                Block(BlockKind.WARMUP, m(3), Physio.round1(s.warm * 0.9), incline),
-                Block(BlockKind.HILL, m(body), s.hill, incline),
-                Block(BlockKind.COOLDOWN, m(3), Physio.round1(s.warm * 0.9), incline),
-            ),
-            false, p.week, deload,
-        )
-    }
-
-    private fun stepSession(day: Long, p: Program, step: Step, s: Speeds, cap: Int, deload: Boolean, slot: Int): PlannedSession {
-        when (step.kind) {
-            StepKind.WALK -> {
-                val minutes = if (cap > 0) min(cap, step.a) else step.a
-                return walkSession(day, p, minutes, s, "Marche active", true, deload)
-            }
-            StepKind.INTERVALS -> {
-                val reps = if (cap > 0) max(1, min(step.reps, (cap - 6) / (step.a + step.b))) else step.reps
-                val blocks = mutableListOf(Block(BlockKind.WARMUP, m(3), s.warm))
-                repeat(reps) {
-                    blocks += Block(BlockKind.RUN, m(step.a), s.run)
-                    blocks += Block(BlockKind.WALK, m(step.b), s.warm)
-                }
-                blocks += Block(BlockKind.COOLDOWN, m(3), s.warm)
-                return PlannedSession(
-                    day, SessionKind.INTERVALS, "Marche / course",
-                    "$reps × (${step.a} min de trot / ${step.b} min de marche)", blocks, true, p.week, deload,
-                )
-            }
-            StepKind.CONTINUOUS -> {
-                val edge = if (cap > 0) 3 else 5
-                val run = if (cap > 0) max(5, min(step.a, cap - 2 * edge)) else step.a
-                return PlannedSession(
-                    day, SessionKind.CONTINUOUS, "Course continue",
-                    "$run min de course à ${Fmt.kmh(s.run)} km/h",
-                    listOf(
-                        Block(BlockKind.WARMUP, m(edge), s.walk), Block(BlockKind.RUN, m(run), s.run),
-                        Block(BlockKind.COOLDOWN, m(edge), s.warm),
-                    ),
-                    true, p.week, deload,
-                )
-            }
-            StepKind.PERF -> {
-                val k = step.a
-                val blocks = mutableListOf(Block(BlockKind.WARMUP, m(4), s.walk), Block(BlockKind.RUN, m(5), s.run))
-                if (slot == 0) {
-                    val reps = if (deload) 3 else if (cap > 0) 3 else 4 + k / 2
-                    repeat(reps) {
-                        blocks += Block(BlockKind.FAST, m(2), s.fast)
-                        blocks += Block(BlockKind.WALK, m(2), s.warm)
-                    }
-                    blocks += Block(BlockKind.COOLDOWN, m(4), s.warm)
-                    return PlannedSession(
-                        day, SessionKind.PERF_INTERVALS, "Fractionné",
-                        "$reps × (2 min à ${Fmt.kmh(s.fast)} km/h / 2 min de marche)", blocks, true, p.week, deload,
-                    )
-                }
-                val tempo = if (deload || cap > 0) 8 else 10 + (k * 1.5).roundToInt()
-                blocks += Block(BlockKind.FAST, m(tempo), s.tempo)
-                blocks += Block(BlockKind.COOLDOWN, m(5), s.warm)
-                return PlannedSession(
-                    day, SessionKind.PERF_TEMPO, "Allure soutenue",
-                    "$tempo min à ${Fmt.kmh(s.tempo)} km/h", blocks, true, p.week, deload,
-                )
-            }
-        }
-    }
-
-    private fun testSession(day: Long, p: Program, profile: Profile, s: Speeds, deload: Boolean) = PlannedSession(
-        day, SessionKind.TEST, "Test de forme",
-        "6 min à l'allure de marche la plus vive où tu peux encore parler",
-        listOf(
-            Block(BlockKind.WARMUP, m(3), s.warm), Block(BlockKind.TEST, m(6), Physio.round1(profile.vr)),
-            Block(BlockKind.COOLDOWN, m(3), s.warm),
-        ),
-        false, p.week, deload,
-    )
 
     /** La séance correspondant à la position actuelle dans le programme. `cap` > 0 : version courte. */
     fun sessionFor(p: Program, profile: Profile, day: Long, cap: Int = 0): PlannedSession {
+        val snap = p.snapshot ?: migrate(p, profile).snapshot!!
+        val t = snap.template
         val n = sessionsPerWeek(profile)
-        val s = Physio.speedsFor(profile, p.speedFactor)
+        val s = Physio.speedsFor(profile, p.speedFactor, snap.paces)
         val deload = isDeload(p)
         val slot = p.sessionInWeek
-        if (p.testNext) return testSession(day, p, profile, s, deload)
+        val sp = snap.specials
+        if (p.testNext) return special(p, sp.test, profile, s, day, emptyMap(), 0)!!
         if (p.flatWalkNext) {
             val minutes = min(if (cap > 0) cap else 25, max(15, profile.minutesPerSession))
-            return walkSession(day, p, minutes, s, "Marche à plat", false, deload)
+            return special(p, sp.flatWalk, profile, s, day, mapOf("minutes" to minutes.toDouble()), 0)!!
         }
-        if (deload && n >= 2 && slot == n - 1) return testSession(day, p, profile, s, deload)
+        if (deload && t.deload.testAtEnd && n >= 2 && slot == n - 1) return special(p, sp.test, profile, s, day, emptyMap(), 0)!!
 
-        val role = when (n) {
-            1, 2 -> 'K'
-            3 -> "KEK"[slot.coerceIn(0, 2)]
-            else -> "KEKR"[slot.coerceIn(0, 3)]
-        }
-        if (role == 'R') {
-            return PlannedSession(
-                day, SessionKind.RECOVERY, "Récupération", "15 min de marche lente, à plat",
-                listOf(Block(BlockKind.WALK, m(15), s.recovery)), false, p.week, deload,
-            )
-        }
+        val pattern = t.weekPatterns[n.toString()] ?: t.weekPatterns[t.weekPatterns.keys.maxByOrNull { it.toIntOrNull() ?: 0 }] ?: "K"
+        val role = pattern.getOrElse(slot.coerceAtMost(pattern.length - 1)) { 'K' }
+        if (role == 'R') return special(p, sp.recovery, profile, s, day, emptyMap(), cap)!!
         if (role == 'E') {
-            if (p.type == ProgramType.PERF) {
-                return stepSession(day, p, Step(StepKind.CONTINUOUS, if (cap > 0) cap else 30), s, cap, deload, slot)
-                    .copy(title = "Endurance", isKey = false)
-            }
-            val limit = min(max(15, profile.minutesPerSession), 30)
-            val minutes = min(if (cap > 0) cap else limit, 15 + 5 * p.week)
-            val hill = profile.inclinePct > 0 && (p.type == ProgramType.HEALTH || p.week % 2 == 0)
-            return if (hill) hillSession(day, p, minutes, s, profile.inclinePct, deload)
-            else walkSession(day, p, minutes, s, "Marche active", false, deload)
+            val e = t.easy
+            val limit = min(max(15, profile.minutesPerSession), e.maxMinutes)
+            val minutes = min(if (cap > 0) cap else limit, e.startMinutes + e.stepMinutes * p.week).coerceAtLeast(10)
+            val wanted = if (e.types.isEmpty()) e.fallback else e.types[p.week % e.types.size]
+            var type = snap.type(wanted) ?: snap.type(e.fallback)!!
+            if (type.needsIncline && profile.inclinePct <= 0) type = snap.type(e.fallback) ?: type
+            return Templates.build(type, mapOf("minutes" to minutes.toDouble()), profile, s, day, p.week, false, deload, cap)
         }
-        val idx = (p.stepIndex - (if (deload) 1 else 0) - (if (p.fallbackNext) 1 else 0)).coerceIn(0, p.ladder.size - 1)
-        val step = if (deload) reduced(p.ladder[idx]) else p.ladder[idx]
-        return stepSession(day, p, step, s, cap, deload, slot)
+        val idx = (p.stepIndex - (if (deload) 1 else 0) - (if (p.fallbackNext) 1 else 0)).coerceIn(0, p.steps.size - 1)
+        val step = p.steps[idx]
+        val keyIndex = pattern.take(slot).count { it == 'K' }
+        val ref = step.sessions[keyIndex % step.sessions.size]
+        val type = snap.type(ref.type)!!
+        val params = if (deload) Templates.deloaded(type.params.associate { it.name to it.default } + ref.params, t.deload.factor) else ref.params
+        return Templates.build(type, params, profile, s, day, p.week, true, deload, cap)
     }
 
     /** Position suivante dans le programme, une fois la séance courante faite. */
@@ -282,7 +131,7 @@ object Coach {
         if (p.testNext) return p.copy(testNext = false)
         var q = p.copy(sessionInWeek = p.sessionInWeek + 1, fallbackNext = false, flatWalkNext = false)
         if (q.sessionInWeek >= sessionsPerWeek(profile)) {
-            val last = p.ladder.size - 1
+            val last = p.steps.size - 1
             val next = when {
                 isDeload(p) || p.repeatWeek -> p.stepIndex
                 p.skipStep && p.stepIndex + 2 <= last -> p.stepIndex + 2
@@ -373,7 +222,7 @@ object Coach {
                 status = if (q.lastKeyComplete) ProgramStatus.SUCCESS else ProgramStatus.FINISHED,
                 endDay = today, vrEnd = prof.vr, sessionsPlanned = q.sessionsDone,
             )
-            msgs += if (q.status == ProgramStatus.SUCCESS) "Objectif atteint : ${p.type.validation}. Choisis la suite quand tu veux."
+            msgs += if (q.status == ProgramStatus.SUCCESS) "Objectif atteint : ${p.validation}. Choisis la suite quand tu veux."
             else "Programme terminé. La dernière séance n'a pas été faite en entier : tu peux le relancer pour valider."
         }
         if (msgs.isEmpty()) {

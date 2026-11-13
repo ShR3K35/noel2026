@@ -35,7 +35,7 @@ object ManualEntry {
         val runBlocks = planned.blocks.filter { it.kind == BlockKind.RUN || it.kind == BlockKind.FAST }
         return CompletedSession(
             id = id, startMillis = startMillis, day = day,
-            programId = program?.id ?: "", programLabel = program?.type?.label ?: "", week = planned.week,
+            programId = program?.id ?: "", programLabel = program?.name ?: "", week = planned.week,
             kind = planned.kind, title = planned.title, detail = planned.detail,
             plannedSeconds = plannedSec, durationSec = durationSec, distanceM = distance,
             avgSpeed = if (durationSec > 0) distance / durationSec * 3.6 else 0.0,

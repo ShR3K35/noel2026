@@ -22,7 +22,8 @@ import fr.relance.app.core.RunnerState
 import fr.relance.app.core.SessionEngine
 import fr.relance.app.core.SessionKind
 import fr.relance.app.core.Stats
-import fr.relance.app.core.StepKind
+import fr.relance.app.core.Catalogs
+import fr.relance.app.core.ResolvedStep
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -51,34 +52,94 @@ class CoreTest {
         assertEquals(Level.N4, Physio.assessLevel(Profile(vr = 6.2, lastPractice = LastPractice.UNDER_6M)))
     }
 
+    private fun t(type: ProgramType) = Catalogs.builtin.program(type.id)!!
+    private fun ladder(type: ProgramType, p: Profile) = Coach.ladderFor(t(type), p, Catalogs.builtin)
+    private val ResolvedStep.typeId get() = sessions.first().type
+    private fun ResolvedStep.p(name: String) = sessions.first().params[name]!!.toInt()
+
     @Test fun ladderEndsOnTheGoalAndStartsAtTheLevel() {
-        val l = Coach.ladderFor(ProgramType.RUN_30, n2)
-        assertEquals(StepKind.WALK, l.first().kind)
-        assertEquals(StepKind.CONTINUOUS, l.last().kind)
-        assertEquals(30, l.last().a)
-        val n3 = Coach.ladderFor(ProgramType.RUN_30, n2.copy(level = Level.N3))
-        assertEquals(StepKind.INTERVALS, n3.first().kind)
+        val l = ladder(ProgramType.RUN_30, n2)
+        assertEquals("walk", l.first().typeId)
+        assertEquals("continuous", l.last().typeId)
+        assertEquals(30, l.last().p("minutes"))
+        val n3 = ladder(ProgramType.RUN_30, n2.copy(level = Level.N3))
+        assertEquals("intervals", n3.first().typeId)
         assertTrue(n3.size < l.size)
-        assertEquals(10, Coach.ladderFor(ProgramType.RUN_10, n2).last().a)
+        assertEquals(10, ladder(ProgramType.RUN_10, n2).last().p("minutes"))
         // Un coureur qui tient déjà 30 min ne repart pas de la marche.
-        val runner = Coach.ladderFor(ProgramType.RUN_45, n2.copy(longestRunMin = 30))
-        assertEquals(listOf(30, 35, 40, 45), runner.map { it.a })
-        // 10 km : la durée cible dépend de l'allure de l'utilisateur.
-        assertTrue(Coach.ladderFor(ProgramType.RUN_10K, n2).last().a in 60..100)
+        val runner = ladder(ProgramType.RUN_45, n2.copy(longestRunMin = 30))
+        assertEquals(listOf(30, 35, 40, 45), runner.map { it.p("minutes") })
+        // 10 km : la durée cible dépend de l'allure de l'utilisateur, et aucun palier intermédiaire ne la dépasse.
+        val tenK = ladder(ProgramType.RUN_10K, n2)
+        assertTrue(tenK.last().p("minutes") in 60..100)
+        assertTrue(tenK.dropLast(1).filter { it.typeId == "continuous" }.all { it.p("minutes") < tenK.last().p("minutes") })
+        // Un ancien coureur (N4) ne garde que les deux derniers paliers de marche / course.
+        assertEquals(2, ladder(ProgramType.RUN_30, n2.copy(level = Level.N4)).count { it.typeId == "intervals" })
     }
 
     @Test fun weeksIncludeDeloadWeeks() {
-        val l = Coach.ladderFor(ProgramType.RUN_30, n2)
-        assertTrue(Coach.weeksFor(l) > l.size)
-        assertEquals(8 + 2, Coach.weeksFor(Coach.ladderFor(ProgramType.HEALTH, n2)))
+        val l = ladder(ProgramType.RUN_30, n2)
+        assertTrue(Coach.weeksFor(t(ProgramType.RUN_30), l.size) > l.size)
+        assertEquals(8 + 2, Coach.weeksFor(t(ProgramType.HEALTH), ladder(ProgramType.HEALTH, n2).size))
+        assertEquals(8, ladder(ProgramType.HEALTH, n2.copy(level = Level.N1)).size)
+        assertEquals(15, ladder(ProgramType.HEALTH, n2.copy(level = Level.N1)).first().p("minutes"))
     }
 
     @Test fun lockedProgramsExplainWhy() {
-        assertNull(Coach.lockedReason(ProgramType.RUN_30, n2))
-        assertNotNull(Coach.lockedReason(ProgramType.PERF, n2))
-        assertNull(Coach.lockedReason(ProgramType.PERF, n2.copy(longestRunMin = 30)))
-        assertNotNull(Coach.lockedReason(ProgramType.RUN_10, n2.copy(healthFlag = true)))
-        assertNull(Coach.lockedReason(ProgramType.HEALTH, n2.copy(healthFlag = true)))
+        assertNull(Coach.lockedReason(t(ProgramType.RUN_30), n2))
+        assertNotNull(Coach.lockedReason(t(ProgramType.PERF), n2))
+        assertNull(Coach.lockedReason(t(ProgramType.PERF), n2.copy(longestRunMin = 30)))
+        assertNotNull(Coach.lockedReason(t(ProgramType.RUN_10), n2.copy(healthFlag = true)))
+        assertNull(Coach.lockedReason(t(ProgramType.HEALTH), n2.copy(healthFlag = true)))
+    }
+
+    @Test fun recommendationsFollowTheProfile() {
+        assertEquals("run-10", Coach.recommended(n2.copy(level = Level.N1))!!.id)
+        assertEquals("run-30", Coach.recommended(n2)!!.id)
+        assertEquals("run-45", Coach.recommended(n2.copy(longestRunMin = 30))!!.id)
+        assertEquals("perf", Coach.recommended(n2.copy(longestRunMin = 75))!!.id)
+        assertEquals("health", Coach.recommended(n2.copy(healthFlag = true))!!.id)
+    }
+
+    @Test fun sessionsMatchTheFirstVersion() {
+        // Mêmes séances qu'avant le catalogue, pour un profil N3 à 3 séances par semaine.
+        val prof = n2.copy(level = Level.N3)
+        val p = Coach.newProgram(ProgramType.RUN_30, prof, today)
+        val s0 = Coach.sessionFor(p, prof, today)
+        assertEquals("Marche / course", s0.title)
+        assertEquals("6 × (1 min de trot / 3 min de marche)", s0.detail)
+        assertEquals(30, s0.minutes)
+        val easy = Coach.sessionFor(p.copy(sessionInWeek = 1), prof, today)
+        assertEquals("Marche en côte 3 %", easy.title)
+        assertEquals(15, easy.minutes)
+        assertEquals(3.0, easy.inclinePct, 0.0)
+        val walk = Coach.sessionFor(p.copy(sessionInWeek = 1, week = 1), prof, today)
+        assertEquals("Marche active", walk.title)
+        assertEquals(20, walk.minutes)
+        val test = Coach.sessionFor(p.copy(week = 3, stepIndex = 3, sessionInWeek = 2), prof, today)
+        assertEquals(SessionKind.TEST, test.kind)
+        val deload = Coach.sessionFor(p.copy(week = 3, stepIndex = 3, sessionInWeek = 0), prof, today)
+        assertTrue(deload.deload)
+        assertEquals("4 × (3 min de trot / 2 min de marche)", deload.detail)
+        val pain = Coach.sessionFor(p.copy(flatWalkNext = true), prof, today)
+        assertEquals("Marche à plat", pain.title)
+        // Programme performances : fractionné puis allure soutenue dans la même semaine.
+        val runner = prof.copy(longestRunMin = 40)
+        val perf = Coach.newProgram(ProgramType.PERF, runner, today)
+        assertEquals("Fractionné", Coach.sessionFor(perf, runner, today).title)
+        assertEquals("Endurance", Coach.sessionFor(perf.copy(sessionInWeek = 1), runner, today).title)
+        assertEquals("Allure soutenue", Coach.sessionFor(perf.copy(sessionInWeek = 2), runner, today).title)
+    }
+
+    @Test fun aProgramStartedBeforeTheCatalogIsMigrated() {
+        val p = Coach.newProgram(ProgramType.RUN_30, n2, today)
+        val legacy = p.copy(snapshot = null, steps = emptyList(), templateId = "", name = "", type = ProgramType.RUN_30, stepIndex = 4)
+        val m = Coach.migrate(legacy, n2)
+        assertEquals("run-30", m.templateId)
+        assertEquals("Courir 30 min", m.name)
+        assertEquals(4, m.stepIndex)
+        assertEquals(p.steps, m.steps)
+        assertTrue(Coach.plan(m, n2, today).isNotEmpty())
     }
 
     @Test fun planUsesOnlyAvailableDaysAndNeverDoubles() {
@@ -171,7 +232,7 @@ class CoreTest {
         assertEquals(planned, p.sessionsDone)
         assertEquals(30, prof.longestRunMin)
         assertTrue(Coach.plan(p, prof, day).isEmpty())
-        assertEquals(ProgramType.RUN_45, Coach.recommended(prof))
+        assertEquals("run-45", Coach.recommended(prof)!!.id)
     }
 
     @Test fun everyProgramCanBePlanned() {
@@ -411,7 +472,7 @@ class CoreTest {
 
     @Test fun cancellingTheFinalSessionReopensTheProgram() {
         val prof = n2.copy(level = Level.N3)
-        val ladder = Coach.ladderFor(ProgramType.RUN_10, prof)
+        val ladder = ladder(ProgramType.RUN_10, prof)
         val p0 = Coach.newProgram(ProgramType.RUN_10, prof, today)
         var st = AppState(profile = prof, program = p0)
         var day = today

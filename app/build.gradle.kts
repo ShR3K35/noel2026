@@ -43,6 +43,12 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+    // Le catalogue de programmes intégré, partagé avec le back-end (web/) : catalog/catalog.json.
+    sourceSets {
+        getByName("main") {
+            resources.srcDir("../catalog")
+        }
+    }
     buildFeatures {
         compose = true
     }

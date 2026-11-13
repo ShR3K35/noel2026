@@ -35,7 +35,8 @@ import fr.relance.app.core.LastPractice
 import fr.relance.app.core.Level
 import fr.relance.app.core.Physio
 import fr.relance.app.core.Profile
-import fr.relance.app.core.ProgramType
+import fr.relance.app.core.Catalogs
+import fr.relance.app.core.ProgramTemplate
 
 private val HEALTH_QUESTIONS = listOf(
     "Un médecin t'a-t-il déjà dit que tu avais un problème cardiaque ?",
@@ -64,25 +65,26 @@ fun MinutesPicker(minutes: Int, onChange: (Int) -> Unit) {
 
 /** Le catalogue, avec les durées calculées pour ce profil. */
 @Composable
-fun CatalogueList(profile: Profile, selected: ProgramType?, onSelect: (ProgramType) -> Unit) {
+fun CatalogueList(profile: Profile, selected: ProgramTemplate?, onSelect: (ProgramTemplate) -> Unit) {
     val advised = Coach.recommended(profile)
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        for (type in ProgramType.values()) {
+        for (type in Catalogs.current.visiblePrograms) {
             val locked = Coach.lockedReason(type, profile)
             val ladder = Coach.ladderFor(type, profile)
-            val isSel = type == selected
+            val isSel = type.id == selected?.id
             val fg = if (isSel) Color.White else if (locked != null) C.Muted else C.Ink
             Card(
                 color = if (isSel) C.Accent else if (locked != null) C.Ground else C.Card, padding = 14.dp,
                 onClick = if (locked == null) ({ onSelect(type) }) else null,
             ) {
-                if (type == advised && locked == null) Label("Conseillé pour toi", if (isSel) Color.White else C.Accent)
+                if (type.id == advised?.id && locked == null) Label("Conseillé pour toi", if (isSel) Color.White else C.Accent)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text(type.label, color = fg, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-                    Text(locked ?: "${Coach.weeksFor(ladder)} semaines", color = if (isSel) Color.White else C.Muted, fontSize = 13.sp)
+                    Text(type.name, color = fg, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                    Text(locked ?: "${Coach.weeksFor(type, ladder.size)} semaines", color = if (isSel) Color.White else C.Muted, fontSize = 13.sp)
                 }
+                if (locked == null && isSel && type.description.isNotBlank()) Small(type.description, Color.White)
                 if (locked == null && isSel) {
-                    val longest = Coach.longestSessionMinutes(ladder)
+                    val longest = Coach.longestSessionMinutes(type, profile)
                     Small(
                         "Objectif : ${type.validation}." + if (longest > profile.minutesPerSession)
                             " Les séances iront jusqu'à $longest min en fin de programme." else "",
@@ -109,7 +111,7 @@ fun OnboardingScreen(vm: AppViewModel) {
     var testLater by remember { mutableStateOf(false) }
     var days by remember { mutableStateOf(setOf(1, 3, 6)) }
     var minutes by remember { mutableIntStateOf(30) }
-    var type by remember { mutableStateOf<ProgramType?>(null) }
+    var type by remember { mutableStateOf<ProgramTemplate?>(null) }
 
     val draft = Profile(
         age = age, heightCm = height, weightKg = weight.toDouble(), lastPractice = practice,
@@ -227,7 +229,7 @@ fun OnboardingScreen(vm: AppViewModel) {
                 if (step == last) "Voir mon programme" else "Continuer", Modifier.weight(1f),
                 enabled = !(step == 4 && days.isEmpty()),
             ) {
-                if (step < last) step++ else vm.completeOnboarding(draft, type ?: Coach.recommended(draft), testLater)
+                if (step < last) step++ else vm.completeOnboarding(draft, type ?: Coach.recommended(draft) ?: Catalogs.current.visiblePrograms.first(), testLater)
             }
         }
     }
@@ -237,7 +239,7 @@ fun OnboardingScreen(vm: AppViewModel) {
 @Composable
 fun CatalogueScreen(vm: AppViewModel) {
     val profile = vm.state.profile ?: return
-    var type by remember { mutableStateOf(Coach.recommended(profile)) }
+    var type by remember { mutableStateOf(Coach.recommended(profile) ?: Catalogs.current.visiblePrograms.first()) }
     Column(Modifier.fillMaxSize().background(C.Ground).padding(horizontal = 20.dp, vertical = 24.dp)) {
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Title("Choisis ton objectif")

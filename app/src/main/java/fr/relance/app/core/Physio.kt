@@ -33,18 +33,18 @@ object Physio {
         else -> Level.N2
     }
 
-    fun speedsFor(p: Profile, factor: Double = 1.0): Speeds {
+    fun speedsFor(p: Profile, factor: Double = 1.0, paces: Paces = Catalogs.current.paces): Speeds {
         val cap = p.treadmillMaxKmh
         fun c(v: Double) = round1(min(v, cap))
-        val run = min(max(p.vr * 1.2, 6.0), 10.0) * factor
+        val run = min(max(p.vr * paces.runOfVr, paces.runMin), paces.runMax) * factor
         return Speeds(
-            warm = c(p.vr * 0.8),
-            recovery = c(p.vr * 0.75),
-            walk = c(p.vr * 0.95 * factor),
-            hill = c(p.vr * 0.85 * factor),
+            warm = c(p.vr * paces.warm),
+            recovery = c(p.vr * paces.recovery),
+            walk = c(p.vr * paces.walk * factor),
+            hill = c(p.vr * paces.hill * factor),
             run = c(run),
-            tempo = c(run * 1.12),
-            fast = c(run * 1.25),
+            tempo = c(run * paces.tempoOfRun),
+            fast = c(run * paces.fastOfRun),
         )
     }
 

@@ -1,0 +1,2967 @@
+{
+ "schema": 1,
+ "version": 1,
+ "publishedAt": "",
+ "notes": "Catalogue initial, repris des programmes intégrés à l'app.",
+ "paces": {
+  "warm": 0.8,
+  "recovery": 0.75,
+  "walk": 0.95,
+  "hill": 0.85,
+  "runOfVr": 1.2,
+  "runMin": 6.0,
+  "runMax": 10.0,
+  "tempoOfRun": 1.12,
+  "fastOfRun": 1.25
+ },
+ "specials": {
+  "test": "test",
+  "recovery": "recovery",
+  "flatWalk": "flat-walk"
+ },
+ "sessionTypes": [
+  {
+   "id": "walk",
+   "name": "Marche active",
+   "kind": "WALK",
+   "title": "Marche active",
+   "detail": "{minutes} min, marche à {pace:walk} km/h",
+   "purpose": "Marche active : la base de l'endurance. Tu dois pouvoir parler tout du long.",
+   "params": [
+    {
+     "name": "minutes",
+     "label": "Durée totale",
+     "default": 25,
+     "min": 10,
+     "max": 90,
+     "unit": "min"
+    }
+   ],
+   "blocks": [
+    {
+     "kind": "WARMUP",
+     "minutes": "3",
+     "pace": "warm",
+     "paceFactor": 1.0,
+     "incline": "0"
+    },
+    {
+     "kind": "WALK",
+     "minutes": "minutes-6",
+     "pace": "walk",
+     "paceFactor": 1.0,
+     "incline": "0"
+    },
+    {
+     "kind": "COOLDOWN",
+     "minutes": "3",
+     "pace": "warm",
+     "paceFactor": 1.0,
+     "incline": "0"
+    }
+   ]
+  },
+  {
+   "id": "hill",
+   "name": "Marche en côte",
+   "kind": "HILL",
+   "title": "Marche en côte {incline} %",
+   "detail": "{minutes} min · inclinaison {incline} % à régler avant le départ",
+   "purpose": "Marche en côte : le cœur travaille davantage, sans les chocs de la course.",
+   "needsIncline": true,
+   "params": [
+    {
+     "name": "minutes",
+     "label": "Durée totale",
+     "default": 25,
+     "min": 10,
+     "max": 90,
+     "unit": "min"
+    }
+   ],
+   "blocks": [
+    {
+     "kind": "WARMUP",
+     "minutes": "3",
+     "pace": "warm",
+     "paceFactor": 0.9,
+     "incline": "profile"
+    },
+    {
+     "kind": "HILL",
+     "minutes": "minutes-6",
+     "pace": "hill",
+     "paceFactor": 1.0,
+     "incline": "profile"
+    },
+    {
+     "kind": "COOLDOWN",
+     "minutes": "3",
+     "pace": "warm",
+     "paceFactor": 0.9,
+     "incline": "profile"
+    }
+   ]
+  },
+  {
+   "id": "intervals",
+   "name": "Marche / course",
+   "kind": "INTERVALS",
+   "title": "Marche / course",
+   "detail": "{reps} × ({a} min de trot / {b} min de marche)",
+   "purpose": "Marche / course : de courts passages de trot, entrecoupés de marche pour récupérer. La durée de trot augmente semaine après semaine.",
+   "params": [
+    {
+     "name": "a",
+     "label": "Trot",
+     "default": 1,
+     "min": 1,
+     "max": 20,
+     "unit": "min"
+    },
+    {
+     "name": "b",
+     "label": "Marche",
+     "default": 3,
+     "min": 1,
+     "max": 10,
+     "unit": "min"
+    },
+    {
+     "name": "reps",
+     "label": "Répétitions",
+     "default": 6,
+     "min": 1,
+     "max": 12,
+     "unit": "fois"
+    }
+   ],
+   "blocks": [
+    {
+     "kind": "WARMUP",
+     "minutes": "3",
+     "pace": "warm",
+     "paceFactor": 1.0,
+     "incline": "0"
+    },
+    {
+     "kind": "REPEAT",
+     "repeat": "reps",
+     "blocks": [
+      {
+       "kind": "RUN",
+       "minutes": "a",
+       "pace": "run",
+       "paceFactor": 1.0,
+       "incline": "0"
+      },
+      {
+       "kind": "WALK",
+       "minutes": "b",
+       "pace": "warm",
+       "paceFactor": 1.0,
+       "incline": "0"
+      }
+     ],
+     "minutes": "0",
+     "pace": "warm",
+     "paceFactor": 1.0,
+     "incline": "0"
+    },
+    {
+     "kind": "COOLDOWN",
+     "minutes": "3",
+     "pace": "warm",
+     "paceFactor": 1.0,
+     "incline": "0"
+    }
+   ]
+  },
+  {
+   "id": "continuous",
+   "name": "Course continue",
+   "kind": "CONTINUOUS",
+   "title": "Course continue",
+   "detail": "{minutes} min de course à {pace:run} km/h",
+   "purpose": "Course continue, à allure facile : tu dois pouvoir dire une phrase sans être essoufflé.",
+   "params": [
+    {
+     "name": "minutes",
+     "label": "Course",
+     "default": 30,
+     "min": 5,
+     "max": 120,
+     "unit": "min"
+    }
+   ],
+   "blocks": [
+    {
+     "kind": "WARMUP",
+     "minutes": "5",
+     "pace": "walk",
+     "paceFactor": 1.0,
+     "incline": "0"
+    },
+    {
+     "kind": "RUN",
+     "minutes": "minutes",
+     "pace": "run",
+     "paceFactor": 1.0,
+     "incline": "0"
+    },
+    {
+     "kind": "COOLDOWN",
+     "minutes": "5",
+     "pace": "warm",
+     "paceFactor": 1.0,
+     "incline": "0"
+    }
+   ]
+  },
+  {
+   "id": "endurance",
+   "name": "Endurance",
+   "kind": "CONTINUOUS",
+   "title": "Endurance",
+   "detail": "{minutes} min de course à {pace:run} km/h",
+   "purpose": "Endurance : course facile et régulière, le socle des progrès en vitesse.",
+   "params": [
+    {
+     "name": "minutes",
+     "label": "Course",
+     "default": 30,
+     "min": 10,
+     "max": 90,
+     "unit": "min"
+    }
+   ],
+   "blocks": [
+    {
+     "kind": "WARMUP",
+     "minutes": "5",
+     "pace": "walk",
+     "paceFactor": 1.0,
+     "incline": "0"
+    },
+    {
+     "kind": "RUN",
+     "minutes": "minutes",
+     "pace": "run",
+     "paceFactor": 1.0,
+     "incline": "0"
+    },
+    {
+     "kind": "COOLDOWN",
+     "minutes": "5",
+     "pace": "warm",
+     "paceFactor": 1.0,
+     "incline": "0"
+    }
+   ]
+  },
+  {
+   "id": "fractionne",
+   "name": "Fractionné",
+   "kind": "PERF_INTERVALS",
+   "title": "Fractionné",
+   "detail": "{reps} × (2 min à {pace:fast} km/h / 2 min de marche)",
+   "purpose": "Fractionné : des passages rapides et courts, pour gagner en vitesse.",
+   "params": [
+    {
+     "name": "reps",
+     "label": "Répétitions",
+     "default": 4,
+     "min": 2,
+     "max": 10,
+     "unit": "fois"
+    }
+   ],
+   "blocks": [
+    {
+     "kind": "WARMUP",
+     "minutes": "4",
+     "pace": "walk",
+     "paceFactor": 1.0,
+     "incline": "0"
+    },
+    {
+     "kind": "RUN",
+     "minutes": "5",
+     "pace": "run",
+     "paceFactor": 1.0,
+     "incline": "0"
+    },
+    {
+     "kind": "REPEAT",
+     "repeat": "reps",
+     "blocks": [
+      {
+       "kind": "FAST",
+       "minutes": "2",
+       "pace": "fast",
+       "paceFactor": 1.0,
+       "incline": "0"
+      },
+      {
+       "kind": "WALK",
+       "minutes": "2",
+       "pace": "warm",
+       "paceFactor": 1.0,
+       "incline": "0"
+      }
+     ],
+     "minutes": "0",
+     "pace": "warm",
+     "paceFactor": 1.0,
+     "incline": "0"
+    },
+    {
+     "kind": "COOLDOWN",
+     "minutes": "4",
+     "pace": "warm",
+     "paceFactor": 1.0,
+     "incline": "0"
+    }
+   ]
+  },
+  {
+   "id": "tempo",
+   "name": "Allure soutenue",
+   "kind": "PERF_TEMPO",
+   "title": "Allure soutenue",
+   "detail": "{minutes} min à {pace:tempo} km/h",
+   "purpose": "Allure soutenue : un effort tenu, un peu en dessous de ta limite, pour repousser le seuil de fatigue.",
+   "params": [
+    {
+     "name": "minutes",
+     "label": "Allure soutenue",
+     "default": 10,
+     "min": 5,
+     "max": 40,
+     "unit": "min"
+    }
+   ],
+   "blocks": [
+    {
+     "kind": "WARMUP",
+     "minutes": "4",
+     "pace": "walk",
+     "paceFactor": 1.0,
+     "incline": "0"
+    },
+    {
+     "kind": "RUN",
+     "minutes": "5",
+     "pace": "run",
+     "paceFactor": 1.0,
+     "incline": "0"
+    },
+    {
+     "kind": "FAST",
+     "minutes": "minutes",
+     "pace": "tempo",
+     "paceFactor": 1.0,
+     "incline": "0"
+    },
+    {
+     "kind": "COOLDOWN",
+     "minutes": "5",
+     "pace": "warm",
+     "paceFactor": 1.0,
+     "incline": "0"
+    }
+   ]
+  },
+  {
+   "id": "recovery",
+   "name": "Récupération",
+   "kind": "RECOVERY",
+   "title": "Récupération",
+   "detail": "15 min de marche lente, à plat",
+   "purpose": "Récupération : marche lente. Elle compte comme une séance tenue.",
+   "params": [],
+   "blocks": [
+    {
+     "kind": "WALK",
+     "minutes": "15",
+     "pace": "recovery",
+     "paceFactor": 1.0,
+     "incline": "0"
+    }
+   ]
+  },
+  {
+   "id": "test",
+   "name": "Test de forme",
+   "kind": "TEST",
+   "title": "Test de forme",
+   "detail": "6 min à l'allure de marche la plus vive où tu peux encore parler",
+   "purpose": "Test de forme : il mesure ta nouvelle vitesse de référence, qui recale toutes tes allures.",
+   "params": [],
+   "blocks": [
+    {
+     "kind": "WARMUP",
+     "minutes": "3",
+     "pace": "warm",
+     "paceFactor": 1.0,
+     "incline": "0"
+    },
+    {
+     "kind": "TEST",
+     "minutes": "6",
+     "pace": "vr",
+     "paceFactor": 1.0,
+     "incline": "0"
+    },
+    {
+     "kind": "COOLDOWN",
+     "minutes": "3",
+     "pace": "warm",
+     "paceFactor": 1.0,
+     "incline": "0"
+    }
+   ]
+  },
+  {
+   "id": "flat-walk",
+   "name": "Marche à plat",
+   "kind": "WALK",
+   "title": "Marche à plat",
+   "detail": "{minutes} min, marche à {pace:walk} km/h",
+   "purpose": "Marche à plat, après une gêne ou une douleur : on bouge sans charger.",
+   "params": [
+    {
+     "name": "minutes",
+     "label": "Durée totale",
+     "default": 25,
+     "min": 10,
+     "max": 60,
+     "unit": "min"
+    }
+   ],
+   "blocks": [
+    {
+     "kind": "WARMUP",
+     "minutes": "3",
+     "pace": "warm",
+     "paceFactor": 1.0,
+     "incline": "0"
+    },
+    {
+     "kind": "WALK",
+     "minutes": "minutes-6",
+     "pace": "walk",
+     "paceFactor": 1.0,
+     "incline": "0"
+    },
+    {
+     "kind": "COOLDOWN",
+     "minutes": "3",
+     "pace": "warm",
+     "paceFactor": 1.0,
+     "incline": "0"
+    }
+   ]
+  }
+ ],
+ "programs": [
+  {
+   "id": "run-10",
+   "name": "Courir 10 min",
+   "validation": "10 min de course continue",
+   "description": "Premier objectif : enchaîner 10 minutes de course sans s'arrêter.",
+   "order": 1,
+   "enabled": true,
+   "goal": {
+    "kind": "duration",
+    "minutes": 10,
+    "km": 0
+   },
+   "requires": {
+    "minLongestRunMin": 0,
+    "allowHealthFlag": false
+   },
+   "recommend": [
+    {
+     "levels": [
+      "N1"
+     ],
+     "minRun": 0,
+     "maxRun": 9
+    }
+   ],
+   "steps": [
+    {
+     "sessions": [
+      {
+       "type": "walk",
+       "params": {
+        "minutes": 15
+       }
+      }
+     ],
+     "levels": [
+      "N1"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "walk",
+       "params": {
+        "minutes": 20
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "intervals",
+       "params": {
+        "a": 1,
+        "b": 3,
+        "reps": 6
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "intervals",
+       "params": {
+        "a": 2,
+        "b": 2,
+        "reps": 6
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "intervals",
+       "params": {
+        "a": 4,
+        "b": 2,
+        "reps": 4
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "intervals",
+       "params": {
+        "a": 6,
+        "b": 2,
+        "reps": 3
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 10
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    }
+   ],
+   "startAtMastered": true,
+   "easy": {
+    "types": [
+     "hill",
+     "walk"
+    ],
+    "fallback": "walk",
+    "startMinutes": 15,
+    "stepMinutes": 5,
+    "maxMinutes": 30
+   },
+   "deload": {
+    "every": 4,
+    "testAtEnd": true
+   },
+   "weekPatterns": {
+    "1": "K",
+    "2": "KK",
+    "3": "KEK",
+    "4": "KEKR"
+   },
+   "weekNotes": {}
+  },
+  {
+   "id": "run-30",
+   "name": "Courir 30 min",
+   "validation": "30 min de course continue",
+   "description": "Le grand classique de la reprise : 30 minutes de course continue.",
+   "order": 2,
+   "enabled": true,
+   "goal": {
+    "kind": "duration",
+    "minutes": 30,
+    "km": 0
+   },
+   "requires": {
+    "minLongestRunMin": 0,
+    "allowHealthFlag": false
+   },
+   "recommend": [
+    {
+     "levels": [
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "minRun": 0,
+     "maxRun": 9
+    },
+    {
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "minRun": 10,
+     "maxRun": 29
+    }
+   ],
+   "steps": [
+    {
+     "sessions": [
+      {
+       "type": "walk",
+       "params": {
+        "minutes": 15
+       }
+      }
+     ],
+     "levels": [
+      "N1"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "walk",
+       "params": {
+        "minutes": 20
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "walk",
+       "params": {
+        "minutes": 25
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "intervals",
+       "params": {
+        "a": 1,
+        "b": 3,
+        "reps": 6
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "intervals",
+       "params": {
+        "a": 2,
+        "b": 2,
+        "reps": 6
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "intervals",
+       "params": {
+        "a": 3,
+        "b": 2,
+        "reps": 5
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "intervals",
+       "params": {
+        "a": 5,
+        "b": 2,
+        "reps": 4
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "intervals",
+       "params": {
+        "a": 8,
+        "b": 2,
+        "reps": 3
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 15
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 20
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 25
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 30
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    }
+   ],
+   "startAtMastered": true,
+   "easy": {
+    "types": [
+     "hill",
+     "walk"
+    ],
+    "fallback": "walk",
+    "startMinutes": 15,
+    "stepMinutes": 5,
+    "maxMinutes": 30
+   },
+   "deload": {
+    "every": 4,
+    "testAtEnd": true
+   },
+   "weekPatterns": {
+    "1": "K",
+    "2": "KK",
+    "3": "KEK",
+    "4": "KEKR"
+   },
+   "weekNotes": {}
+  },
+  {
+   "id": "run-45",
+   "name": "Courir 45 min",
+   "validation": "45 min de course continue",
+   "description": "",
+   "order": 3,
+   "enabled": true,
+   "goal": {
+    "kind": "duration",
+    "minutes": 45,
+    "km": 0
+   },
+   "requires": {
+    "minLongestRunMin": 0,
+    "allowHealthFlag": false
+   },
+   "recommend": [
+    {
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "minRun": 30,
+     "maxRun": 44
+    }
+   ],
+   "steps": [
+    {
+     "sessions": [
+      {
+       "type": "walk",
+       "params": {
+        "minutes": 15
+       }
+      }
+     ],
+     "levels": [
+      "N1"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "walk",
+       "params": {
+        "minutes": 20
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "walk",
+       "params": {
+        "minutes": 25
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "intervals",
+       "params": {
+        "a": 1,
+        "b": 3,
+        "reps": 6
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "intervals",
+       "params": {
+        "a": 2,
+        "b": 2,
+        "reps": 6
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "intervals",
+       "params": {
+        "a": 3,
+        "b": 2,
+        "reps": 5
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "intervals",
+       "params": {
+        "a": 5,
+        "b": 2,
+        "reps": 4
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "intervals",
+       "params": {
+        "a": 8,
+        "b": 2,
+        "reps": 3
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 15
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 20
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 25
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 30
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 35
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 40
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 45
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    }
+   ],
+   "startAtMastered": true,
+   "easy": {
+    "types": [
+     "hill",
+     "walk"
+    ],
+    "fallback": "walk",
+    "startMinutes": 15,
+    "stepMinutes": 5,
+    "maxMinutes": 30
+   },
+   "deload": {
+    "every": 4,
+    "testAtEnd": true
+   },
+   "weekPatterns": {
+    "1": "K",
+    "2": "KK",
+    "3": "KEK",
+    "4": "KEKR"
+   },
+   "weekNotes": {}
+  },
+  {
+   "id": "run-60",
+   "name": "Courir 1 h",
+   "validation": "1 h de course continue",
+   "description": "",
+   "order": 4,
+   "enabled": true,
+   "goal": {
+    "kind": "duration",
+    "minutes": 60,
+    "km": 0
+   },
+   "requires": {
+    "minLongestRunMin": 0,
+    "allowHealthFlag": false
+   },
+   "recommend": [
+    {
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "minRun": 45,
+     "maxRun": 59
+    }
+   ],
+   "steps": [
+    {
+     "sessions": [
+      {
+       "type": "walk",
+       "params": {
+        "minutes": 15
+       }
+      }
+     ],
+     "levels": [
+      "N1"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "walk",
+       "params": {
+        "minutes": 20
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "walk",
+       "params": {
+        "minutes": 25
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "intervals",
+       "params": {
+        "a": 1,
+        "b": 3,
+        "reps": 6
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "intervals",
+       "params": {
+        "a": 2,
+        "b": 2,
+        "reps": 6
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "intervals",
+       "params": {
+        "a": 3,
+        "b": 2,
+        "reps": 5
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "intervals",
+       "params": {
+        "a": 5,
+        "b": 2,
+        "reps": 4
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "intervals",
+       "params": {
+        "a": 8,
+        "b": 2,
+        "reps": 3
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 15
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 20
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 25
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 30
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 35
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 40
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 45
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 50
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 55
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 60
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    }
+   ],
+   "startAtMastered": true,
+   "easy": {
+    "types": [
+     "hill",
+     "walk"
+    ],
+    "fallback": "walk",
+    "startMinutes": 15,
+    "stepMinutes": 5,
+    "maxMinutes": 30
+   },
+   "deload": {
+    "every": 4,
+    "testAtEnd": true
+   },
+   "weekPatterns": {
+    "1": "K",
+    "2": "KK",
+    "3": "KEK",
+    "4": "KEKR"
+   },
+   "weekNotes": {}
+  },
+  {
+   "id": "run-5k",
+   "name": "Courir 5 km",
+   "validation": "5 km sans marcher",
+   "description": "",
+   "order": 5,
+   "enabled": true,
+   "goal": {
+    "kind": "distance",
+    "minutes": 0,
+    "km": 5
+   },
+   "requires": {
+    "minLongestRunMin": 0,
+    "allowHealthFlag": false
+   },
+   "recommend": [],
+   "steps": [
+    {
+     "sessions": [
+      {
+       "type": "walk",
+       "params": {
+        "minutes": 15
+       }
+      }
+     ],
+     "levels": [
+      "N1"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "walk",
+       "params": {
+        "minutes": 20
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "walk",
+       "params": {
+        "minutes": 25
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "intervals",
+       "params": {
+        "a": 1,
+        "b": 3,
+        "reps": 6
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "intervals",
+       "params": {
+        "a": 2,
+        "b": 2,
+        "reps": 6
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "intervals",
+       "params": {
+        "a": 3,
+        "b": 2,
+        "reps": 5
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "intervals",
+       "params": {
+        "a": 5,
+        "b": 2,
+        "reps": 4
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "intervals",
+       "params": {
+        "a": 8,
+        "b": 2,
+        "reps": 3
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 15
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 20
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 25
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 30
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 35
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 40
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 45
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 50
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 55
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 60
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 70
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 80
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 90
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 100
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "km": 5
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    }
+   ],
+   "startAtMastered": true,
+   "easy": {
+    "types": [
+     "hill",
+     "walk"
+    ],
+    "fallback": "walk",
+    "startMinutes": 15,
+    "stepMinutes": 5,
+    "maxMinutes": 30
+   },
+   "deload": {
+    "every": 4,
+    "testAtEnd": true
+   },
+   "weekPatterns": {
+    "1": "K",
+    "2": "KK",
+    "3": "KEK",
+    "4": "KEKR"
+   },
+   "weekNotes": {}
+  },
+  {
+   "id": "run-10k",
+   "name": "Courir 10 km",
+   "validation": "10 km sans marcher",
+   "description": "",
+   "order": 6,
+   "enabled": true,
+   "goal": {
+    "kind": "distance",
+    "minutes": 0,
+    "km": 10
+   },
+   "requires": {
+    "minLongestRunMin": 0,
+    "allowHealthFlag": false
+   },
+   "recommend": [],
+   "steps": [
+    {
+     "sessions": [
+      {
+       "type": "walk",
+       "params": {
+        "minutes": 15
+       }
+      }
+     ],
+     "levels": [
+      "N1"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "walk",
+       "params": {
+        "minutes": 20
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "walk",
+       "params": {
+        "minutes": 25
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "intervals",
+       "params": {
+        "a": 1,
+        "b": 3,
+        "reps": 6
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "intervals",
+       "params": {
+        "a": 2,
+        "b": 2,
+        "reps": 6
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "intervals",
+       "params": {
+        "a": 3,
+        "b": 2,
+        "reps": 5
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "intervals",
+       "params": {
+        "a": 5,
+        "b": 2,
+        "reps": 4
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "intervals",
+       "params": {
+        "a": 8,
+        "b": 2,
+        "reps": 3
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 15
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 20
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 25
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 30
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 35
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 40
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 45
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 50
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 55
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 60
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 70
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 80
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 90
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "minutes": 100
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "continuous",
+       "params": {
+        "km": 10
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    }
+   ],
+   "startAtMastered": true,
+   "easy": {
+    "types": [
+     "hill",
+     "walk"
+    ],
+    "fallback": "walk",
+    "startMinutes": 15,
+    "stepMinutes": 5,
+    "maxMinutes": 30
+   },
+   "deload": {
+    "every": 4,
+    "testAtEnd": true
+   },
+   "weekPatterns": {
+    "1": "K",
+    "2": "KK",
+    "3": "KEK",
+    "4": "KEKR"
+   },
+   "weekNotes": {}
+  },
+  {
+   "id": "perf",
+   "name": "Améliorer mes performances",
+   "validation": "8 semaines de travail d'allure",
+   "description": "Travail d'allure : fractionné, allure soutenue et endurance.",
+   "order": 7,
+   "enabled": true,
+   "goal": {
+    "kind": "none",
+    "minutes": 0,
+    "km": 0
+   },
+   "requires": {
+    "minLongestRunMin": 30,
+    "allowHealthFlag": false
+   },
+   "recommend": [
+    {
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "minRun": 60,
+     "maxRun": 999
+    }
+   ],
+   "steps": [
+    {
+     "sessions": [
+      {
+       "type": "fractionne",
+       "params": {
+        "reps": 4
+       }
+      },
+      {
+       "type": "tempo",
+       "params": {
+        "minutes": 10
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "fractionne",
+       "params": {
+        "reps": 4
+       }
+      },
+      {
+       "type": "tempo",
+       "params": {
+        "minutes": 12
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "fractionne",
+       "params": {
+        "reps": 5
+       }
+      },
+      {
+       "type": "tempo",
+       "params": {
+        "minutes": 13
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "fractionne",
+       "params": {
+        "reps": 5
+       }
+      },
+      {
+       "type": "tempo",
+       "params": {
+        "minutes": 14
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "fractionne",
+       "params": {
+        "reps": 6
+       }
+      },
+      {
+       "type": "tempo",
+       "params": {
+        "minutes": 16
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "fractionne",
+       "params": {
+        "reps": 6
+       }
+      },
+      {
+       "type": "tempo",
+       "params": {
+        "minutes": 18
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "fractionne",
+       "params": {
+        "reps": 7
+       }
+      },
+      {
+       "type": "tempo",
+       "params": {
+        "minutes": 19
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "fractionne",
+       "params": {
+        "reps": 7
+       }
+      },
+      {
+       "type": "tempo",
+       "params": {
+        "minutes": 20
+       }
+      }
+     ],
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    }
+   ],
+   "startAtMastered": false,
+   "easy": {
+    "types": [
+     "endurance"
+    ],
+    "fallback": "endurance",
+    "startMinutes": 30,
+    "stepMinutes": 0,
+    "maxMinutes": 30
+   },
+   "deload": {
+    "every": 4,
+    "testAtEnd": true
+   },
+   "weekPatterns": {
+    "1": "K",
+    "2": "KK",
+    "3": "KEK",
+    "4": "KEKR"
+   },
+   "weekNotes": {}
+  },
+  {
+   "id": "health",
+   "name": "Santé et forme",
+   "validation": "8 semaines de marche régulière",
+   "description": "Marche active et marche en côte, pour tous, y compris en cas d'avis médical.",
+   "order": 8,
+   "enabled": true,
+   "goal": {
+    "kind": "none",
+    "minutes": 0,
+    "km": 0
+   },
+   "requires": {
+    "minLongestRunMin": 0,
+    "allowHealthFlag": true
+   },
+   "recommend": [
+    {
+     "levels": [
+      "N1",
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "minRun": 0,
+     "maxRun": 999,
+     "healthFlag": true
+    }
+   ],
+   "steps": [
+    {
+     "sessions": [
+      {
+       "type": "walk",
+       "params": {
+        "minutes": 15
+       }
+      }
+     ],
+     "levels": [
+      "N1"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "walk",
+       "params": {
+        "minutes": 20
+       }
+      }
+     ],
+     "levels": [
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "walk",
+       "params": {
+        "minutes": 20
+       }
+      }
+     ],
+     "levels": [
+      "N1"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "walk",
+       "params": {
+        "minutes": 25
+       }
+      }
+     ],
+     "levels": [
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "walk",
+       "params": {
+        "minutes": 20
+       }
+      }
+     ],
+     "levels": [
+      "N1"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "walk",
+       "params": {
+        "minutes": 25
+       }
+      }
+     ],
+     "levels": [
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "walk",
+       "params": {
+        "minutes": 25
+       }
+      }
+     ],
+     "levels": [
+      "N1"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "walk",
+       "params": {
+        "minutes": 30
+       }
+      }
+     ],
+     "levels": [
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "walk",
+       "params": {
+        "minutes": 25
+       }
+      }
+     ],
+     "levels": [
+      "N1"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "walk",
+       "params": {
+        "minutes": 30
+       }
+      }
+     ],
+     "levels": [
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "walk",
+       "params": {
+        "minutes": 30
+       }
+      }
+     ],
+     "levels": [
+      "N1"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "walk",
+       "params": {
+        "minutes": 35
+       }
+      }
+     ],
+     "levels": [
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "walk",
+       "params": {
+        "minutes": 30
+       }
+      }
+     ],
+     "levels": [
+      "N1"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "walk",
+       "params": {
+        "minutes": 35
+       }
+      }
+     ],
+     "levels": [
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "walk",
+       "params": {
+        "minutes": 35
+       }
+      }
+     ],
+     "levels": [
+      "N1"
+     ],
+     "note": ""
+    },
+    {
+     "sessions": [
+      {
+       "type": "walk",
+       "params": {
+        "minutes": 40
+       }
+      }
+     ],
+     "levels": [
+      "N2",
+      "N3",
+      "N4"
+     ],
+     "note": ""
+    }
+   ],
+   "startAtMastered": false,
+   "easy": {
+    "types": [
+     "hill"
+    ],
+    "fallback": "walk",
+    "startMinutes": 15,
+    "stepMinutes": 5,
+    "maxMinutes": 30
+   },
+   "deload": {
+    "every": 4,
+    "testAtEnd": true
+   },
+   "weekPatterns": {
+    "1": "K",
+    "2": "KK",
+    "3": "KEK",
+    "4": "KEKR"
+   },
+   "weekNotes": {}
+  }
+ ]
+}

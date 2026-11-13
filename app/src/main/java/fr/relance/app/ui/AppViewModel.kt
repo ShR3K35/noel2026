@@ -23,6 +23,8 @@ import fr.relance.app.core.Physio
 import fr.relance.app.core.PlannedSession
 import fr.relance.app.core.Profile
 import fr.relance.app.core.ProgramStatus
+import fr.relance.app.core.Catalogs
+import fr.relance.app.core.ProgramTemplate
 import fr.relance.app.core.ProgramType
 import fr.relance.app.core.Sample
 import fr.relance.app.core.SessionEngine
@@ -85,7 +87,11 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     init {
         var loaded = store.load()
-        loaded.program?.let { p -> loaded = loaded.copy(program = Coach.applyGap(p, today())) }
+        loaded.program?.let { p ->
+            val prof = loaded.profile
+            val migrated = if (prof != null) Coach.migrate(p, prof) else p
+            loaded = loaded.copy(program = Coach.applyGap(migrated, today()))
+        }
         commit(loaded)
         stack += if (loaded.profile == null) Screen.Onboarding else Screen.Home
         reconnectSensors()
@@ -126,9 +132,12 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---------- Profil et programmes ----------
 
-    fun completeOnboarding(profile: Profile, type: ProgramType, testFirst: Boolean) {
+    fun completeOnboarding(profile: Profile, type: ProgramType, testFirst: Boolean) =
+        completeOnboarding(profile, Catalogs.current.program(type.id) ?: Catalogs.builtin.program(type.id)!!, testFirst)
+
+    fun completeOnboarding(profile: Profile, template: ProgramTemplate, testFirst: Boolean) {
         val prof = profile.copy(level = Physio.assessLevel(profile))
-        val program = Coach.newProgram(type, prof, today()).copy(testNext = testFirst)
+        val program = Coach.newProgram(template, prof, today()).copy(testNext = testFirst)
         commit(state.copy(profile = prof, program = program))
         stack.clear()
         stack += Screen.Home
@@ -140,10 +149,10 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         commit(state.copy(profile = change(prof)))
     }
 
-    fun startProgram(type: ProgramType) {
+    fun startProgram(template: ProgramTemplate) {
         val prof = state.profile ?: return
         if (state.program != null) return
-        commit(state.copy(program = Coach.newProgram(type, prof, today())))
+        commit(state.copy(program = Coach.newProgram(template, prof, today())))
         stack.clear()
         stack += Screen.Home
         tab = 0

@@ -13,29 +13,17 @@ enum class LastPractice(val label: String) {
     UNDER_2Y("Il y a moins de 2 ans"), UNDER_6M("Il y a moins de 6 mois")
 }
 
+/** Programmes intégrés de la première version : ne sert plus qu'à migrer un programme en cours et dans les tests. */
 @Serializable
-enum class ProgramType(val label: String, val validation: String) {
-    RUN_10("Courir 10 min", "10 min de course continue"),
-    RUN_30("Courir 30 min", "30 min de course continue"),
-    RUN_45("Courir 45 min", "45 min de course continue"),
-    RUN_60("Courir 1 h", "1 h de course continue"),
-    RUN_5K("Courir 5 km", "5 km sans marcher"),
-    RUN_10K("Courir 10 km", "10 km sans marcher"),
-    PERF("Améliorer mes performances", "8 semaines de travail d'allure"),
-    HEALTH("Santé et forme", "8 semaines de marche régulière")
+enum class ProgramType(val id: String) {
+    RUN_10("run-10"), RUN_30("run-30"), RUN_45("run-45"), RUN_60("run-60"),
+    RUN_5K("run-5k"), RUN_10K("run-10k"), PERF("perf"), HEALTH("health"),
 }
 
 @Serializable
 enum class ProgramStatus(val label: String) {
     ACTIVE("En cours"), SUCCESS("Réussi"), FINISHED("Terminé sans validation"), STOPPED("Interrompu")
 }
-
-@Serializable
-enum class StepKind { WALK, INTERVALS, CONTINUOUS, PERF }
-
-/** Un palier de progression : le contenu de la séance clé d'une semaine. */
-@Serializable
-data class Step(val kind: StepKind, val a: Int, val b: Int = 0, val reps: Int = 0)
 
 @Serializable
 enum class BlockKind(val label: String) {
@@ -103,9 +91,16 @@ data class Profile(
 @Serializable
 data class Program(
     val id: String,
-    val type: ProgramType,
+    val templateId: String = "",
+    val name: String = "",
+    val validation: String = "",
     val startDay: Long,
-    val ladder: List<Step>,
+    /** Paliers adaptés au profil au démarrage du programme. */
+    val steps: List<ResolvedStep> = emptyList(),
+    /** Le programme garde sa version du catalogue jusqu'à la fin. */
+    val snapshot: ProgramSnapshot? = null,
+    /** Ancien format, avant le catalogue : sert seulement à migrer un programme en cours. */
+    val type: ProgramType? = null,
     val stepIndex: Int = 0,
     val week: Int = 0,
     val sessionInWeek: Int = 0,
@@ -129,7 +124,7 @@ data class Program(
     val paused: Boolean = false,
     val weeksPlanned: Int = 0,
 ) {
-    val finished: Boolean get() = stepIndex >= ladder.size
+    val finished: Boolean get() = stepIndex >= steps.size
 }
 
 @Serializable

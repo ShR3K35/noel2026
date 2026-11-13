@@ -99,10 +99,10 @@ private fun ProgramProgress(p: Program) {
     val total = max(p.weeksPlanned, p.week + 1)
     Card(padding = 14.dp) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Strong("Programme · ${p.type.label}")
+            Strong("Programme · ${p.name}")
             Small("Semaine ${p.week + 1} sur $total")
         }
-        ProgressBar(p.stepIndex.toFloat() / max(1, p.ladder.size))
+        ProgressBar(p.stepIndex.toFloat() / max(1, p.steps.size))
         Small("${p.sessionsDone} séance${if (p.sessionsDone > 1) "s" else ""} tenue${if (p.sessionsDone > 1) "s" else ""}")
     }
 }
@@ -140,8 +140,8 @@ private fun TodayTab(vm: AppViewModel) {
         Title("Prêt pour la suite ?")
         val lastDone = vm.state.archived.firstOrNull()
         if (lastDone != null && lastDone.status == ProgramStatus.SUCCESS)
-            Card(color = C.Soft) { Strong("${lastDone.type.label} : réussi"); Body("Bravo. Ne laisse pas de vide après une réussite : enchaîne sur un nouvel objectif ou un programme d'entretien.") }
-        Body("Aucun programme en cours. Conseillé pour toi : ${Coach.recommended(profile).label}.", C.Muted)
+            Card(color = C.Soft) { Strong("${lastDone.name} : réussi"); Body("Bravo. Ne laisse pas de vide après une réussite : enchaîne sur un nouvel objectif ou un programme d'entretien.") }
+        Body("Aucun programme en cours." + (Coach.recommended(profile)?.let { " Conseillé pour toi : ${it.name}." } ?: ""), C.Muted)
         Btn("Choisir un programme", Modifier.fillMaxWidth()) { vm.open(Screen.Catalogue) }
         return
     }
@@ -331,16 +331,16 @@ private fun ProgramsTab(vm: AppViewModel) {
     } else {
         Card {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text(p.type.label, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = C.Ink)
+                Text(p.name, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = C.Ink)
                 Small(if (p.paused) "En pause" else "Semaine ${p.week + 1} sur ${max(p.weeksPlanned, p.week + 1)}")
             }
-            ProgressBar(p.stepIndex.toFloat() / max(1, p.ladder.size))
+            ProgressBar(p.stepIndex.toFloat() / max(1, p.steps.size))
             Row(Modifier.fillMaxWidth()) {
                 Stat("${p.sessionsDone}", "séances tenues", Modifier.weight(1f))
                 Stat("${Fmt.kmh(vm.state.profile?.vr ?: 0.0)} km/h", "vitesse de référence", Modifier.weight(1f))
                 Stat(vm.plan.lastOrNull()?.let { Dates.short(it.day).substringAfter(' ') } ?: "—", "arrivée estimée", Modifier.weight(1f))
             }
-            Small("Objectif : ${p.type.validation}.")
+            Small("Objectif : ${p.validation}.")
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Btn(if (p.paused) "Reprendre" else "Mettre en pause", Modifier.weight(1f), filled = false, height = 48.dp) { vm.togglePauseProgram() }
                 Btn("Arrêter", Modifier.weight(1f), filled = false, height = 48.dp) { confirmStop = true }
@@ -353,7 +353,7 @@ private fun ProgramsTab(vm: AppViewModel) {
     vm.state.archived.forEach { a ->
         Card(padding = 14.dp) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text(a.type.label, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = C.Ink)
+                Text(a.name, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = C.Ink)
                 Text(a.status.label, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = if (a.status == ProgramStatus.SUCCESS) C.Accent else C.Muted)
             }
             Small("Du ${Dates.short(a.startDay)} au ${Dates.short(a.endDay)} · ${a.week + (if (a.sessionInWeek > 0) 1 else 0)} semaine(s)")
