@@ -46,6 +46,7 @@ object Coach {
         val draft = Program(
             id = "p$today-${t.id}-${System.nanoTime() % 100000}", templateId = t.id, name = t.name, validation = t.validation,
             startDay = today, steps = steps, snapshot = snapshotOf(t, c), vrStart = p.vr, weeksPlanned = weeksFor(t, steps.size),
+            startLevel = p.level, startLongestRun = p.longestRunMin,
         )
         return draft.copy(sessionsPlanned = plan(draft, p, today).size)
     }
@@ -63,6 +64,34 @@ object Coach {
             templateId = t.id, name = t.name, validation = t.validation, steps = steps, snapshot = snapshotOf(t, Catalogs.builtin),
             stepIndex = p.stepIndex.coerceAtMost(steps.size - 1), weeksPlanned = weeksFor(t, steps.size), type = null,
         )
+    }
+
+    // ---------- Mises à jour du catalogue ----------
+
+    /** Le coach a publié une version différente de ce programme. */
+    fun hasUpdate(p: Program, c: Catalog = Catalogs.current): Boolean {
+        val s = p.snapshot ?: return false
+        if (p.status != ProgramStatus.ACTIVE || c.version <= s.catalogVersion) return false
+        val t = c.program(p.templateId) ?: return false
+        if (p.pending?.catalogVersion == c.version) return false
+        return snapshotOf(t, c).copy(catalogVersion = 0) != s.copy(catalogVersion = 0)
+    }
+
+    private fun withSnapshot(p: Program, snap: ProgramSnapshot, profile: Profile): Program {
+        val start = profile.copy(level = p.startLevel ?: profile.level, longestRunMin = if (p.startLevel != null) p.startLongestRun else profile.longestRunMin)
+        val catalog = Catalog(paces = snap.paces, specials = snap.specials, sessionTypes = snap.sessionTypes, programs = listOf(snap.template), version = snap.catalogVersion)
+        val steps = ladderFor(snap.template, start, catalog)
+        return p.copy(
+            snapshot = snap, pending = null, steps = steps, name = snap.template.name, validation = snap.template.validation,
+            stepIndex = p.stepIndex.coerceAtMost(maxOf(0, steps.size - 1)), weeksPlanned = weeksFor(snap.template, steps.size),
+        )
+    }
+
+    /** Applique tout de suite si aucune séance de la semaine n'est faite, sinon au début de la semaine suivante. */
+    fun scheduleUpdate(p: Program, profile: Profile, c: Catalog = Catalogs.current): Program {
+        val t = c.program(p.templateId) ?: return p
+        val snap = snapshotOf(t, c)
+        return if (p.sessionInWeek == 0 && !p.testNext) withSnapshot(p, snap, profile) else p.copy(pending = snap)
     }
 
     fun recommended(p: Profile, c: Catalog = Catalogs.current): ProgramTemplate? = Templates.recommended(c, p)
@@ -138,6 +167,7 @@ object Coach {
                 else -> p.stepIndex + 1
             }
             q = q.copy(sessionInWeek = 0, week = p.week + 1, stepIndex = next, repeatWeek = false, skipStep = false)
+            q.pending?.let { q = withSnapshot(q, it, profile) }
         }
         return q
     }

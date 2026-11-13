@@ -99,6 +99,11 @@ data class Program(
     val steps: List<ResolvedStep> = emptyList(),
     /** Le programme garde sa version du catalogue jusqu'à la fin. */
     val snapshot: ProgramSnapshot? = null,
+    /** Nouvelle version du programme, appliquée au début de la semaine suivante. */
+    val pending: ProgramSnapshot? = null,
+    /** Profil au démarrage : une mise à jour du programme se réadapte à ce même point de départ. */
+    val startLevel: Level? = null,
+    val startLongestRun: Int = 0,
     /** Ancien format, avant le catalogue : sert seulement à migrer un programme en cours. */
     val type: ProgramType? = null,
     val stepIndex: Int = 0,

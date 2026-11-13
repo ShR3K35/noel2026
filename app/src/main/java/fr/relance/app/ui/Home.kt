@@ -156,6 +156,9 @@ private fun TodayTab(vm: AppViewModel) {
         }
     )
     ProgramProgress(p)
+    p.snapshot?.template?.weekNotes?.get((p.week + 1).toString())?.takeIf { it.isNotBlank() }?.let { note ->
+        Card(color = C.Soft) { Label("Le mot du coach · semaine ${p.week + 1}", C.Accent); Body(note) }
+    }
     when {
         p.paused -> {
             Body("Le programme est figé. À la reprise, je recale le niveau selon la durée de la coupure.", C.Muted)
@@ -256,6 +259,7 @@ private fun PlanningTab(vm: AppViewModel) {
             }
             Text(if (isOpen) "▾" else "▸", fontSize = 20.sp, color = C.Muted)
         }
+        if (isOpen) p.snapshot?.template?.weekNotes?.get((w + 1).toString())?.takeIf { it.isNotBlank() }?.let { Small("« $it »", C.Ink) }
         if (isOpen) list.forEach { (i, s) -> PlanRow(s, today) { vm.open(Screen.Planned(i)) } }
     }
     Small("Au-delà des deux premières semaines, le planning est prévisionnel : dates, vitesses et contenu s'ajustent à tes séances réelles.")
@@ -348,6 +352,19 @@ private fun ProgramsTab(vm: AppViewModel) {
         }
         Small("Un seul programme à la fois. Pour en commencer un autre, termine ou arrête celui-ci : il sera gardé dans la liste ci-dessous.")
     }
+    if (p != null && vm.programUpdateAvailable()) Card(color = C.Soft) {
+        Strong("Nouvelle version de ce programme")
+        Body("Ton coach a modifié « ${p.name} ». Elle s'appliquera à partir de ton niveau de départ, sans perdre ta progression.")
+        Btn("Appliquer", Modifier.fillMaxWidth(), height = 48.dp) { vm.applyProgramUpdate() }
+    }
+    if (p?.pending != null) Small("Une nouvelle version de ce programme s'appliquera au début de la semaine prochaine.")
+    Label("Catalogue des programmes")
+    Card(padding = 14.dp) {
+        Body("Version ${vm.catalogVersion}" + if (vm.catalogCheckedAt > 0) " · vérifiée le ${java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.SHORT, java.text.DateFormat.SHORT, java.util.Locale.FRANCE).format(java.util.Date(vm.catalogCheckedAt))}" else " · jamais vérifiée")
+        Small("Les programmes sont mis à jour une fois par jour quand le téléphone a du réseau. Ton programme en cours garde sa version, sauf si tu appliques la nouvelle.")
+        Btn(if (vm.catalogBusy) "Vérification…" else "Mettre à jour les programmes", Modifier.fillMaxWidth(), filled = false, enabled = !vm.catalogBusy, height = 48.dp) { vm.syncCatalog() }
+        if (vm.catalogMessage.isNotBlank()) Small(vm.catalogMessage, C.Ink)
+    }
     Label("Programmes effectués")
     if (vm.state.archived.isEmpty()) Body("Aucun pour l'instant.", C.Muted)
     vm.state.archived.forEach { a ->
@@ -414,6 +431,21 @@ private fun ProfileTab(vm: AppViewModel) {
         ChipRow(listOf("Activé", "Désactivé"), if (profile.runnerAnimation) 0 else 1) { i -> vm.updateProfile { it.copy(runnerAnimation = i == 0) } }
         Strong("Annonces vocales")
         ChipRow(listOf("Activées", "Désactivées"), if (profile.voice) 0 else 1) { i -> vm.updateProfile { it.copy(voice = i == 0) } }
+    }
+    Label("Serveur des programmes")
+    Card {
+        var url by remember { mutableStateOf(vm.catalogSync.url) }
+        androidx.compose.material3.OutlinedTextField(
+            value = url, onValueChange = { url = it }, modifier = Modifier.fillMaxWidth(), singleLine = true,
+            label = { Text("Adresse du catalogue") },
+        )
+        Small("L'adresse de l'interface coach, suivie de /api/catalog. À ne changer que si ton coach te le demande.")
+        Btn("Enregistrer et vérifier", Modifier.fillMaxWidth(), filled = false, height = 48.dp) {
+            vm.catalogSync.setUrl(url)
+            url = vm.catalogSync.url
+            vm.syncCatalog()
+        }
+        if (vm.catalogMessage.isNotBlank()) Small(vm.catalogMessage, C.Ink)
     }
     Small("Relance donne des conseils d'entraînement, pas un avis médical. En cas de douleur dans la poitrine ou de vertige, arrête-toi et consulte.")
 }

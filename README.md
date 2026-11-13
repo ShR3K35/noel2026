@@ -4,7 +4,7 @@ App Android de remise au sport sur tapis de course : un coach qui s'adapte à to
 
 ## Installer l'app
 
-**[Télécharger l'APK (relance.apk)](apk/relance.apk?raw=true)** — version 0.6.0, Android 8 ou plus récent.
+**[Télécharger l'APK (relance.apk)](apk/relance.apk?raw=true)** — version 0.7.0, Android 8 ou plus récent.
 
 1. Ouvre ce lien depuis le téléphone, ou copie le fichier `apk/relance.apk` dessus.
 2. Ouvre le fichier et accepte l'installation depuis cette source (Android le demande pour toute app hors Play Store).
@@ -38,6 +38,12 @@ Le coureur animé, à l'arrêt, en marche, au trot et en course rapide :
 - **Fréquence cardiaque de repos** : bouton « Mesurer avec ma ceinture » dans le profil. Assis, 2 minutes d'écoute, puis la valeur est enregistrée et les zones cardiaques recalculées.
 - **Étalonnage du boîtier** : trois paliers de marche, bande à vide, pour caler la vitesse mesurée sur celle de la console.
 
+## Interface coach
+
+Les programmes ne sont plus figés dans l'app : un coach les construit et les publie depuis une interface web hébergée sur Netlify (dossier [`web/`](web/README.md)). L'app récupère le catalogue publié une fois par jour, ou tout de suite avec **Programmes → Mettre à jour les programmes**, et l'adapte au profil enregistré sur le téléphone. Un programme en cours garde sa version ; si le coach la modifie, l'app propose de l'appliquer, au plus tôt au début de la semaine suivante.
+
+Le catalogue initial (`catalog/catalog.json`) reprend les programmes de la première version et sert hors ligne.
+
 ## Boîtier pour Domyos Run100
 
 Le Run100 classique n'est pas connecté : un boîtier ESP32 (environ 20 €) compte les tours d'un rouleau grâce à un aimant et un capteur à effet Hall, et envoie vitesse et distance à l'app.
@@ -56,7 +62,7 @@ Le Run100 classique n'est pas connecté : un boîtier ESP32 (environ 20 €) com
 
 L'app a été construite et testée sans téléphone ni émulateur :
 
-- le moteur de coaching, l'export, l'étalonnage et le décodage Bluetooth sont couverts par 32 tests unitaires, et la conversion d'une séance pour Santé Connect par 2 autres ;
+- le moteur de coaching, l'export, l'étalonnage et le décodage Bluetooth sont couverts par 40 tests unitaires, et la conversion d'une séance pour Santé Connect par 2 autres ;
 - le programme du boîtier compile pour ESP32 et sa logique de mesure passe 7 tests ; une trame qu'il produit est décodée par l'app dans les tests ;
 - des tests parcourent toute l'interface (bilan de départ, séance, bilan, fiche, arrêt de programme, étalonnage, mesure de la FC de repos, carte Santé Connect, saisie d'une séance faite sans le téléphone, planning détaillé, séance faite en avance puis annulée et refaite) et produisent les captures ci-dessus.
 

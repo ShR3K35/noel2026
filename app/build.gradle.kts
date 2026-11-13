@@ -13,8 +13,10 @@ android {
         applicationId = "fr.relance.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 6
-        versionName = "0.6.0"
+        versionCode = 7
+        versionName = "0.7.0"
+        // Adresse du catalogue publié depuis l'interface coach.
+        buildConfigField("String", "CATALOG_URL", "\"" + (project.findProperty("relance.catalogUrl") ?: "https://relance-coach.netlify.app/api/catalog") + "\"")
     }
 
     // Clé de signature de développement, volontairement versionnée : elle garantit que
@@ -51,6 +53,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     testOptions {
         unitTests.isIncludeAndroidResources = true
@@ -75,6 +78,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
     implementation("androidx.health.connect:connect-client:1.1.0")
+    implementation("androidx.work:work-runtime-ktx:2.10.5")
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.14.1")

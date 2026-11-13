@@ -85,7 +85,20 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     fun today(): Long = LocalDate.now().toEpochDay()
 
+    val catalogSync = fr.relance.app.data.CatalogSync(app.filesDir)
+    var catalogVersion by mutableIntStateOf(Catalogs.current.version)
+        private set
+    var catalogCheckedAt by mutableStateOf(0L)
+        private set
+    var catalogBusy by mutableStateOf(false)
+        private set
+    var catalogMessage by mutableStateOf("")
+
     init {
+        // Le dernier catalogue publié par le coach, s'il a déjà été téléchargé ; sinon celui livré avec l'app.
+        catalogSync.loadCached()?.let { if (it.version >= Catalogs.builtin.version) Catalogs.current = it }
+        catalogVersion = Catalogs.current.version
+        catalogCheckedAt = catalogSync.meta().checkedAt
         var loaded = store.load()
         loaded.program?.let { p ->
             val prof = loaded.profile
@@ -96,6 +109,11 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         stack += if (loaded.profile == null) Screen.Onboarding else Screen.Home
         reconnectSensors()
         refreshHealthConnect()
+        try {
+            fr.relance.app.data.CatalogSync.schedule(app)
+        } catch (e: Exception) {
+            // WorkManager indisponible (tests) : la mise à jour manuelle reste possible.
+        }
         try {
             tts = TextToSpeech(app) { status ->
                 if (status == TextToSpeech.SUCCESS) {
@@ -342,6 +360,41 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         tab = 2
         stack += Screen.Detail(id)
         if (r.profile.healthConnect) syncHealthConnect(listOf(id))
+    }
+
+    // ---------- Catalogue des programmes ----------
+
+    /** Bouton « Mettre à jour les programmes ». */
+    fun syncCatalog() {
+        if (catalogBusy) return
+        catalogBusy = true
+        catalogMessage = ""
+        viewModelScope.launch {
+            val r = withContext(Dispatchers.IO) { catalogSync.fetch() }
+            when (r) {
+                is fr.relance.app.data.CatalogSync.Result.Updated -> {
+                    Catalogs.current = r.catalog
+                    catalogMessage = "Programmes mis à jour (version ${r.catalog.version})."
+                }
+                is fr.relance.app.data.CatalogSync.Result.UpToDate -> catalogMessage = "Les programmes sont à jour."
+                is fr.relance.app.data.CatalogSync.Result.Failed -> catalogMessage = r.message
+            }
+            catalogVersion = Catalogs.current.version
+            catalogCheckedAt = catalogSync.meta().checkedAt
+            catalogBusy = false
+            commit(state)
+        }
+    }
+
+    fun programUpdateAvailable(): Boolean = state.program?.let { Coach.hasUpdate(it) } ?: false
+
+    fun applyProgramUpdate() {
+        val p = state.program ?: return
+        val prof = state.profile ?: return
+        val next = Coach.scheduleUpdate(p, prof)
+        commit(state.copy(program = next))
+        catalogMessage = if (next.pending != null) "La nouvelle version s'appliquera au début de la semaine prochaine."
+        else "Nouvelle version du programme appliquée."
     }
 
     // ---------- Santé Connect ----------

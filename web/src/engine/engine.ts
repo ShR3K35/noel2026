@@ -280,14 +280,14 @@ export function advance(st: ProgramState, p: Profile): ProgramState {
 }
 
 /** Planning complet à partir d'un jour donné, si chaque séance est faite à sa date. */
-export function plan(st0: ProgramState, p: Profile, startDay: number): PlannedSession[] {
+export function plan(st0: ProgramState, p: Profile, startDay: number, cap = 0): PlannedSession[] {
   const days = trainingDays(p);
   let cursor = startDay;
   let st = st0;
   const out: PlannedSession[] = [];
   while (st.stepIndex < st.steps.length && out.length < 400) {
     while (!days.includes(dayOfWeek(cursor))) cursor++;
-    out.push(sessionFor(st, p, cursor));
+    out.push(sessionFor(st, p, cursor, cap));
     st = advance(st, p);
     cursor++;
   }

@@ -113,6 +113,20 @@ object Catalogs {
     var current: Catalog = builtin
 
     fun parse(text: String): Catalog = json.decodeFromString(Catalog.serializer(), text)
+
+    /** Raison de refuser un catalogue téléchargé (incomplet, ou trop récent pour cette version de l'app), sinon null. */
+    fun check(c: Catalog): String? {
+        if (c.schema > 1) return "Ces programmes demandent une version plus récente de l'app."
+        if (c.visiblePrograms.isEmpty()) return "Le catalogue reçu ne contient aucun programme."
+        val types = c.sessionTypes.map { it.id }.toSet()
+        listOf(c.specials.test, c.specials.recovery, c.specials.flatWalk).firstOrNull { it !in types }?.let { return "Type de séance manquant : $it." }
+        for (p in c.programs) {
+            if (p.steps.isEmpty()) return "Programme vide : ${p.name}."
+            val refs = p.steps.flatMap { s -> s.sessions.map { it.type } } + p.easy.types + p.easy.fallback
+            refs.firstOrNull { it !in types }?.let { return "Programme ${p.name} : type de séance inconnu « $it »." }
+        }
+        return null
+    }
 }
 
 /** Un palier une fois adapté au profil : paramètres résolus (distance convertie en minutes, etc.). */
