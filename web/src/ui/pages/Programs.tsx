@@ -1,4 +1,4 @@
-import { newState, programWeeks, trainingDays } from "../../engine/engine";
+import { levelsOf, newState, programWeeks, trainingDays } from "../../engine/engine";
 import type { ProgramTemplate } from "../../engine/types";
 import { REFERENCE_PROFILES } from "../../engine/validate";
 import { clone, useRoute, useStore } from "../store";
@@ -7,7 +7,8 @@ export function blankProgram(id: string): ProgramTemplate {
   return {
     id, name: "Nouveau programme", validation: "", description: "", order: 99, enabled: false,
     goal: { kind: "duration", minutes: 30, km: 0 }, requires: { minLongestRunMin: 0, allowHealthFlag: false }, recommend: [],
-    steps: [{ sessions: [{ type: "walk", params: { minutes: 20 } }], levels: ["N1", "N2", "N3", "N4"], note: "" }],
+    steps: [],
+    variants: { N2: { steps: [{ sessions: [{ type: "walk", params: { minutes: 20 } }], note: "" }] } },
     startAtMastered: true,
     easy: { types: ["hill", "walk"], fallback: "walk", startMinutes: 15, stepMinutes: 5, maxMinutes: 30 },
     deload: { every: 4, testAtEnd: true, factor: 0.7 }, keysPerStep: 2,
@@ -55,7 +56,10 @@ export function Programs() {
           <h1>Programmes</h1>
           <p className="muted" style={{ margin: "4px 0 0" }}>L'ordre est celui du catalogue dans l'app. Un programme masqué reste en brouillon pour les sportifs.</p>
         </div>
-        <button className="primary" onClick={() => create()}>Nouveau programme</button>
+        <div className="row">
+          <button onClick={() => go("import")}>Importer un fichier…</button>
+          <button className="primary" onClick={() => create()}>Nouveau programme</button>
+        </div>
       </div>
       <div className="grid">
         {sorted.map((p, i) => {
@@ -74,7 +78,7 @@ export function Programs() {
               </div>
               <p className="small muted" style={{ margin: 0 }}>{p.description || p.validation || "Sans description"}</p>
               <div className="row small">
-                <span className="tag">{p.steps.length} paliers</span>
+                <span className="tag">{levelsOf(p).join(" ") || "aucun niveau"}</span>
                 <span className="tag">{weeks} sem. pour un N2</span>
                 {errors > 0 && <span className="tag" style={{ color: "var(--error)" }}>{errors} erreur(s)</span>}
                 {own.length - errors > 0 && <span className="tag" style={{ color: "var(--warn)" }}>{own.length - errors} point(s) d'attention</span>}

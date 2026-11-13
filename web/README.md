@@ -9,6 +9,7 @@ Interface d'administration des programmes de l'app Relance, et API qui les sert 
 - **Simulateur** : le planning exact que calculera le téléphone pour un profil (niveau, vitesse de référence, jours, temps disponible, pente, vitesse maximale du tapis), semaine par semaine et séance par séance.
 - **Allures** : les coefficients qui transforment la vitesse de référence en allures de marche, de côte et de course.
 - **Garde-fous** : erreurs qui bloquent la publication (type de séance inconnu, paramètre manquant…) et points d'attention de coach (plus de +10 % de course d'une semaine à l'autre, deux curseurs qui bougent ensemble, séance plus longue que le temps disponible, deux séances de course à moins de 48 h, pas d'échauffement…).
+- **Import / export** : un programme s'importe depuis un fichier JSON au format `relance.program` ([contrat](../contract/README.md)) et s'exporte dans ce même format. Le schéma, le guide pour un agent et un exemple sont publiés avec le site (`/schemas/program-import-v1.json`, `/contract/AGENT.md`, `/contract/examples/`).
 - **Publication** : le brouillon s'enregistre tout seul ; « Publier » crée une version, que les téléphones récupèrent une fois par jour ou à la demande. Historique et retour à une version précédente.
 
 Le profil du sportif ne quitte jamais son téléphone : le serveur ne stocke que les programmes, et c'est le téléphone qui les adapte.

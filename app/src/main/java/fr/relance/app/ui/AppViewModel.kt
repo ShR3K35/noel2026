@@ -18,6 +18,7 @@ import fr.relance.app.core.Coach
 import fr.relance.app.core.CompletedSession
 import fr.relance.app.core.Export
 import fr.relance.app.core.Feedback
+import fr.relance.app.core.Level
 import fr.relance.app.core.Fmt
 import fr.relance.app.core.Physio
 import fr.relance.app.core.PlannedSession
@@ -153,9 +154,9 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun completeOnboarding(profile: Profile, type: ProgramType, testFirst: Boolean) =
         completeOnboarding(profile, Catalogs.current.program(type.id) ?: Catalogs.builtin.program(type.id)!!, testFirst)
 
-    fun completeOnboarding(profile: Profile, template: ProgramTemplate, testFirst: Boolean) {
+    fun completeOnboarding(profile: Profile, template: ProgramTemplate, testFirst: Boolean, level: Level? = null) {
         val prof = profile.copy(level = Physio.assessLevel(profile))
-        val program = Coach.newProgram(template, prof, today()).copy(testNext = testFirst)
+        val program = Coach.newProgram(template, prof, today(), level = level ?: Coach.defaultLevel(template, prof)).copy(testNext = testFirst)
         commit(state.copy(profile = prof, program = program))
         stack.clear()
         stack += Screen.Home
@@ -167,10 +168,10 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         commit(state.copy(profile = change(prof)))
     }
 
-    fun startProgram(template: ProgramTemplate) {
+    fun startProgram(template: ProgramTemplate, level: Level? = null) {
         val prof = state.profile ?: return
         if (state.program != null) return
-        commit(state.copy(program = Coach.newProgram(template, prof, today())))
+        commit(state.copy(program = Coach.newProgram(template, prof, today(), level = level ?: Coach.defaultLevel(template, prof))))
         stack.clear()
         stack += Screen.Home
         tab = 0
@@ -196,11 +197,34 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---------- Séance ----------
 
+    /** Test de marche lancé depuis le profil, hors programme : il ne sert qu'à recalculer la vitesse de référence. */
+    var standaloneTest by mutableStateOf(false)
+        private set
+
     fun startSession(capMinutes: Int = 0) {
-        notice = ""
         val p = state.program ?: return
         val prof = state.profile ?: return
-        val session = Coach.sessionFor(p, prof, today(), capMinutes)
+        standaloneTest = false
+        launchSession(Coach.sessionFor(p, prof, today(), capMinutes), prof)
+    }
+
+    /** Relance le test de marche (12 min) pour mesurer à nouveau la vitesse de référence. */
+    fun startTestSession() {
+        val prof = state.profile ?: return
+        val c = Catalogs.current
+        val type = c.type(c.specials.test) ?: Catalogs.builtin.type(Catalogs.builtin.specials.test) ?: return
+        val session = fr.relance.app.core.Templates.build(type, emptyMap(), prof, Physio.speedsFor(prof, 1.0, c.paces), today(), 0, false, false, 0)
+        standaloneTest = true
+        launchSession(session, prof)
+    }
+
+    /** Vitesse de référence saisie à la main, entre 3 et 9 km/h. */
+    fun setReferenceSpeed(kmh: Double) {
+        updateProfile { it.copy(vr = Physio.round1(kmh.coerceIn(3.0, 9.0))) }
+    }
+
+    private fun launchSession(session: fr.relance.app.core.PlannedSession, prof: Profile) {
+        notice = ""
         engine = SessionEngine(session, prof)
         sessionStartMillis = System.currentTimeMillis()
         tick = 0
@@ -265,12 +289,26 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         val prof = state.profile ?: return
         tickJob?.cancel()
         val id = "s${sessionStartMillis}"
-        var summary = e.summary(id, sessionStartMillis, today(), p)
-            .copy(programBefore = p, profileBefore = fr.relance.app.core.CoachSnapshot.of(prof))
+        val standalone = standaloneTest
+        standaloneTest = false
+        var summary = if (standalone) e.summary(id, sessionStartMillis, today(), null)
+        else e.summary(id, sessionStartMillis, today(), p).copy(programBefore = p, profileBefore = fr.relance.app.core.CoachSnapshot.of(prof))
         var newProfile = prof
         var newProgram = p
         var message = "Séance enregistrée."
-        if (p != null) {
+        if (standalone) {
+            // Test hors programme : seule la vitesse de référence change, le programme ne bouge pas.
+            val v = e.measuredTestSpeed().takeIf { it >= 3.0 } ?: fb.testSpeed
+            if (v >= 3.0) {
+                val old = prof.vr
+                newProfile = prof.copy(vr = Physio.round1(v), testRpe = fb.rpe)
+                message = when {
+                    newProfile.vr > old + 0.05 -> "Vitesse de référence : ${Fmt.kmh(old)} → ${Fmt.kmh(newProfile.vr)} km/h. Tes allures sont recalculées pour les prochaines séances."
+                    newProfile.vr < old - 0.05 -> "Vitesse de référence ajustée à ${Fmt.kmh(newProfile.vr)} km/h. Tes allures sont recalculées, sans jugement : on part d'où tu es."
+                    else -> "Vitesse de référence stable à ${Fmt.kmh(newProfile.vr)} km/h."
+                }
+            } else message = "Test enregistré, sans vitesse : ta vitesse de référence n'a pas changé."
+        } else if (p != null) {
             val r = Coach.applyFeedback(p, prof, e.session, fb, today(), e.measuredTestSpeed(), summary.longestRunMin)
             newProfile = r.profile
             newProgram = r.program

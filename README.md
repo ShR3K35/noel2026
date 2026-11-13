@@ -4,7 +4,7 @@ App Android de remise au sport sur tapis de course : un coach qui s'adapte à to
 
 ## Installer l'app
 
-**[Télécharger l'APK (relance.apk)](apk/relance.apk?raw=true)** — version 0.8.0, Android 8 ou plus récent.
+**[Télécharger l'APK (relance.apk)](apk/relance.apk?raw=true)** — version 0.9.0, Android 8 ou plus récent.
 
 1. Ouvre ce lien depuis le téléphone, ou copie le fichier `apk/relance.apk` dessus.
 2. Ouvre le fichier et accepte l'installation depuis cette source (Android le demande pour toute app hors Play Store).
@@ -23,6 +23,8 @@ Le coureur animé, à l'arrêt, en marche, au trot et en course rapide :
 ## Ce que fait cette version
 
 - **Bilan de départ** : questions de santé, profil, zones sensibles, test de marche, jours et durée disponibles.
+- **Niveau au choix** : avant chaque programme, le sportif choisit son niveau (N1 à N4) parmi ceux que le programme propose ; son niveau évalué est présélectionné.
+- **Vitesse de référence** : modifiable à la main dans le profil, ou en relançant le test de marche de 12 min ; le test hors programme ne fait pas avancer le programme.
 - **Programmes sur mesure** : courir 10 min, 30 min, 45 min, 1 h, 5 km, 10 km, améliorer ses performances, santé et forme. Un seul programme à la fois, avec pause, arrêt et liste des programmes effectués.
 - **Planning** : toutes les semaines jusqu'à l'objectif, à déplier une par une ; chaque séance s'ouvre sur son détail bloc par bloc (durées, vitesses, inclinaison, distance et calories estimées). Une semaine allégée sur quatre avec test de forme. Un palier se valide après 2 séances clés : à 1 séance par semaine, le programme est deux fois plus long ; à 2, 3 ou 4 séances, sa durée ne change pas et les séances en plus sont de l'endurance. Une séance manquée glisse, elle n'est jamais doublée.
 - **Séance en avance** : la prochaine séance peut se faire avant sa date ; les suivantes avancent d'autant.
@@ -43,6 +45,8 @@ Le coureur animé, à l'arrêt, en marche, au trot et en course rapide :
 Les programmes ne sont plus figés dans l'app : un coach les construit et les publie depuis une interface web hébergée sur Netlify, **https://relance-coach.netlify.app** (code dans [`web/`](web/README.md)). L'app récupère le catalogue publié une fois par jour, ou tout de suite avec **Programmes → Mettre à jour les programmes**, et l'adapte au profil enregistré sur le téléphone. Un programme en cours garde sa version ; si le coach la modifie, l'app propose de l'appliquer, au plus tôt au début de la semaine suivante.
 
 Le catalogue initial (`catalog/catalog.json`) reprend les programmes de la première version et sert hors ligne.
+
+Un programme peut aussi être **importé depuis un fichier JSON**, par exemple généré par un agent Claude ou ChatGPT : voir le [contrat d'import](contract/README.md) et le [guide pour l'agent](contract/AGENT.md).
 
 ## Boîtier pour Domyos Run100
 

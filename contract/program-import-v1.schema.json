@@ -1,0 +1,242 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://relance-coach.netlify.app/schemas/program-import-v1.json",
+  "title": "Programme Relance (import / export, version 1)",
+  "description": "Un fichier = un programme de reprise sur tapis, avec une variante par niveau (N1 à N4, toutes facultatives) et les types de séance nouveaux qu'il utilise. Les vitesses sont relatives à la vitesse de référence du sportif, ou fixes en km/h. Voir contract/README.md et contract/AGENT.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "formatVersion", "program"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "format": { "const": "relance.program" },
+    "formatVersion": { "const": 1 },
+    "meta": { "$ref": "#/$defs/meta" },
+    "program": { "$ref": "#/$defs/program" },
+    "sessionTypes": {
+      "description": "Types de séance nouveaux ou modifiés utilisés par le programme. Ceux du catalogue (walk, hill, intervals, continuous, endurance, fractionne, tempo, recovery, test, flat-walk) peuvent être utilisés sans être redéfinis.",
+      "type": "array",
+      "maxItems": 20,
+      "items": { "$ref": "#/$defs/sessionType" }
+    }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,40}$", "description": "Minuscules, chiffres et tirets." },
+    "level": { "enum": ["N1", "N2", "N3", "N4"], "description": "N1 redémarrage, N2 marcheur, N3 marche / course, N4 reprise course." },
+    "levels": { "type": "array", "items": { "$ref": "#/$defs/level" }, "uniqueItems": true },
+    "minutes": { "type": "number", "minimum": 0, "maximum": 300 },
+    "weekNumberMap": {
+      "type": "object",
+      "propertyNames": { "pattern": "^[1-9][0-9]{0,2}$" },
+      "additionalProperties": { "type": "string", "maxLength": 400 },
+      "description": "Mot du coach par numéro de semaine (« 1 », « 2 »…), affiché au sportif."
+    },
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "source": { "type": "string", "maxLength": 200, "description": "Qui a produit le fichier (agent, coach…)." },
+        "generatedAt": { "type": "string", "maxLength": 40 },
+        "rationale": { "type": "string", "maxLength": 3000, "description": "Explication des choix, pour le coach qui relit." }
+      }
+    },
+    "sessionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": { "$ref": "#/$defs/id", "description": "Identifiant d'un type de séance (catalogue ou sessionTypes)." },
+        "params": {
+          "type": "object",
+          "propertyNames": { "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,20}$" },
+          "additionalProperties": { "type": "number", "minimum": 0, "maximum": 300 },
+          "description": "Valeurs des paramètres du type (minutes, a, b, reps…). « km » sur une course continue : durée calculée selon l'allure du sportif."
+        }
+      }
+    },
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sessions"],
+      "properties": {
+        "sessions": {
+          "type": "array", "minItems": 1, "maxItems": 4,
+          "items": { "$ref": "#/$defs/sessionRef" },
+          "description": "Séance(s) clé(s) du palier. Plusieurs : jouées à tour de rôle dans la semaine."
+        },
+        "easy": { "$ref": "#/$defs/sessionRef", "description": "Séance d'endurance (E) propre à ce palier ; sinon la règle « easy » s'applique." },
+        "note": { "type": "string", "maxLength": 300, "description": "Note pour le coach, non affichée au sportif." }
+      }
+    },
+    "easy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["types", "fallback", "startMinutes", "stepMinutes", "maxMinutes"],
+      "properties": {
+        "types": { "type": "array", "items": { "$ref": "#/$defs/id" }, "maxItems": 4, "description": "Types d'endurance, à tour de rôle d'une semaine à l'autre." },
+        "fallback": { "$ref": "#/$defs/id", "description": "Type utilisé si le tapis n'a pas de pente." },
+        "startMinutes": { "type": "integer", "minimum": 10, "maximum": 90 },
+        "stepMinutes": { "type": "integer", "minimum": 0, "maximum": 15 },
+        "maxMinutes": { "type": "integer", "minimum": 10, "maximum": 120 }
+      }
+    },
+    "deload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["every", "testAtEnd"],
+      "properties": {
+        "every": { "type": "integer", "minimum": 0, "maximum": 8, "description": "Une semaine allégée toutes les N semaines ; 0 = jamais." },
+        "testAtEnd": { "type": "boolean", "description": "Test de forme en fin de semaine allégée." },
+        "factor": { "type": "number", "minimum": 0.4, "maximum": 1, "description": "Part du volume gardée en semaine allégée." }
+      }
+    },
+    "weekPatterns": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "1": { "type": "string", "pattern": "^[KER]{1}$" },
+        "2": { "type": "string", "pattern": "^[KER]{2}$" },
+        "3": { "type": "string", "pattern": "^[KER]{3}$" },
+        "4": { "type": "string", "pattern": "^[KER]{4}$" }
+      },
+      "description": "Rôles des séances selon le nombre de séances par semaine : K clé (le palier), E endurance, R récupération."
+    },
+    "variant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["steps"],
+      "properties": {
+        "steps": { "type": "array", "minItems": 1, "maxItems": 60, "items": { "$ref": "#/$defs/step" } },
+        "description": { "type": "string", "maxLength": 600 },
+        "keysPerStep": { "type": "integer", "minimum": 1, "maximum": 6 },
+        "startAtMastered": { "type": "boolean" },
+        "easy": { "$ref": "#/$defs/easy" },
+        "deload": { "$ref": "#/$defs/deload" },
+        "weekPatterns": { "$ref": "#/$defs/weekPatterns" },
+        "weekNotes": { "$ref": "#/$defs/weekNumberMap" }
+      },
+      "description": "Programme pour un niveau. Les réglages absents reprennent ceux du programme."
+    },
+    "program": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "validation", "goal", "variants"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 60 },
+        "validation": { "type": "string", "maxLength": 120, "description": "Objectif validé, affiché au sportif quand il réussit." },
+        "description": { "type": "string", "maxLength": 600 },
+        "order": { "type": "integer", "minimum": 0, "maximum": 999 },
+        "enabled": { "type": "boolean", "description": "Ignoré à l'import : un programme importé arrive masqué." },
+        "goal": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["kind"],
+          "properties": {
+            "kind": { "enum": ["duration", "distance", "none"] },
+            "minutes": { "type": "integer", "minimum": 0, "maximum": 300 },
+            "km": { "type": "number", "minimum": 0, "maximum": 50 }
+          }
+        },
+        "requires": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "minLongestRunMin": { "type": "integer", "minimum": 0, "maximum": 180, "description": "Course continue déjà tenue pour accéder au programme." },
+            "allowHealthFlag": { "type": "boolean", "description": "Ouvert aux sportifs avec avis médical conseillé (marche uniquement, en principe)." }
+          }
+        },
+        "recommend": {
+          "type": "array",
+          "maxItems": 8,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["levels"],
+            "properties": {
+              "levels": { "$ref": "#/$defs/levels" },
+              "minRun": { "type": "integer", "minimum": 0, "maximum": 999 },
+              "maxRun": { "type": "integer", "minimum": 0, "maximum": 999 },
+              "healthFlag": { "type": "boolean" }
+            }
+          },
+          "description": "À qui l'app conseille ce programme (niveau, course continue déjà tenue en minutes)."
+        },
+        "keysPerStep": { "type": "integer", "minimum": 1, "maximum": 6, "description": "Séances clés réussies pour valider un palier (2 conseillé)." },
+        "startAtMastered": { "type": "boolean", "description": "Démarrer au dernier palier déjà maîtrisé par le sportif." },
+        "easy": { "$ref": "#/$defs/easy" },
+        "deload": { "$ref": "#/$defs/deload" },
+        "weekPatterns": { "$ref": "#/$defs/weekPatterns" },
+        "weekNotes": { "$ref": "#/$defs/weekNumberMap" },
+        "variants": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": false,
+          "properties": {
+            "N1": { "$ref": "#/$defs/variant" },
+            "N2": { "$ref": "#/$defs/variant" },
+            "N3": { "$ref": "#/$defs/variant" },
+            "N4": { "$ref": "#/$defs/variant" }
+          },
+          "description": "Une variante par niveau proposé. Un niveau absent n'a pas accès au programme."
+        }
+      }
+    },
+    "paramDef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "default", "min", "max"],
+      "properties": {
+        "name": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,20}$" },
+        "label": { "type": "string", "maxLength": 40 },
+        "default": { "type": "number" },
+        "min": { "type": "number" },
+        "max": { "type": "number" },
+        "unit": { "type": "string", "maxLength": 10 }
+      }
+    },
+    "block": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": { "enum": ["WARMUP", "WALK", "HILL", "RUN", "FAST", "TEST", "COOLDOWN", "REPEAT"] },
+        "minutes": {
+          "type": "string",
+          "pattern": "^([0-9]+(\\.[0-9]+)?|[A-Za-z_][A-Za-z0-9_]*([+-][0-9]+(\\.[0-9]+)?)?)$",
+          "description": "Durée : nombre (« 7 »), paramètre (« a ») ou paramètre ± constante (« minutes-6 »). Inutile pour REPEAT."
+        },
+        "pace": {
+          "enum": ["warm", "recovery", "walk", "hill", "run", "tempo", "fast", "vr", "kmh"],
+          "description": "Allure relative à la vitesse de référence du sportif, ou « kmh » pour une vitesse fixe."
+        },
+        "kmh": { "type": "number", "minimum": 1, "maximum": 25, "description": "Vitesse fixe en km/h, avec pace « kmh »." },
+        "paceFactor": { "type": "number", "minimum": 0.5, "maximum": 1.5 },
+        "incline": { "type": "string", "pattern": "^(profile|[0-9]+(\\.[0-9]+)?)$", "description": "Pente en %, ou « profile » (celle du tapis du sportif)." },
+        "repeat": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,20}$", "description": "REPEAT : paramètre donnant le nombre de répétitions." },
+        "blocks": { "type": "array", "minItems": 1, "maxItems": 10, "items": { "$ref": "#/$defs/block" } }
+      }
+    },
+    "sessionType": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "kind", "title", "detail", "params", "blocks"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 60 },
+        "kind": {
+          "enum": ["WALK", "HILL", "INTERVALS", "CONTINUOUS", "RECOVERY", "TEST", "PERF_INTERVALS", "PERF_TEMPO"],
+          "description": "Catégorie, utile aux statistiques. CONTINUOUS : paramètre « minutes » = course ; INTERVALS : « a » = course par répétition."
+        },
+        "title": { "type": "string", "maxLength": 60, "description": "Titre affiché ; {incline} = pente du tapis." },
+        "detail": {
+          "type": "string", "maxLength": 160,
+          "description": "Détail affiché : {param} (nombre), {param:min} (durée lisible, « 1 min 15 s »), {pace:run}, {pace:walk}… (vitesse)."
+        },
+        "purpose": { "type": "string", "maxLength": 400, "description": "Pourquoi cette séance, affiché au sportif." },
+        "needsIncline": { "type": "boolean" },
+        "params": { "type": "array", "maxItems": 6, "items": { "$ref": "#/$defs/paramDef" } },
+        "blocks": { "type": "array", "minItems": 1, "maxItems": 12, "items": { "$ref": "#/$defs/block" } }
+      }
+    }
+  }
+}

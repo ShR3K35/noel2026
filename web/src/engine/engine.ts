@@ -1,9 +1,46 @@
 // Moteur de programmes, port fidèle de Catalog.kt / Coach.kt / Physio.kt (côté app).
 // Il sert au simulateur et aux garde-fous de l'interface coach.
 import type {
-  Block, BlockKind, BlockT, Catalog, Paces, PlannedSession, Profile, ProgramState, ProgramTemplate, ResolvedStep,
+  Block, BlockKind, BlockT, Catalog, Level, Paces, PlannedSession, Profile, ProgramState, ProgramTemplate, ResolvedStep,
   SessionRef, SessionType,
 } from "./types";
+import { LEVELS } from "./types";
+
+// ---------- Variantes par niveau ----------
+
+const hasVariants = (t: ProgramTemplate) => !!t.variants && Object.keys(t.variants).length > 0;
+
+/** Niveaux pour lesquels le programme existe. */
+export function levelsOf(t: ProgramTemplate): Level[] {
+  if (hasVariants(t)) return LEVELS.filter((l) => t.variants![l]);
+  return LEVELS.filter((l) => t.steps.some((s) => (s.levels ?? LEVELS).includes(l)));
+}
+
+/** Le programme tel qu'il s'applique à un niveau (paliers et réglages de sa variante), ou undefined. */
+export function forLevel(t: ProgramTemplate, level: Level): ProgramTemplate | undefined {
+  if (!hasVariants(t)) {
+    const own = t.steps.filter((s) => (s.levels ?? LEVELS).includes(level));
+    return own.length ? { ...t, steps: own.map((s) => ({ ...s, levels: [level] })) } : undefined;
+  }
+  const v = t.variants![level];
+  if (!v) return undefined;
+  return {
+    ...t,
+    steps: v.steps.map((s) => ({ ...s, levels: [level] })),
+    description: v.description || t.description,
+    keysPerStep: v.keysPerStep ?? t.keysPerStep,
+    startAtMastered: v.startAtMastered ?? t.startAtMastered,
+    easy: v.easy ?? t.easy, deload: v.deload ?? t.deload,
+    weekPatterns: v.weekPatterns ?? t.weekPatterns, weekNotes: v.weekNotes ?? t.weekNotes,
+    variants: {},
+  };
+}
+
+/** Niveau proposé : celui du sportif s'il existe, sinon le plus proche (le plus facile en cas d'égalité). */
+export function closestLevel(t: ProgramTemplate, level: Level): Level | undefined {
+  const idx = LEVELS.indexOf(level);
+  return [...levelsOf(t)].sort((a, b) => Math.abs(LEVELS.indexOf(a) - idx) - Math.abs(LEVELS.indexOf(b) - idx) || LEVELS.indexOf(a) - LEVELS.indexOf(b))[0];
+}
 
 /** Arrondi de Kotlin roundToInt : au plus proche, les moitiés vers +∞ (comme Math.round). */
 const roundInt = (v: number) => Math.round(v);
@@ -59,13 +96,15 @@ function runDemand(ref: SessionRef, types: (id: string) => SessionType | undefin
   return 0;
 }
 
-export function resolve(t: ProgramTemplate, p: Profile, c: Catalog): ResolvedStep[] {
+export function resolve(t0: ProgramTemplate, p: Profile, c: Catalog): ResolvedStep[] {
+  const t = forLevel(t0, p.level);
+  if (!t) return [];
   const types = (id: string) => c.sessionTypes.find((x) => x.id === id);
   const run = speedsFor(p, 1, c.paces).run;
   let steps: ResolvedStep[] = t.steps
-    .filter((s) => (s.levels ?? []).includes(p.level))
     .map((s) => ({
       note: s.note ?? "",
+      ...(s.easy ? { easy: s.easy } : {}),
       sessions: s.sessions.map((r) => {
         const km = r.params.km;
         if (km != null && km > 0) {
@@ -125,6 +164,7 @@ export const programWeeks = (t: ProgramTemplate, stepCount: number, sessionsPerW
   weeksFor(stepCount, t.deload.every, keysPerWeek(t, sessionsPerWeek), keysPerStepOf(t));
 
 export function lockedReason(t: ProgramTemplate, p: Profile): string | null {
+  if (!levelsOf(t).length) return "Programme sans niveau disponible";
   if (p.healthFlag && !t.requires.allowHealthFlag) return "Avis médical conseillé avant de courir";
   if (p.longestRunMin < t.requires.minLongestRunMin) return `Après ${t.requires.minLongestRunMin} min de course continue`;
   return null;
@@ -134,7 +174,7 @@ export function recommended(c: Catalog, p: Profile): ProgramTemplate | undefined
   const visible = c.programs.filter((x) => x.enabled).sort((a, b) => a.order - b.order);
   return (
     visible.find((t) =>
-      lockedReason(t, p) === null &&
+      lockedReason(t, p) === null && levelsOf(t).includes(p.level) &&
       t.recommend.some((r) =>
         r.levels.includes(p.level) && p.longestRunMin >= r.minRun && p.longestRunMin <= r.maxRun &&
         (!r.healthFlag || p.healthFlag) && (r.healthFlag || !p.healthFlag),
@@ -157,12 +197,20 @@ export function evalMinutes(expr: string, params: Record<string, number>): numbe
   return params[e] ?? 0;
 }
 
-function speedOf(pace: string, factor: number, s: Speeds, p: Profile): number {
-  const base: Record<string, number> = { ...s, vr: p.vr };
+function speedOf(pace: string, factor: number, s: Speeds, p: Profile, kmhValue = 0): number {
+  const base: Record<string, number> = { ...s, vr: p.vr, kmh: kmhValue };
   return Math.min(round1((base[pace] ?? s.walk) * factor), p.treadmillMaxKmh);
 }
 
-const inclineOf = (expr: string, p: Profile) => (expr === "profile" ? p.inclinePct : Number(expr) || 0);
+/** Durée lisible : « 3 min », « 1 min 15 s », « 45 s ». */
+export function duration(minutes: number): string {
+  const sec = roundInt(minutes * 60);
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return s === 0 ? `${m} min` : m === 0 ? `${s} s` : `${m} min ${s} s`;
+}
+
+const inclineOf = (expr: string | undefined, p: Profile) => (expr === "profile" ? p.inclinePct : Number(expr ?? 0) || 0);
 
 export function expand(blocks: BlockT[], params: Record<string, number>, s: Speeds, p: Profile): Block[] {
   const out: Block[] = [];
@@ -172,7 +220,7 @@ export function expand(blocks: BlockT[], params: Record<string, number>, s: Spee
       for (let i = 0; i < n; i++) out.push(...expand(b.blocks ?? [], params, s, p));
     } else {
       const minutes = Math.max(1, evalMinutes(b.minutes, params));
-      out.push({ kind: b.kind as BlockKind, seconds: roundInt(minutes * 60), speedKmh: speedOf(b.pace, b.paceFactor, s, p), inclinePct: inclineOf(b.incline, p) });
+      out.push({ kind: b.kind as BlockKind, seconds: roundInt(minutes * 60), speedKmh: speedOf(b.pace, b.paceFactor ?? 1, s, p, b.kmh ?? 0), inclinePct: inclineOf(b.incline, p) });
     }
   }
   return out;
@@ -186,7 +234,7 @@ function totalMinutes(blocks: BlockT[], params: Record<string, number>): number 
 function fill(text: string, params: Record<string, number>, s: Speeds, p: Profile): string {
   let r = text.split("{incline}").join(fmt(p.inclinePct));
   for (const pace of ["warm", "recovery", "walk", "hill", "run", "tempo", "fast"]) r = r.split(`{pace:${pace}}`).join(kmh(speedOf(pace, 1, s, p)));
-  for (const [k, v] of Object.entries(params)) r = r.split(`{${k}}`).join(fmt(v));
+  for (const [k, v] of Object.entries(params)) r = r.split(`{${k}:min}`).join(duration(v)).split(`{${k}}`).join(fmt(v));
   return r;
 }
 
@@ -241,8 +289,11 @@ export const minutesOf = (s: PlannedSession) => Math.floor((s.blocks.reduce((a, 
 
 // ---------- Progression (sans retours de séance) ----------
 
-export function newState(t: ProgramTemplate, p: Profile, c: Catalog): ProgramState {
-  return { template: t, catalog: c, steps: resolve(t, p, c), stepIndex: 0, week: 0, sessionInWeek: 0, keysInStep: 0, speedFactor: 1 };
+/** Démarre un programme au niveau choisi (celui du profil par défaut, ou le plus proche disponible). */
+export function newState(t0: ProgramTemplate, p: Profile, c: Catalog, level: Level = p.level): ProgramState {
+  const chosen = levelsOf(t0).includes(level) ? level : closestLevel(t0, level) ?? level;
+  const t = forLevel(t0, chosen) ?? t0;
+  return { template: t, catalog: c, steps: resolve(t, { ...p, level: chosen }, c), stepIndex: 0, week: 0, sessionInWeek: 0, keysInStep: 0, speedFactor: 1 };
 }
 
 const isDeload = (st: ProgramState) => {
@@ -270,6 +321,15 @@ export function sessionFor(st: ProgramState, p: Profile, day: number, cap = 0): 
   const role = pattern[Math.min(slot, pattern.length - 1)] ?? "K";
   if (role === "R") return special(c.specials.recovery, {}, cap);
   if (role === "E") {
+    // Séance d'endurance propre au palier, si le coach l'a prévue.
+    const own = st.steps[Math.min(Math.max(st.stepIndex - (deload ? 1 : 0), 0), Math.max(0, st.steps.length - 1))]?.easy;
+    const ownType = own ? c.sessionTypes.find((x) => x.id === own.type) : undefined;
+    if (own && ownType) {
+      const ps: Record<string, number> = {};
+      for (const d of ownType.params) ps[d.name] = d.default;
+      Object.assign(ps, own.params);
+      return build(ownType, deload ? deloaded(ps, t.deload.factor ?? 0.7) : ps, p, s, day, st.week, false, deload, cap);
+    }
     const e = t.easy;
     const limit = Math.min(Math.max(15, p.minutesPerSession), e.maxMinutes);
     const minutes = Math.max(10, Math.min(cap > 0 ? cap : limit, e.startMinutes + e.stepMinutes * st.week));
@@ -321,7 +381,8 @@ export function plan(st0: ProgramState, p: Profile, startDay: number, cap = 0): 
   return out;
 }
 
-export function longestSessionMinutes(t: ProgramTemplate, p: Profile, c: Catalog): number {
+export function longestSessionMinutes(t0: ProgramTemplate, p: Profile, c: Catalog): number {
+  const t = forLevel(t0, p.level) ?? t0;
   const s = speedsFor(p, 1, c.paces);
   let max = 0;
   for (const step of resolve(t, p, c)) for (const ref of step.sessions) {

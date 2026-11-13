@@ -490,128 +490,7 @@
      "maxRun": 9
     }
    ],
-   "steps": [
-    {
-     "sessions": [
-      {
-       "type": "walk",
-       "params": {
-        "minutes": 15
-       }
-      }
-     ],
-     "levels": [
-      "N1"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "walk",
-       "params": {
-        "minutes": 20
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "intervals",
-       "params": {
-        "a": 1,
-        "b": 3,
-        "reps": 6
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "intervals",
-       "params": {
-        "a": 2,
-        "b": 2,
-        "reps": 6
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "intervals",
-       "params": {
-        "a": 4,
-        "b": 2,
-        "reps": 4
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "intervals",
-       "params": {
-        "a": 6,
-        "b": 2,
-        "reps": 3
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 10
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    }
-   ],
+   "steps": [],
    "startAtMastered": true,
    "easy": {
     "types": [
@@ -625,7 +504,8 @@
    },
    "deload": {
     "every": 4,
-    "testAtEnd": true
+    "testAtEnd": true,
+    "factor": 0.7
    },
    "keysPerStep": 2,
    "weekPatterns": {
@@ -634,7 +514,284 @@
     "3": "KEK",
     "4": "KEKR"
    },
-   "weekNotes": {}
+   "weekNotes": {},
+   "variants": {
+    "N1": {
+     "steps": [
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 15
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 1,
+          "b": 3,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 2,
+          "b": 2,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 4,
+          "b": 2,
+          "reps": 4
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 6,
+          "b": 2,
+          "reps": 3
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 10
+         }
+        }
+       ],
+       "note": ""
+      }
+     ]
+    },
+    "N2": {
+     "steps": [
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 1,
+          "b": 3,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 2,
+          "b": 2,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 4,
+          "b": 2,
+          "reps": 4
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 6,
+          "b": 2,
+          "reps": 3
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 10
+         }
+        }
+       ],
+       "note": ""
+      }
+     ]
+    },
+    "N3": {
+     "steps": [
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 1,
+          "b": 3,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 2,
+          "b": 2,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 4,
+          "b": 2,
+          "reps": 4
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 6,
+          "b": 2,
+          "reps": 3
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 10
+         }
+        }
+       ],
+       "note": ""
+      }
+     ]
+    },
+    "N4": {
+     "steps": [
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 4,
+          "b": 2,
+          "reps": 4
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 6,
+          "b": 2,
+          "reps": 3
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 10
+         }
+        }
+       ],
+       "note": ""
+      }
+     ]
+    }
+   }
   },
   {
    "id": "run-30",
@@ -673,212 +830,7 @@
      "maxRun": 29
     }
    ],
-   "steps": [
-    {
-     "sessions": [
-      {
-       "type": "walk",
-       "params": {
-        "minutes": 15
-       }
-      }
-     ],
-     "levels": [
-      "N1"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "walk",
-       "params": {
-        "minutes": 20
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "walk",
-       "params": {
-        "minutes": 25
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "intervals",
-       "params": {
-        "a": 1,
-        "b": 3,
-        "reps": 6
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "intervals",
-       "params": {
-        "a": 2,
-        "b": 2,
-        "reps": 6
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "intervals",
-       "params": {
-        "a": 3,
-        "b": 2,
-        "reps": 5
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "intervals",
-       "params": {
-        "a": 5,
-        "b": 2,
-        "reps": 4
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "intervals",
-       "params": {
-        "a": 8,
-        "b": 2,
-        "reps": 3
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 15
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 20
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 25
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 30
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    }
-   ],
+   "steps": [],
    "startAtMastered": true,
    "easy": {
     "types": [
@@ -892,7 +844,8 @@
    },
    "deload": {
     "every": 4,
-    "testAtEnd": true
+    "testAtEnd": true,
+    "factor": 0.7
    },
    "keysPerStep": 2,
    "weekPatterns": {
@@ -901,7 +854,477 @@
     "3": "KEK",
     "4": "KEKR"
    },
-   "weekNotes": {}
+   "weekNotes": {},
+   "variants": {
+    "N1": {
+     "steps": [
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 15
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 1,
+          "b": 3,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 2,
+          "b": 2,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 3,
+          "b": 2,
+          "reps": 5
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 5,
+          "b": 2,
+          "reps": 4
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 8,
+          "b": 2,
+          "reps": 3
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 15
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 30
+         }
+        }
+       ],
+       "note": ""
+      }
+     ]
+    },
+    "N2": {
+     "steps": [
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 1,
+          "b": 3,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 2,
+          "b": 2,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 3,
+          "b": 2,
+          "reps": 5
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 5,
+          "b": 2,
+          "reps": 4
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 8,
+          "b": 2,
+          "reps": 3
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 15
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 30
+         }
+        }
+       ],
+       "note": ""
+      }
+     ]
+    },
+    "N3": {
+     "steps": [
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 1,
+          "b": 3,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 2,
+          "b": 2,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 3,
+          "b": 2,
+          "reps": 5
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 5,
+          "b": 2,
+          "reps": 4
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 8,
+          "b": 2,
+          "reps": 3
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 15
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 30
+         }
+        }
+       ],
+       "note": ""
+      }
+     ]
+    },
+    "N4": {
+     "steps": [
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 5,
+          "b": 2,
+          "reps": 4
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 8,
+          "b": 2,
+          "reps": 3
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 15
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 30
+         }
+        }
+       ],
+       "note": ""
+      }
+     ]
+    }
+   }
   },
   {
    "id": "run-45",
@@ -931,263 +1354,7 @@
      "maxRun": 44
     }
    ],
-   "steps": [
-    {
-     "sessions": [
-      {
-       "type": "walk",
-       "params": {
-        "minutes": 15
-       }
-      }
-     ],
-     "levels": [
-      "N1"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "walk",
-       "params": {
-        "minutes": 20
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "walk",
-       "params": {
-        "minutes": 25
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "intervals",
-       "params": {
-        "a": 1,
-        "b": 3,
-        "reps": 6
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "intervals",
-       "params": {
-        "a": 2,
-        "b": 2,
-        "reps": 6
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "intervals",
-       "params": {
-        "a": 3,
-        "b": 2,
-        "reps": 5
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "intervals",
-       "params": {
-        "a": 5,
-        "b": 2,
-        "reps": 4
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "intervals",
-       "params": {
-        "a": 8,
-        "b": 2,
-        "reps": 3
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 15
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 20
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 25
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 30
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 35
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 40
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 45
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    }
-   ],
+   "steps": [],
    "startAtMastered": true,
    "easy": {
     "types": [
@@ -1201,7 +1368,8 @@
    },
    "deload": {
     "every": 4,
-    "testAtEnd": true
+    "testAtEnd": true,
+    "factor": 0.7
    },
    "keysPerStep": 2,
    "weekPatterns": {
@@ -1210,7 +1378,609 @@
     "3": "KEK",
     "4": "KEKR"
    },
-   "weekNotes": {}
+   "weekNotes": {},
+   "variants": {
+    "N1": {
+     "steps": [
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 15
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 1,
+          "b": 3,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 2,
+          "b": 2,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 3,
+          "b": 2,
+          "reps": 5
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 5,
+          "b": 2,
+          "reps": 4
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 8,
+          "b": 2,
+          "reps": 3
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 15
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 30
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 35
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 40
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 45
+         }
+        }
+       ],
+       "note": ""
+      }
+     ]
+    },
+    "N2": {
+     "steps": [
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 1,
+          "b": 3,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 2,
+          "b": 2,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 3,
+          "b": 2,
+          "reps": 5
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 5,
+          "b": 2,
+          "reps": 4
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 8,
+          "b": 2,
+          "reps": 3
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 15
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 30
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 35
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 40
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 45
+         }
+        }
+       ],
+       "note": ""
+      }
+     ]
+    },
+    "N3": {
+     "steps": [
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 1,
+          "b": 3,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 2,
+          "b": 2,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 3,
+          "b": 2,
+          "reps": 5
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 5,
+          "b": 2,
+          "reps": 4
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 8,
+          "b": 2,
+          "reps": 3
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 15
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 30
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 35
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 40
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 45
+         }
+        }
+       ],
+       "note": ""
+      }
+     ]
+    },
+    "N4": {
+     "steps": [
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 5,
+          "b": 2,
+          "reps": 4
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 8,
+          "b": 2,
+          "reps": 3
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 15
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 30
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 35
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 40
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 45
+         }
+        }
+       ],
+       "note": ""
+      }
+     ]
+    }
+   }
   },
   {
    "id": "run-60",
@@ -1240,314 +2010,7 @@
      "maxRun": 59
     }
    ],
-   "steps": [
-    {
-     "sessions": [
-      {
-       "type": "walk",
-       "params": {
-        "minutes": 15
-       }
-      }
-     ],
-     "levels": [
-      "N1"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "walk",
-       "params": {
-        "minutes": 20
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "walk",
-       "params": {
-        "minutes": 25
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "intervals",
-       "params": {
-        "a": 1,
-        "b": 3,
-        "reps": 6
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "intervals",
-       "params": {
-        "a": 2,
-        "b": 2,
-        "reps": 6
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "intervals",
-       "params": {
-        "a": 3,
-        "b": 2,
-        "reps": 5
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "intervals",
-       "params": {
-        "a": 5,
-        "b": 2,
-        "reps": 4
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "intervals",
-       "params": {
-        "a": 8,
-        "b": 2,
-        "reps": 3
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 15
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 20
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 25
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 30
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 35
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 40
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 45
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 50
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 55
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 60
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    }
-   ],
+   "steps": [],
    "startAtMastered": true,
    "easy": {
     "types": [
@@ -1561,7 +2024,8 @@
    },
    "deload": {
     "every": 4,
-    "testAtEnd": true
+    "testAtEnd": true,
+    "factor": 0.7
    },
    "keysPerStep": 2,
    "weekPatterns": {
@@ -1570,7 +2034,741 @@
     "3": "KEK",
     "4": "KEKR"
    },
-   "weekNotes": {}
+   "weekNotes": {},
+   "variants": {
+    "N1": {
+     "steps": [
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 15
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 1,
+          "b": 3,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 2,
+          "b": 2,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 3,
+          "b": 2,
+          "reps": 5
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 5,
+          "b": 2,
+          "reps": 4
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 8,
+          "b": 2,
+          "reps": 3
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 15
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 30
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 35
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 40
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 45
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 50
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 55
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 60
+         }
+        }
+       ],
+       "note": ""
+      }
+     ]
+    },
+    "N2": {
+     "steps": [
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 1,
+          "b": 3,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 2,
+          "b": 2,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 3,
+          "b": 2,
+          "reps": 5
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 5,
+          "b": 2,
+          "reps": 4
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 8,
+          "b": 2,
+          "reps": 3
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 15
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 30
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 35
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 40
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 45
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 50
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 55
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 60
+         }
+        }
+       ],
+       "note": ""
+      }
+     ]
+    },
+    "N3": {
+     "steps": [
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 1,
+          "b": 3,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 2,
+          "b": 2,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 3,
+          "b": 2,
+          "reps": 5
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 5,
+          "b": 2,
+          "reps": 4
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 8,
+          "b": 2,
+          "reps": 3
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 15
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 30
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 35
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 40
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 45
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 50
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 55
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 60
+         }
+        }
+       ],
+       "note": ""
+      }
+     ]
+    },
+    "N4": {
+     "steps": [
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 5,
+          "b": 2,
+          "reps": 4
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 8,
+          "b": 2,
+          "reps": 3
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 15
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 30
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 35
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 40
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 45
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 50
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 55
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 60
+         }
+        }
+       ],
+       "note": ""
+      }
+     ]
+    }
+   }
   },
   {
    "id": "run-5k",
@@ -1589,399 +2787,7 @@
     "allowHealthFlag": false
    },
    "recommend": [],
-   "steps": [
-    {
-     "sessions": [
-      {
-       "type": "walk",
-       "params": {
-        "minutes": 15
-       }
-      }
-     ],
-     "levels": [
-      "N1"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "walk",
-       "params": {
-        "minutes": 20
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "walk",
-       "params": {
-        "minutes": 25
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "intervals",
-       "params": {
-        "a": 1,
-        "b": 3,
-        "reps": 6
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "intervals",
-       "params": {
-        "a": 2,
-        "b": 2,
-        "reps": 6
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "intervals",
-       "params": {
-        "a": 3,
-        "b": 2,
-        "reps": 5
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "intervals",
-       "params": {
-        "a": 5,
-        "b": 2,
-        "reps": 4
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "intervals",
-       "params": {
-        "a": 8,
-        "b": 2,
-        "reps": 3
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 15
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 20
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 25
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 30
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 35
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 40
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 45
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 50
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 55
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 60
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 70
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 80
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 90
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 100
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "km": 5
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    }
-   ],
+   "steps": [],
    "startAtMastered": true,
    "easy": {
     "types": [
@@ -1995,7 +2801,8 @@
    },
    "deload": {
     "every": 4,
-    "testAtEnd": true
+    "testAtEnd": true,
+    "factor": 0.7
    },
    "keysPerStep": 2,
    "weekPatterns": {
@@ -2004,7 +2811,961 @@
     "3": "KEK",
     "4": "KEKR"
    },
-   "weekNotes": {}
+   "weekNotes": {},
+   "variants": {
+    "N1": {
+     "steps": [
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 15
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 1,
+          "b": 3,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 2,
+          "b": 2,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 3,
+          "b": 2,
+          "reps": 5
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 5,
+          "b": 2,
+          "reps": 4
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 8,
+          "b": 2,
+          "reps": 3
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 15
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 30
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 35
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 40
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 45
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 50
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 55
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 60
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 70
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 80
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 90
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 100
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "km": 5
+         }
+        }
+       ],
+       "note": ""
+      }
+     ]
+    },
+    "N2": {
+     "steps": [
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 1,
+          "b": 3,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 2,
+          "b": 2,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 3,
+          "b": 2,
+          "reps": 5
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 5,
+          "b": 2,
+          "reps": 4
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 8,
+          "b": 2,
+          "reps": 3
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 15
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 30
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 35
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 40
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 45
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 50
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 55
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 60
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 70
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 80
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 90
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 100
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "km": 5
+         }
+        }
+       ],
+       "note": ""
+      }
+     ]
+    },
+    "N3": {
+     "steps": [
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 1,
+          "b": 3,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 2,
+          "b": 2,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 3,
+          "b": 2,
+          "reps": 5
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 5,
+          "b": 2,
+          "reps": 4
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 8,
+          "b": 2,
+          "reps": 3
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 15
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 30
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 35
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 40
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 45
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 50
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 55
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 60
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 70
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 80
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 90
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 100
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "km": 5
+         }
+        }
+       ],
+       "note": ""
+      }
+     ]
+    },
+    "N4": {
+     "steps": [
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 5,
+          "b": 2,
+          "reps": 4
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 8,
+          "b": 2,
+          "reps": 3
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 15
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 30
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 35
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 40
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 45
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 50
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 55
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 60
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 70
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 80
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 90
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 100
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "km": 5
+         }
+        }
+       ],
+       "note": ""
+      }
+     ]
+    }
+   }
   },
   {
    "id": "run-10k",
@@ -2023,399 +3784,7 @@
     "allowHealthFlag": false
    },
    "recommend": [],
-   "steps": [
-    {
-     "sessions": [
-      {
-       "type": "walk",
-       "params": {
-        "minutes": 15
-       }
-      }
-     ],
-     "levels": [
-      "N1"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "walk",
-       "params": {
-        "minutes": 20
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "walk",
-       "params": {
-        "minutes": 25
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "intervals",
-       "params": {
-        "a": 1,
-        "b": 3,
-        "reps": 6
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "intervals",
-       "params": {
-        "a": 2,
-        "b": 2,
-        "reps": 6
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "intervals",
-       "params": {
-        "a": 3,
-        "b": 2,
-        "reps": 5
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "intervals",
-       "params": {
-        "a": 5,
-        "b": 2,
-        "reps": 4
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "intervals",
-       "params": {
-        "a": 8,
-        "b": 2,
-        "reps": 3
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 15
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 20
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 25
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 30
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 35
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 40
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 45
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 50
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 55
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 60
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 70
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 80
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 90
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "minutes": 100
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "continuous",
-       "params": {
-        "km": 10
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    }
-   ],
+   "steps": [],
    "startAtMastered": true,
    "easy": {
     "types": [
@@ -2429,7 +3798,8 @@
    },
    "deload": {
     "every": 4,
-    "testAtEnd": true
+    "testAtEnd": true,
+    "factor": 0.7
    },
    "keysPerStep": 2,
    "weekPatterns": {
@@ -2438,7 +3808,961 @@
     "3": "KEK",
     "4": "KEKR"
    },
-   "weekNotes": {}
+   "weekNotes": {},
+   "variants": {
+    "N1": {
+     "steps": [
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 15
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 1,
+          "b": 3,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 2,
+          "b": 2,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 3,
+          "b": 2,
+          "reps": 5
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 5,
+          "b": 2,
+          "reps": 4
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 8,
+          "b": 2,
+          "reps": 3
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 15
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 30
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 35
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 40
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 45
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 50
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 55
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 60
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 70
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 80
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 90
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 100
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "km": 10
+         }
+        }
+       ],
+       "note": ""
+      }
+     ]
+    },
+    "N2": {
+     "steps": [
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 1,
+          "b": 3,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 2,
+          "b": 2,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 3,
+          "b": 2,
+          "reps": 5
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 5,
+          "b": 2,
+          "reps": 4
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 8,
+          "b": 2,
+          "reps": 3
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 15
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 30
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 35
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 40
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 45
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 50
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 55
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 60
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 70
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 80
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 90
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 100
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "km": 10
+         }
+        }
+       ],
+       "note": ""
+      }
+     ]
+    },
+    "N3": {
+     "steps": [
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 1,
+          "b": 3,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 2,
+          "b": 2,
+          "reps": 6
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 3,
+          "b": 2,
+          "reps": 5
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 5,
+          "b": 2,
+          "reps": 4
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 8,
+          "b": 2,
+          "reps": 3
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 15
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 30
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 35
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 40
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 45
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 50
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 55
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 60
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 70
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 80
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 90
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 100
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "km": 10
+         }
+        }
+       ],
+       "note": ""
+      }
+     ]
+    },
+    "N4": {
+     "steps": [
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 5,
+          "b": 2,
+          "reps": 4
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "intervals",
+         "params": {
+          "a": 8,
+          "b": 2,
+          "reps": 3
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 15
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 30
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 35
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 40
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 45
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 50
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 55
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 60
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 70
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 80
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 90
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "minutes": 100
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "continuous",
+         "params": {
+          "km": 10
+         }
+        }
+       ],
+       "note": ""
+      }
+     ]
+    }
+   }
   },
   {
    "id": "perf",
@@ -2468,192 +4792,7 @@
      "maxRun": 999
     }
    ],
-   "steps": [
-    {
-     "sessions": [
-      {
-       "type": "fractionne",
-       "params": {
-        "reps": 4
-       }
-      },
-      {
-       "type": "tempo",
-       "params": {
-        "minutes": 10
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "fractionne",
-       "params": {
-        "reps": 4
-       }
-      },
-      {
-       "type": "tempo",
-       "params": {
-        "minutes": 12
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "fractionne",
-       "params": {
-        "reps": 5
-       }
-      },
-      {
-       "type": "tempo",
-       "params": {
-        "minutes": 13
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "fractionne",
-       "params": {
-        "reps": 5
-       }
-      },
-      {
-       "type": "tempo",
-       "params": {
-        "minutes": 14
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "fractionne",
-       "params": {
-        "reps": 6
-       }
-      },
-      {
-       "type": "tempo",
-       "params": {
-        "minutes": 16
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "fractionne",
-       "params": {
-        "reps": 6
-       }
-      },
-      {
-       "type": "tempo",
-       "params": {
-        "minutes": 18
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "fractionne",
-       "params": {
-        "reps": 7
-       }
-      },
-      {
-       "type": "tempo",
-       "params": {
-        "minutes": 19
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "fractionne",
-       "params": {
-        "reps": 7
-       }
-      },
-      {
-       "type": "tempo",
-       "params": {
-        "minutes": 20
-       }
-      }
-     ],
-     "levels": [
-      "N1",
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    }
-   ],
+   "steps": [],
    "startAtMastered": false,
    "easy": {
     "types": [
@@ -2666,7 +4805,8 @@
    },
    "deload": {
     "every": 4,
-    "testAtEnd": true
+    "testAtEnd": true,
+    "factor": 0.7
    },
    "keysPerStep": 2,
    "weekPatterns": {
@@ -2675,7 +4815,569 @@
     "3": "KEK",
     "4": "KEKR"
    },
-   "weekNotes": {}
+   "weekNotes": {},
+   "variants": {
+    "N1": {
+     "steps": [
+      {
+       "sessions": [
+        {
+         "type": "fractionne",
+         "params": {
+          "reps": 4
+         }
+        },
+        {
+         "type": "tempo",
+         "params": {
+          "minutes": 10
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "fractionne",
+         "params": {
+          "reps": 4
+         }
+        },
+        {
+         "type": "tempo",
+         "params": {
+          "minutes": 12
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "fractionne",
+         "params": {
+          "reps": 5
+         }
+        },
+        {
+         "type": "tempo",
+         "params": {
+          "minutes": 13
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "fractionne",
+         "params": {
+          "reps": 5
+         }
+        },
+        {
+         "type": "tempo",
+         "params": {
+          "minutes": 14
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "fractionne",
+         "params": {
+          "reps": 6
+         }
+        },
+        {
+         "type": "tempo",
+         "params": {
+          "minutes": 16
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "fractionne",
+         "params": {
+          "reps": 6
+         }
+        },
+        {
+         "type": "tempo",
+         "params": {
+          "minutes": 18
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "fractionne",
+         "params": {
+          "reps": 7
+         }
+        },
+        {
+         "type": "tempo",
+         "params": {
+          "minutes": 19
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "fractionne",
+         "params": {
+          "reps": 7
+         }
+        },
+        {
+         "type": "tempo",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      }
+     ]
+    },
+    "N2": {
+     "steps": [
+      {
+       "sessions": [
+        {
+         "type": "fractionne",
+         "params": {
+          "reps": 4
+         }
+        },
+        {
+         "type": "tempo",
+         "params": {
+          "minutes": 10
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "fractionne",
+         "params": {
+          "reps": 4
+         }
+        },
+        {
+         "type": "tempo",
+         "params": {
+          "minutes": 12
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "fractionne",
+         "params": {
+          "reps": 5
+         }
+        },
+        {
+         "type": "tempo",
+         "params": {
+          "minutes": 13
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "fractionne",
+         "params": {
+          "reps": 5
+         }
+        },
+        {
+         "type": "tempo",
+         "params": {
+          "minutes": 14
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "fractionne",
+         "params": {
+          "reps": 6
+         }
+        },
+        {
+         "type": "tempo",
+         "params": {
+          "minutes": 16
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "fractionne",
+         "params": {
+          "reps": 6
+         }
+        },
+        {
+         "type": "tempo",
+         "params": {
+          "minutes": 18
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "fractionne",
+         "params": {
+          "reps": 7
+         }
+        },
+        {
+         "type": "tempo",
+         "params": {
+          "minutes": 19
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "fractionne",
+         "params": {
+          "reps": 7
+         }
+        },
+        {
+         "type": "tempo",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      }
+     ]
+    },
+    "N3": {
+     "steps": [
+      {
+       "sessions": [
+        {
+         "type": "fractionne",
+         "params": {
+          "reps": 4
+         }
+        },
+        {
+         "type": "tempo",
+         "params": {
+          "minutes": 10
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "fractionne",
+         "params": {
+          "reps": 4
+         }
+        },
+        {
+         "type": "tempo",
+         "params": {
+          "minutes": 12
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "fractionne",
+         "params": {
+          "reps": 5
+         }
+        },
+        {
+         "type": "tempo",
+         "params": {
+          "minutes": 13
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "fractionne",
+         "params": {
+          "reps": 5
+         }
+        },
+        {
+         "type": "tempo",
+         "params": {
+          "minutes": 14
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "fractionne",
+         "params": {
+          "reps": 6
+         }
+        },
+        {
+         "type": "tempo",
+         "params": {
+          "minutes": 16
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "fractionne",
+         "params": {
+          "reps": 6
+         }
+        },
+        {
+         "type": "tempo",
+         "params": {
+          "minutes": 18
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "fractionne",
+         "params": {
+          "reps": 7
+         }
+        },
+        {
+         "type": "tempo",
+         "params": {
+          "minutes": 19
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "fractionne",
+         "params": {
+          "reps": 7
+         }
+        },
+        {
+         "type": "tempo",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      }
+     ]
+    },
+    "N4": {
+     "steps": [
+      {
+       "sessions": [
+        {
+         "type": "fractionne",
+         "params": {
+          "reps": 4
+         }
+        },
+        {
+         "type": "tempo",
+         "params": {
+          "minutes": 10
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "fractionne",
+         "params": {
+          "reps": 4
+         }
+        },
+        {
+         "type": "tempo",
+         "params": {
+          "minutes": 12
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "fractionne",
+         "params": {
+          "reps": 5
+         }
+        },
+        {
+         "type": "tempo",
+         "params": {
+          "minutes": 13
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "fractionne",
+         "params": {
+          "reps": 5
+         }
+        },
+        {
+         "type": "tempo",
+         "params": {
+          "minutes": 14
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "fractionne",
+         "params": {
+          "reps": 6
+         }
+        },
+        {
+         "type": "tempo",
+         "params": {
+          "minutes": 16
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "fractionne",
+         "params": {
+          "reps": 6
+         }
+        },
+        {
+         "type": "tempo",
+         "params": {
+          "minutes": 18
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "fractionne",
+         "params": {
+          "reps": 7
+         }
+        },
+        {
+         "type": "tempo",
+         "params": {
+          "minutes": 19
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "fractionne",
+         "params": {
+          "reps": 7
+         }
+        },
+        {
+         "type": "tempo",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      }
+     ]
+    }
+   }
   },
   {
    "id": "health",
@@ -2706,248 +5408,7 @@
      "healthFlag": true
     }
    ],
-   "steps": [
-    {
-     "sessions": [
-      {
-       "type": "walk",
-       "params": {
-        "minutes": 15
-       }
-      }
-     ],
-     "levels": [
-      "N1"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "walk",
-       "params": {
-        "minutes": 20
-       }
-      }
-     ],
-     "levels": [
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "walk",
-       "params": {
-        "minutes": 20
-       }
-      }
-     ],
-     "levels": [
-      "N1"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "walk",
-       "params": {
-        "minutes": 25
-       }
-      }
-     ],
-     "levels": [
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "walk",
-       "params": {
-        "minutes": 20
-       }
-      }
-     ],
-     "levels": [
-      "N1"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "walk",
-       "params": {
-        "minutes": 25
-       }
-      }
-     ],
-     "levels": [
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "walk",
-       "params": {
-        "minutes": 25
-       }
-      }
-     ],
-     "levels": [
-      "N1"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "walk",
-       "params": {
-        "minutes": 30
-       }
-      }
-     ],
-     "levels": [
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "walk",
-       "params": {
-        "minutes": 25
-       }
-      }
-     ],
-     "levels": [
-      "N1"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "walk",
-       "params": {
-        "minutes": 30
-       }
-      }
-     ],
-     "levels": [
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "walk",
-       "params": {
-        "minutes": 30
-       }
-      }
-     ],
-     "levels": [
-      "N1"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "walk",
-       "params": {
-        "minutes": 35
-       }
-      }
-     ],
-     "levels": [
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "walk",
-       "params": {
-        "minutes": 30
-       }
-      }
-     ],
-     "levels": [
-      "N1"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "walk",
-       "params": {
-        "minutes": 35
-       }
-      }
-     ],
-     "levels": [
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "walk",
-       "params": {
-        "minutes": 35
-       }
-      }
-     ],
-     "levels": [
-      "N1"
-     ],
-     "note": ""
-    },
-    {
-     "sessions": [
-      {
-       "type": "walk",
-       "params": {
-        "minutes": 40
-       }
-      }
-     ],
-     "levels": [
-      "N2",
-      "N3",
-      "N4"
-     ],
-     "note": ""
-    }
-   ],
+   "steps": [],
    "startAtMastered": false,
    "easy": {
     "types": [
@@ -2960,7 +5421,8 @@
    },
    "deload": {
     "every": 4,
-    "testAtEnd": true
+    "testAtEnd": true,
+    "factor": 0.7
    },
    "keysPerStep": 2,
    "weekPatterns": {
@@ -2969,7 +5431,377 @@
     "3": "KEK",
     "4": "KEKR"
    },
-   "weekNotes": {}
+   "weekNotes": {},
+   "variants": {
+    "N1": {
+     "steps": [
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 15
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 30
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 30
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 35
+         }
+        }
+       ],
+       "note": ""
+      }
+     ]
+    },
+    "N2": {
+     "steps": [
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 30
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 30
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 35
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 35
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 40
+         }
+        }
+       ],
+       "note": ""
+      }
+     ]
+    },
+    "N3": {
+     "steps": [
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 30
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 30
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 35
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 35
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 40
+         }
+        }
+       ],
+       "note": ""
+      }
+     ]
+    },
+    "N4": {
+     "steps": [
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 20
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 25
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 30
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 30
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 35
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 35
+         }
+        }
+       ],
+       "note": ""
+      },
+      {
+       "sessions": [
+        {
+         "type": "walk",
+         "params": {
+          "minutes": 40
+         }
+        }
+       ],
+       "note": ""
+      }
+     ]
+    }
+   }
   }
  ]
 }

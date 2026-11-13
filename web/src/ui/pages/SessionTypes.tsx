@@ -103,10 +103,14 @@ function BlocksEditor({ blocks, params, onChange, depth = 0 }: { blocks: BlockT[
             <input aria-label="Durée en minutes" list="param-names" value={b.minutes} style={{ width: 120 }} onChange={(e) => set(i, { ...b, minutes: e.target.value })} />
             min
           </label>
-          <select aria-label="Allure" value={b.pace} onChange={(e) => set(i, { ...b, pace: e.target.value as BlockT["pace"] })}>
+          <select aria-label="Allure" value={b.pace} onChange={(e) => set(i, { ...b, pace: e.target.value as BlockT["pace"], ...(e.target.value === "kmh" && !b.kmh ? { kmh: 5 } : {}) })}>
             {PACES.map((p) => <option key={p} value={p}>{PACE_LABELS[p]}</option>)}
           </select>
-          <label className="row small" style={{ gap: 4 }}>×<Num label="Facteur d'allure" step={0.05} value={b.paceFactor} onChange={(v) => set(i, { ...b, paceFactor: v })} /></label>
+          {b.pace === "kmh" ? (
+            <label className="row small" style={{ gap: 4 }}><Num label="Vitesse fixe" step={0.1} value={b.kmh ?? 5} onChange={(v) => set(i, { ...b, kmh: v })} />km/h</label>
+          ) : (
+            <label className="row small" style={{ gap: 4 }}>×<Num label="Facteur d'allure" step={0.05} value={b.paceFactor ?? 1} onChange={(v) => set(i, { ...b, paceFactor: v })} /></label>
+          )}
           <label className="row small" style={{ gap: 4 }}>pente
             <select aria-label="Pente" value={b.incline === "profile" ? "profile" : "fixed"} onChange={(e) => set(i, { ...b, incline: e.target.value === "profile" ? "profile" : "0" })}>
               <option value="fixed">fixe</option>

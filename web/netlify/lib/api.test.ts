@@ -55,7 +55,7 @@ describe("API des programmes", () => {
     const kv = memory();
     const { token } = await (await call(kv, "POST", "login", { password: "secret-coach" })).json();
     const { draft } = await (await call(kv, "GET", "draft", undefined, token)).json();
-    draft.programs[0].steps[0].sessions[0].type = "inconnu";
+    draft.programs[0].variants.N2.steps[0].sessions[0].type = "inconnu";
     await call(kv, "PUT", "draft", draft, token);
     const r = await call(kv, "POST", "publish", {}, token);
     expect(r.status).toBe(422);

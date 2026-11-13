@@ -1,0 +1,749 @@
+{
+  "$schema": "https://relance-coach.netlify.app/schemas/program-import-v1.json",
+  "format": "relance.program",
+  "formatVersion": 1,
+  "meta": {
+    "source": "Programme personnalisé « Courir 30 minutes en continu », transposé à la main",
+    "generatedAt": "2026-11-13T12:00:00Z",
+    "rationale": "25 semaines en trois phases (consolider la course, développer l'endurance, aller vers 30 min continues). Deux séances course/marche identiques et une marche active par semaine ; les semaines « à répéter » sont des paliers dupliqués. Vitesses fixes reprises du document (milieu des fourchettes indiquées) : échauffement 4 km/h, marche de récupération 4,3, marche active 5, course très lente 5,5, retour au calme 3,5. Pas de semaine allégée : le document prévoit des répétitions à la place."
+  },
+  "program": {
+    "id": "courir-30-min-tapis",
+    "name": "Courir 30 min · tapis, 25 semaines",
+    "validation": "30 min de course continue",
+    "description": "Reprise progressive sur tapis : deux séances course/marche et une marche active par semaine, en trois phases.",
+    "goal": {
+      "kind": "duration",
+      "minutes": 30,
+      "km": 0
+    },
+    "requires": {
+      "minLongestRunMin": 0,
+      "allowHealthFlag": false
+    },
+    "recommend": [
+      {
+        "levels": [
+          "N2"
+        ],
+        "minRun": 0,
+        "maxRun": 9
+      }
+    ],
+    "keysPerStep": 2,
+    "startAtMastered": false,
+    "deload": {
+      "every": 0,
+      "testAtEnd": false,
+      "factor": 0.7
+    },
+    "weekPatterns": {
+      "1": "K",
+      "2": "KK",
+      "3": "KEK",
+      "4": "KEKR"
+    },
+    "easy": {
+      "types": [
+        "tapis-marche-active"
+      ],
+      "fallback": "tapis-marche-active",
+      "startMinutes": 25,
+      "stepMinutes": 0,
+      "maxMinutes": 40
+    },
+    "weekNotes": {
+      "1": "Phase 1 : consolider la course. Pendant la course, tu dois pouvoir parler en phrases courtes ; la priorité est la durée, pas la vitesse.",
+      "8": "Fin de phase 1 : 6 fractions de 2 min de course, avec 2 min de récupération, sans douleur persistante ? Alors la suite t'attend.",
+      "9": "Phase 2 : développer l'endurance.",
+      "16": "Fin de phase 2 : pouvoir courir 8 min d'affilée à allure facile, puis reprendre après la récupération.",
+      "17": "Phase 3 : vers 30 min continues. Les dernières étapes sont exigeantes : répète une semaine autant que nécessaire.",
+      "25": "Dernière marche : 30 minutes de course continue."
+    },
+    "variants": {
+      "N2": {
+        "steps": [
+          {
+            "sessions": [
+              {
+                "type": "tapis-intervalles",
+                "params": {
+                  "a": 1,
+                  "b": 3,
+                  "reps": 6
+                }
+              }
+            ],
+            "easy": {
+              "type": "tapis-marche-active",
+              "params": {
+                "minutes": 25
+              }
+            },
+            "note": "Semaine 1"
+          },
+          {
+            "sessions": [
+              {
+                "type": "tapis-intervalles",
+                "params": {
+                  "a": 1.25,
+                  "b": 2.75,
+                  "reps": 6
+                }
+              }
+            ],
+            "easy": {
+              "type": "tapis-marche-active",
+              "params": {
+                "minutes": 25
+              }
+            },
+            "note": ""
+          },
+          {
+            "sessions": [
+              {
+                "type": "tapis-intervalles",
+                "params": {
+                  "a": 1.25,
+                  "b": 2.75,
+                  "reps": 6
+                }
+              }
+            ],
+            "easy": {
+              "type": "tapis-marche-active",
+              "params": {
+                "minutes": 30
+              }
+            },
+            "note": "Répétition de la semaine 2"
+          },
+          {
+            "sessions": [
+              {
+                "type": "tapis-intervalles",
+                "params": {
+                  "a": 1.5,
+                  "b": 2.5,
+                  "reps": 6
+                }
+              }
+            ],
+            "easy": {
+              "type": "tapis-marche-active",
+              "params": {
+                "minutes": 30
+              }
+            },
+            "note": ""
+          },
+          {
+            "sessions": [
+              {
+                "type": "tapis-intervalles",
+                "params": {
+                  "a": 1.5,
+                  "b": 2.5,
+                  "reps": 6
+                }
+              }
+            ],
+            "easy": {
+              "type": "tapis-marche-active",
+              "params": {
+                "minutes": 30
+              }
+            },
+            "note": "Répétition de la semaine 4"
+          },
+          {
+            "sessions": [
+              {
+                "type": "tapis-intervalles",
+                "params": {
+                  "a": 1.75,
+                  "b": 2.25,
+                  "reps": 6
+                }
+              }
+            ],
+            "easy": {
+              "type": "tapis-marche-active",
+              "params": {
+                "minutes": 30
+              }
+            },
+            "note": ""
+          },
+          {
+            "sessions": [
+              {
+                "type": "tapis-intervalles",
+                "params": {
+                  "a": 2,
+                  "b": 2,
+                  "reps": 6
+                }
+              }
+            ],
+            "easy": {
+              "type": "tapis-marche-active",
+              "params": {
+                "minutes": 35
+              }
+            },
+            "note": ""
+          },
+          {
+            "sessions": [
+              {
+                "type": "tapis-intervalles",
+                "params": {
+                  "a": 2,
+                  "b": 2,
+                  "reps": 6
+                }
+              }
+            ],
+            "easy": {
+              "type": "tapis-marche-active",
+              "params": {
+                "minutes": 35
+              }
+            },
+            "note": "Répétition de la semaine 7"
+          },
+          {
+            "sessions": [
+              {
+                "type": "tapis-intervalles",
+                "params": {
+                  "a": 3,
+                  "b": 2,
+                  "reps": 5
+                }
+              }
+            ],
+            "easy": {
+              "type": "tapis-marche-active",
+              "params": {
+                "minutes": 35
+              }
+            },
+            "note": "Phase 2"
+          },
+          {
+            "sessions": [
+              {
+                "type": "tapis-intervalles",
+                "params": {
+                  "a": 3,
+                  "b": 2,
+                  "reps": 5
+                }
+              }
+            ],
+            "easy": {
+              "type": "tapis-marche-active",
+              "params": {
+                "minutes": 35
+              }
+            },
+            "note": "Répétition de la semaine 9"
+          },
+          {
+            "sessions": [
+              {
+                "type": "tapis-intervalles",
+                "params": {
+                  "a": 4,
+                  "b": 2,
+                  "reps": 4
+                }
+              }
+            ],
+            "easy": {
+              "type": "tapis-marche-active",
+              "params": {
+                "minutes": 35
+              }
+            },
+            "note": ""
+          },
+          {
+            "sessions": [
+              {
+                "type": "tapis-intervalles",
+                "params": {
+                  "a": 4,
+                  "b": 2,
+                  "reps": 4
+                }
+              }
+            ],
+            "easy": {
+              "type": "tapis-marche-active",
+              "params": {
+                "minutes": 35
+              }
+            },
+            "note": "Répétition de la semaine 11"
+          },
+          {
+            "sessions": [
+              {
+                "type": "tapis-intervalles",
+                "params": {
+                  "a": 5,
+                  "b": 2,
+                  "reps": 4
+                }
+              }
+            ],
+            "easy": {
+              "type": "tapis-marche-active",
+              "params": {
+                "minutes": 40
+              }
+            },
+            "note": ""
+          },
+          {
+            "sessions": [
+              {
+                "type": "tapis-intervalles",
+                "params": {
+                  "a": 7,
+                  "b": 2,
+                  "reps": 3
+                }
+              }
+            ],
+            "easy": {
+              "type": "tapis-marche-active",
+              "params": {
+                "minutes": 40
+              }
+            },
+            "note": ""
+          },
+          {
+            "sessions": [
+              {
+                "type": "tapis-intervalles",
+                "params": {
+                  "a": 7,
+                  "b": 2,
+                  "reps": 3
+                }
+              }
+            ],
+            "easy": {
+              "type": "tapis-marche-active",
+              "params": {
+                "minutes": 40
+              }
+            },
+            "note": "Répétition de la semaine 14"
+          },
+          {
+            "sessions": [
+              {
+                "type": "tapis-intervalles",
+                "params": {
+                  "a": 8,
+                  "b": 2,
+                  "reps": 3
+                }
+              }
+            ],
+            "easy": {
+              "type": "tapis-marche-active",
+              "params": {
+                "minutes": 40
+              }
+            },
+            "note": ""
+          },
+          {
+            "sessions": [
+              {
+                "type": "tapis-intervalles",
+                "params": {
+                  "a": 12,
+                  "b": 2,
+                  "reps": 2
+                }
+              }
+            ],
+            "easy": {
+              "type": "tapis-marche-active",
+              "params": {
+                "minutes": 40
+              }
+            },
+            "note": "Phase 3"
+          },
+          {
+            "sessions": [
+              {
+                "type": "tapis-intervalles",
+                "params": {
+                  "a": 14,
+                  "b": 2,
+                  "reps": 2
+                }
+              }
+            ],
+            "easy": {
+              "type": "tapis-marche-active",
+              "params": {
+                "minutes": 40
+              }
+            },
+            "note": ""
+          },
+          {
+            "sessions": [
+              {
+                "type": "tapis-intervalles",
+                "params": {
+                  "a": 15,
+                  "b": 2,
+                  "reps": 2
+                }
+              }
+            ],
+            "easy": {
+              "type": "tapis-marche-active",
+              "params": {
+                "minutes": 40
+              }
+            },
+            "note": ""
+          },
+          {
+            "sessions": [
+              {
+                "type": "tapis-course-coupee",
+                "params": {
+                  "a": 18,
+                  "b": 5,
+                  "a2": 6
+                }
+              }
+            ],
+            "easy": {
+              "type": "tapis-marche-active",
+              "params": {
+                "minutes": 40
+              }
+            },
+            "note": ""
+          },
+          {
+            "sessions": [
+              {
+                "type": "tapis-course-coupee",
+                "params": {
+                  "a": 20,
+                  "b": 5,
+                  "a2": 5
+                }
+              }
+            ],
+            "easy": {
+              "type": "tapis-marche-active",
+              "params": {
+                "minutes": 40
+              }
+            },
+            "note": ""
+          },
+          {
+            "sessions": [
+              {
+                "type": "tapis-course-coupee",
+                "params": {
+                  "a": 23,
+                  "b": 5,
+                  "a2": 5
+                }
+              }
+            ],
+            "easy": {
+              "type": "tapis-marche-active",
+              "params": {
+                "minutes": 40
+              }
+            },
+            "note": ""
+          },
+          {
+            "sessions": [
+              {
+                "type": "tapis-course-continue",
+                "params": {
+                  "minutes": 26
+                }
+              }
+            ],
+            "easy": {
+              "type": "tapis-marche-active",
+              "params": {
+                "minutes": 40
+              }
+            },
+            "note": ""
+          },
+          {
+            "sessions": [
+              {
+                "type": "tapis-course-continue",
+                "params": {
+                  "minutes": 28
+                }
+              }
+            ],
+            "easy": {
+              "type": "tapis-marche-active",
+              "params": {
+                "minutes": 40
+              }
+            },
+            "note": ""
+          },
+          {
+            "sessions": [
+              {
+                "type": "tapis-course-continue",
+                "params": {
+                  "minutes": 30
+                }
+              }
+            ],
+            "easy": {
+              "type": "tapis-marche-active",
+              "params": {
+                "minutes": 40
+              }
+            },
+            "note": "Validation : 30 min de course continue"
+          }
+        ]
+      }
+    }
+  },
+  "sessionTypes": [
+    {
+      "id": "tapis-intervalles",
+      "name": "Course / marche (tapis)",
+      "kind": "INTERVALS",
+      "title": "Course / marche",
+      "detail": "{reps} × ({a:min} de course / {b:min} de marche)",
+      "purpose": "Alternance course très lente et marche. Pendant la course, tu dois pouvoir parler en phrases courtes : la durée prime sur la vitesse.",
+      "params": [
+        {
+          "name": "a",
+          "label": "Course",
+          "default": 1,
+          "min": 0.25,
+          "max": 30,
+          "unit": "min"
+        },
+        {
+          "name": "b",
+          "label": "Marche",
+          "default": 3,
+          "min": 0.25,
+          "max": 10,
+          "unit": "min"
+        },
+        {
+          "name": "reps",
+          "label": "Répétitions",
+          "default": 6,
+          "min": 1,
+          "max": 12,
+          "unit": "fois"
+        }
+      ],
+      "blocks": [
+        {
+          "kind": "WARMUP",
+          "minutes": "7",
+          "pace": "kmh",
+          "kmh": 4.0
+        },
+        {
+          "kind": "REPEAT",
+          "repeat": "reps",
+          "blocks": [
+            {
+              "kind": "RUN",
+              "minutes": "a",
+              "pace": "kmh",
+              "kmh": 5.5
+            },
+            {
+              "kind": "WALK",
+              "minutes": "b",
+              "pace": "kmh",
+              "kmh": 4.3
+            }
+          ]
+        },
+        {
+          "kind": "COOLDOWN",
+          "minutes": "5",
+          "pace": "kmh",
+          "kmh": 3.5
+        }
+      ]
+    },
+    {
+      "id": "tapis-course-coupee",
+      "name": "Course en deux temps (tapis)",
+      "kind": "INTERVALS",
+      "title": "Course en deux temps",
+      "detail": "{a:min} de course, {b:min} de marche, puis {a2:min} de course",
+      "purpose": "Un long bloc de course, une pause marchée, puis un second bloc : la transition vers la course continue.",
+      "params": [
+        {
+          "name": "a",
+          "label": "Course 1",
+          "default": 18,
+          "min": 1,
+          "max": 40,
+          "unit": "min"
+        },
+        {
+          "name": "b",
+          "label": "Marche",
+          "default": 5,
+          "min": 1,
+          "max": 10,
+          "unit": "min"
+        },
+        {
+          "name": "a2",
+          "label": "Course 2",
+          "default": 6,
+          "min": 1,
+          "max": 30,
+          "unit": "min"
+        }
+      ],
+      "blocks": [
+        {
+          "kind": "WARMUP",
+          "minutes": "7",
+          "pace": "kmh",
+          "kmh": 4.0
+        },
+        {
+          "kind": "RUN",
+          "minutes": "a",
+          "pace": "kmh",
+          "kmh": 5.5
+        },
+        {
+          "kind": "WALK",
+          "minutes": "b",
+          "pace": "kmh",
+          "kmh": 4.3
+        },
+        {
+          "kind": "RUN",
+          "minutes": "a2",
+          "pace": "kmh",
+          "kmh": 5.5
+        },
+        {
+          "kind": "COOLDOWN",
+          "minutes": "5",
+          "pace": "kmh",
+          "kmh": 3.5
+        }
+      ]
+    },
+    {
+      "id": "tapis-course-continue",
+      "name": "Course continue (tapis)",
+      "kind": "CONTINUOUS",
+      "title": "Course continue",
+      "detail": "{minutes:min} de course continue",
+      "purpose": "Course continue à allure facile : tu dois pouvoir parler en phrases courtes.",
+      "params": [
+        {
+          "name": "minutes",
+          "label": "Course",
+          "default": 30,
+          "min": 5,
+          "max": 60,
+          "unit": "min"
+        }
+      ],
+      "blocks": [
+        {
+          "kind": "WARMUP",
+          "minutes": "7",
+          "pace": "kmh",
+          "kmh": 4.0
+        },
+        {
+          "kind": "RUN",
+          "minutes": "minutes",
+          "pace": "kmh",
+          "kmh": 5.5
+        },
+        {
+          "kind": "COOLDOWN",
+          "minutes": "5",
+          "pace": "kmh",
+          "kmh": 3.5
+        }
+      ]
+    },
+    {
+      "id": "tapis-marche-active",
+      "name": "Marche active (tapis)",
+      "kind": "WALK",
+      "title": "Marche active",
+      "detail": "{minutes:min} de marche active, jusqu'à 5 km/h si confortable",
+      "purpose": "Marche active, sans course : elle construit l'endurance entre les deux séances de course.",
+      "params": [
+        {
+          "name": "minutes",
+          "label": "Durée totale",
+          "default": 30,
+          "min": 10,
+          "max": 60,
+          "unit": "min"
+        }
+      ],
+      "blocks": [
+        {
+          "kind": "WARMUP",
+          "minutes": "3",
+          "pace": "kmh",
+          "kmh": 4.0
+        },
+        {
+          "kind": "WALK",
+          "minutes": "minutes-6",
+          "pace": "kmh",
+          "kmh": 5.0
+        },
+        {
+          "kind": "COOLDOWN",
+          "minutes": "3",
+          "pace": "kmh",
+          "kmh": 4.0
+        }
+      ]
+    }
+  ]
+}

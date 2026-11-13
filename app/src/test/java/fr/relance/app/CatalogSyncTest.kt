@@ -26,7 +26,9 @@ class CatalogSyncTest {
     private fun edited(version: Int) = Catalogs.builtin.let { c ->
         c.copy(version = version, programs = c.programs.map { p ->
             if (p.id != "run-30") p else p.copy(name = "Courir 30 min (v2)", weekNotes = mapOf("1" to "On démarre en douceur."),
-                steps = p.steps.mapIndexed { i, s -> if (i == 1) s.copy(sessions = listOf(s.sessions[0].copy(params = mapOf("minutes" to 22.0)))) else s })
+                variants = p.variants.mapValues { (level, v) ->
+                    if (level != Level.N2) v else v.copy(steps = v.steps.mapIndexed { i, st -> if (i == 0) st.copy(sessions = listOf(st.sessions[0].copy(params = mapOf("minutes" to 22.0)))) else st })
+                })
         })
     }
 
@@ -40,7 +42,7 @@ class CatalogSyncTest {
         assertNull(now.pending)
         assertEquals("Courir 30 min (v2)", now.name)
         assertEquals(2, now.snapshot!!.catalogVersion)
-        assertEquals(22.0, now.steps[0].sessions[0].params["minutes"]!!, 0.0) // le palier réservé aux N1 est écarté pour un N2
+        assertEquals(22.0, now.steps[0].sessions[0].params["minutes"]!!, 0.0) // premier palier de la variante N2
         assertFalse(Coach.hasUpdate(now, c2))
         // En cours de semaine : en attente, puis appliqué au passage à la semaine suivante.
         val planned = Coach.sessionFor(p, prof, today)

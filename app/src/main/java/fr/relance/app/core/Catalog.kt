@@ -30,13 +30,16 @@ data class ParamDef(val name: String, val label: String = "", val default: Doubl
 
 /**
  * Un bloc de séance. `minutes` vaut un nombre, un paramètre (« a ») ou un paramètre moins une constante (« minutes-6 »).
- * `pace` : warm, recovery, walk, hill, run, tempo, fast, ou vr (test). `incline` : un nombre ou « profile ».
+ * `pace` : warm, recovery, walk, hill, run, tempo, fast, vr (test), ou kmh (vitesse fixe `kmh`, en km/h).
+ * `incline` : un nombre ou « profile ».
  * Un bloc REPEAT répète ses `blocks` autant de fois que le paramètre `repeat`.
  */
 @Serializable
 data class BlockT(
     val kind: String, val minutes: String = "0", val pace: String = "walk", val paceFactor: Double = 1.0,
     val incline: String = "0", val repeat: String = "", val blocks: List<BlockT> = emptyList(),
+    /** Vitesse fixe, quand `pace` vaut « kmh » (plafonnée à la vitesse maximale du tapis). */
+    val kmh: Double = 0.0,
 )
 
 @Serializable
@@ -49,9 +52,23 @@ data class SessionType(
 @Serializable
 data class SessionRef(val type: String, val params: Map<String, Double> = emptyMap())
 
-/** Un palier : la ou les séances clés d'une semaine (jouées à tour de rôle), et les niveaux concernés. */
+/**
+ * Un palier : la ou les séances clés d'une semaine (jouées à tour de rôle), les niveaux concernés (ancien format),
+ * et éventuellement la séance d'endurance propre à ce palier.
+ */
 @Serializable
-data class StepT(val sessions: List<SessionRef>, val levels: List<Level> = Level.values().toList(), val note: String = "")
+data class StepT(
+    val sessions: List<SessionRef>, val levels: List<Level> = Level.values().toList(), val note: String = "",
+    val easy: SessionRef? = null,
+)
+
+/** Variante d'un programme pour un niveau : ses paliers, et les réglages qui diffèrent du programme. */
+@Serializable
+data class VariantT(
+    val steps: List<StepT> = emptyList(), val description: String = "",
+    val keysPerStep: Int? = null, val startAtMastered: Boolean? = null, val easy: EasyT? = null, val deload: DeloadT? = null,
+    val weekPatterns: Map<String, String>? = null, val weekNotes: Map<String, String>? = null,
+)
 
 @Serializable
 data class Goal(val kind: String = "none", val minutes: Int = 0, val km: Double = 0.0)
@@ -88,7 +105,34 @@ data class ProgramTemplate(
     val weekPatterns: Map<String, String> = mapOf("1" to "K", "2" to "KK", "3" to "KEK", "4" to "KEKR"),
     /** Mot du coach par numéro de semaine (« 1 », « 2 »…). */
     val weekNotes: Map<String, String> = emptyMap(),
-)
+    /** Variantes par niveau. Un niveau absent n'a pas accès au programme. Vide : ancien format (`steps` filtrés par niveau). */
+    val variants: Map<Level, VariantT> = emptyMap(),
+) {
+    /** Niveaux pour lesquels le programme existe. */
+    val levels: List<Level>
+        get() = if (variants.isNotEmpty()) Level.values().filter { it in variants }
+        else Level.values().filter { l -> steps.any { l in it.levels } }
+
+    /** Le programme tel qu'il s'applique à un niveau : paliers et réglages de sa variante. Null si ce niveau n'existe pas. */
+    fun forLevel(level: Level): ProgramTemplate? {
+        if (variants.isEmpty()) {
+            val own = steps.filter { level in it.levels }
+            return if (own.isEmpty()) null else copy(steps = own.map { it.copy(levels = listOf(level)) })
+        }
+        val v = variants[level] ?: return null
+        return copy(
+            steps = v.steps.map { it.copy(levels = listOf(level)) },
+            description = v.description.ifBlank { description },
+            keysPerStep = v.keysPerStep ?: keysPerStep, startAtMastered = v.startAtMastered ?: startAtMastered,
+            easy = v.easy ?: easy, deload = v.deload ?: deload,
+            weekPatterns = v.weekPatterns ?: weekPatterns, weekNotes = v.weekNotes ?: weekNotes,
+            variants = emptyMap(),
+        )
+    }
+
+    /** Niveau proposé par défaut : celui du sportif s'il existe, sinon le plus proche (le plus facile en cas d'égalité). */
+    fun closestLevel(level: Level): Level? = levels.minWithOrNull(compareBy<Level> { kotlin.math.abs(it.ordinal - level.ordinal) }.thenBy { it.ordinal })
+}
 
 @Serializable
 data class Catalog(
@@ -123,9 +167,13 @@ object Catalogs {
         val types = c.sessionTypes.map { it.id }.toSet()
         listOf(c.specials.test, c.specials.recovery, c.specials.flatWalk).firstOrNull { it !in types }?.let { return "Type de séance manquant : $it." }
         for (p in c.programs) {
-            if (p.steps.isEmpty()) return "Programme vide : ${p.name}."
-            val refs = p.steps.flatMap { s -> s.sessions.map { it.type } } + p.easy.types + p.easy.fallback
-            refs.firstOrNull { it !in types }?.let { return "Programme ${p.name} : type de séance inconnu « $it »." }
+            if (p.levels.isEmpty()) return "Programme vide : ${p.name}."
+            for (level in p.levels) {
+                val t = p.forLevel(level) ?: continue
+                if (t.steps.isEmpty()) return "Programme ${p.name} : aucun palier pour le niveau ${level.name}."
+                val refs = t.steps.flatMap { st -> st.sessions.map { it.type } + listOfNotNull(st.easy?.type) } + t.easy.types + t.easy.fallback
+                refs.firstOrNull { it !in types }?.let { return "Programme ${p.name} : type de séance inconnu « $it »." }
+            }
         }
         return null
     }
@@ -133,7 +181,7 @@ object Catalogs {
 
 /** Un palier une fois adapté au profil : paramètres résolus (distance convertie en minutes, etc.). */
 @Serializable
-data class ResolvedStep(val sessions: List<SessionRef>, val note: String = "")
+data class ResolvedStep(val sessions: List<SessionRef>, val note: String = "", val easy: SessionRef? = null)
 
 /** Ce qu'un programme emporte avec lui : il garde sa version jusqu'à la fin, même si le catalogue change. */
 @Serializable
@@ -156,13 +204,14 @@ object Templates {
     }
 
     /** Adapte l'échelle d'un programme à un profil : niveau, distance convertie en durée, paliers déjà maîtrisés. */
-    fun resolve(t: ProgramTemplate, p: Profile, paces: Paces, types: (String) -> SessionType?): List<ResolvedStep> {
+    fun resolve(t0: ProgramTemplate, p: Profile, paces: Paces, types: (String) -> SessionType?): List<ResolvedStep> {
+        val t = t0.forLevel(p.level) ?: return emptyList()
         val run = Physio.speedsFor(p, 1.0, paces).run
-        var steps = t.steps.filter { p.level in it.levels }.map { s ->
+        var steps = t.steps.map { s ->
             ResolvedStep(s.sessions.map { r ->
                 val km = r.params["km"]
                 if (km != null && km > 0) r.copy(params = r.params - "km" + ("minutes" to ceil(km / run * 60))) else r
-            }, s.note)
+            }, s.note, s.easy)
         }
         if (steps.isEmpty()) return steps
         // Au-delà de l'objectif, les paliers intermédiaires plus longs que le dernier n'ont pas de sens.
@@ -209,6 +258,7 @@ object Templates {
     }
 
     fun lockedReason(t: ProgramTemplate, p: Profile): String? = when {
+        t.levels.isEmpty() -> "Programme sans niveau disponible"
         p.healthFlag && !t.requires.allowHealthFlag -> "Avis médical conseillé avant de courir"
         p.longestRunMin < t.requires.minLongestRunMin -> "Après ${t.requires.minLongestRunMin} min de course continue"
         else -> null
@@ -217,7 +267,7 @@ object Templates {
     fun recommended(c: Catalog, p: Profile): ProgramTemplate? {
         val visible = c.visiblePrograms
         return visible.firstOrNull { t ->
-            lockedReason(t, p) == null && t.recommend.any { r ->
+            lockedReason(t, p) == null && p.level in t.levels && t.recommend.any { r ->
                 p.level in r.levels && p.longestRunMin in r.minRun..r.maxRun && (!r.healthFlag || p.healthFlag) && (r.healthFlag || !p.healthFlag)
             }
         } ?: visible.firstOrNull { lockedReason(it, p) == null }
@@ -237,10 +287,10 @@ object Templates {
         return params[e] ?: 0.0
     }
 
-    private fun speedOf(pace: String, factor: Double, s: Speeds, p: Profile): Double = Physio.round1(
+    private fun speedOf(pace: String, factor: Double, s: Speeds, p: Profile, kmh: Double = 0.0): Double = Physio.round1(
         when (pace) {
             "warm" -> s.warm; "recovery" -> s.recovery; "walk" -> s.walk; "hill" -> s.hill
-            "run" -> s.run; "tempo" -> s.tempo; "fast" -> s.fast; "vr" -> p.vr
+            "run" -> s.run; "tempo" -> s.tempo; "fast" -> s.fast; "vr" -> p.vr; "kmh" -> kmh
             else -> s.walk
         } * factor
     ).coerceAtMost(p.treadmillMaxKmh)
@@ -262,7 +312,7 @@ object Templates {
                 repeat(n) { out += expand(b.blocks, params, s, p) }
             } else {
                 val minutes = max(1.0, evalMinutes(b.minutes, params))
-                out += Block(kindOf(b.kind), (minutes * 60).roundToInt(), speedOf(b.pace, b.paceFactor, s, p), inclineOf(b.incline, p))
+                out += Block(kindOf(b.kind), (minutes * 60).roundToInt(), speedOf(b.pace, b.paceFactor, s, p, b.kmh), inclineOf(b.incline, p))
             }
         }
         return out
@@ -273,8 +323,20 @@ object Templates {
     private fun fill(text: String, params: Map<String, Double>, s: Speeds, p: Profile): String {
         var r = text.replace("{incline}", fmt(p.inclinePct))
         for (pace in listOf("warm", "recovery", "walk", "hill", "run", "tempo", "fast")) r = r.replace("{pace:$pace}", Fmt.kmh(speedOf(pace, 1.0, s, p)))
-        for ((k, v) in params) r = r.replace("{$k}", fmt(v))
+        for ((k, v) in params) r = r.replace("{$k:min}", duration(v)).replace("{$k}", fmt(v))
         return r
+    }
+
+    /** Durée lisible : « 3 min », « 1 min 15 s », « 45 s ». */
+    fun duration(minutes: Double): String {
+        val sec = (minutes * 60).roundToInt()
+        val m = sec / 60
+        val s = sec % 60
+        return when {
+            s == 0 -> "$m min"
+            m == 0 -> "$s s"
+            else -> "$m min $s s"
+        }
     }
 
     /** Version courte : on réduit les répétitions, sinon le bloc principal, pour tenir dans `cap` minutes. */

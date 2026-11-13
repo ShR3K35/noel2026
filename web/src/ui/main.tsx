@@ -2,6 +2,7 @@ import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import type { Catalog } from "../engine/types";
 import { api, auth } from "./api";
+import { Import } from "./pages/Import";
 import { Paces } from "./pages/Paces";
 import { ProgramEditor } from "./pages/ProgramEditor";
 import { Programs } from "./pages/Programs";
@@ -83,6 +84,7 @@ function Shell({ onLogout }: { onLogout: () => void }) {
           </div>
         </div>
         {page === "programmes" && !route[1] && <Programs />}
+        {page === "import" && <Import />}
         {page === "programmes" && route[1] && <ProgramEditor id={route[1]} />}
         {page === "seances" && !route[1] && <SessionTypes />}
         {page === "seances" && route[1] && <SessionTypeEditor id={route[1]} />}

@@ -1,11 +1,10 @@
 // Garde-fous : erreurs (bloquent la publication) et avertissements de coach (à lire, non bloquants).
-import { dayOfWeek, evalMinutes, minutesOf, newState, plan } from "./engine";
+import { dayOfWeek, evalMinutes, forLevel, levelsOf, minutesOf, newState, plan } from "./engine";
 import type { BlockT, Catalog, Level, Profile, ProgramTemplate, SessionType } from "./types";
-import { LEVELS } from "./types";
 
 export interface Issue {
   level: "error" | "warning";
-  where: { program?: string; sessionType?: string; step?: number };
+  where: { program?: string; sessionType?: string; step?: number; level?: Level };
   message: string;
 }
 
@@ -69,61 +68,65 @@ export function validateSessionType(t: SessionType): Issue[] {
   return issues;
 }
 
-export function validateProgram(t: ProgramTemplate, c: Catalog): Issue[] {
+export function validateProgram(t0: ProgramTemplate, c: Catalog): Issue[] {
   const issues: Issue[] = [];
-  const where = { program: t.id };
+  const where = { program: t0.id };
   const types = new Map(c.sessionTypes.map((x) => [x.id, x]));
-  if (!ID_RE.test(t.id)) issues.push({ level: "error", where, message: "Identifiant invalide : lettres minuscules, chiffres et tirets." });
-  if (!t.name.trim()) issues.push({ level: "error", where, message: "Le programme n'a pas de nom." });
-  if (!t.steps.length) issues.push({ level: "error", where, message: "Aucun palier : le programme serait vide." });
-  t.steps.forEach((s, i) => {
-    const w = { program: t.id, step: i };
-    if (!s.sessions.length) issues.push({ level: "error", where: w, message: `Palier ${i + 1} : aucune séance.` });
-    if (!s.levels.length) issues.push({ level: "warning", where: w, message: `Palier ${i + 1} : aucun niveau coché, il ne sera jamais proposé.` });
-    for (const ref of s.sessions) {
-      const type = types.get(ref.type);
-      if (!type) {
-        issues.push({ level: "error", where: w, message: `Palier ${i + 1} : type de séance inconnu « ${ref.type} ».` });
-        continue;
-      }
-      for (const p of type.params) {
-        const v = ref.params[p.name];
-        if (v != null && (v < p.min || v > p.max)) issues.push({ level: "warning", where: w, message: `Palier ${i + 1} : ${p.label || p.name} = ${v}, hors des bornes prévues (${p.min}–${p.max}).` });
-      }
-    }
-  });
-  for (const lv of LEVELS) {
-    if (t.steps.length && !t.steps.some((s) => s.levels.includes(lv as Level))) {
-      issues.push({ level: "warning", where, message: `Aucun palier pour le niveau ${lv} : le programme sera vide pour ces sportifs.` });
-    }
-  }
-  for (const id of [...t.easy.types, t.easy.fallback]) {
-    if (!types.has(id)) issues.push({ level: "error", where, message: `Séances d'endurance : type inconnu « ${id} ».` });
-  }
-  for (const [n, pattern] of Object.entries(t.weekPatterns)) {
-    if (!/^[KER]+$/.test(pattern)) issues.push({ level: "error", where, message: `Semaine à ${n} séance(s) : utiliser seulement K (clé), E (endurance) et R (récupération).` });
-    else if (pattern.length !== Number(n)) issues.push({ level: "warning", where, message: `Semaine à ${n} séance(s) : la séquence « ${pattern} » compte ${pattern.length} séance(s).` });
-    if (!pattern.includes("K")) issues.push({ level: "warning", where, message: `Semaine à ${n} séance(s) : aucune séance clé, le programme n'avancera pas.` });
-  }
-  const kps = Math.max(1, t.keysPerStep ?? 2);
-  for (const [n, pattern] of Object.entries(t.weekPatterns)) {
-    const k = [...pattern].filter((c) => c === "K").length;
-    if (k > kps) issues.push({ level: "warning", where, message: `Semaine à ${n} séance(s) : ${k} séances clés pour ${kps} par palier, un palier dure moins d'une semaine. Progression rapide pour une reprise.` });
-  }
-  if (t.deload.every <= 0) issues.push({ level: "warning", where, message: "Pas de semaine allégée : le corps a besoin d'une semaine plus légère toutes les 3 à 5 semaines." });
-  else if (t.deload.every > 6) issues.push({ level: "warning", where, message: `Une semaine allégée toutes les ${t.deload.every} semaines, c'est rare pour une reprise (3 à 5 conseillé).` });
-  if (t.goal.kind === "distance" && !(t.goal.km > 0)) issues.push({ level: "error", where, message: "Objectif en distance sans distance." });
+  if (!ID_RE.test(t0.id)) issues.push({ level: "error", where, message: "Identifiant invalide : lettres minuscules, chiffres et tirets." });
+  if (!t0.name.trim()) issues.push({ level: "error", where, message: "Le programme n'a pas de nom." });
+  const levels = levelsOf(t0);
+  if (!levels.length) issues.push({ level: "error", where, message: "Aucune variante de niveau : le programme serait vide." });
+  if (t0.goal.kind === "distance" && !(t0.goal.km > 0)) issues.push({ level: "error", where, message: "Objectif en distance sans distance." });
+  const once = new Set<string>();
+  const push = (i: Issue) => {
+    const key = `${i.level}|${i.where.level ?? ""}|${i.where.step ?? ""}|${i.message}`;
+    if (!once.has(key)) { once.add(key); issues.push(i); }
+  };
 
-  // Règle de coach : un seul curseur à la fois d'un palier au suivant.
-  for (let i = 1; i < t.steps.length; i++) {
-    const a = t.steps[i - 1].sessions[0];
-    const b = t.steps[i].sessions[0];
-    if (!a || !b || a.type !== b.type) continue;
-    const ups = Object.keys(b.params).filter((k) => k !== "b" && (b.params[k] ?? 0) > (a.params[k] ?? 0));
-    if (ups.length > 1) issues.push({ level: "warning", where: { program: t.id, step: i }, message: `Palier ${i + 1} : ${ups.join(" et ")} augmentent en même temps. Un seul curseur à la fois, c'est plus sûr.` });
+  for (const lv of levels) {
+    const t = forLevel(t0, lv)!;
+    const w0 = { program: t0.id, level: lv };
+    const at = (i: number) => `${lv} · palier ${i + 1}`;
+    if (!t.steps.length) push({ level: "error", where: w0, message: `${lv} : aucun palier.` });
+    t.steps.forEach((s, i) => {
+      const w = { ...w0, step: i };
+      if (!s.sessions.length) push({ level: "error", where: w, message: `${at(i)} : aucune séance.` });
+      for (const ref of [...s.sessions, ...(s.easy ? [s.easy] : [])]) {
+        const type = types.get(ref.type);
+        if (!type) {
+          push({ level: "error", where: w, message: `${at(i)} : type de séance inconnu « ${ref.type} ».` });
+          continue;
+        }
+        for (const p of type.params) {
+          const v = ref.params?.[p.name];
+          if (v != null && (v < p.min || v > p.max)) push({ level: "warning", where: w, message: `${at(i)} : ${p.label || p.name} = ${v}, hors des bornes prévues (${p.min}–${p.max}).` });
+        }
+      }
+    });
+    for (const id of [...t.easy.types, t.easy.fallback]) {
+      if (!types.has(id)) push({ level: "error", where: w0, message: `${lv} · séances d'endurance : type inconnu « ${id} ».` });
+    }
+    for (const [n, pattern] of Object.entries(t.weekPatterns)) {
+      if (!/^[KER]+$/.test(pattern)) push({ level: "error", where: w0, message: `${lv} · semaine à ${n} séance(s) : utiliser seulement K (clé), E (endurance) et R (récupération).` });
+      else if (pattern.length !== Number(n)) push({ level: "warning", where: w0, message: `${lv} · semaine à ${n} séance(s) : la séquence « ${pattern} » compte ${pattern.length} séance(s).` });
+      if (!pattern.includes("K")) push({ level: "warning", where: w0, message: `${lv} · semaine à ${n} séance(s) : aucune séance clé, le programme n'avancera pas.` });
+      const k = [...pattern].filter((ch) => ch === "K").length;
+      const kps = Math.max(1, t.keysPerStep ?? 2);
+      if (k > kps) push({ level: "warning", where: w0, message: `${lv} · semaine à ${n} séance(s) : ${k} séances clés pour ${kps} par palier, un palier dure moins d'une semaine. Progression rapide pour une reprise.` });
+    }
+    if (t.deload.every <= 0) push({ level: "warning", where: w0, message: `${lv} : pas de semaine allégée. Prévois une semaine plus légère toutes les 3 à 5 semaines, ou des semaines répétées.` });
+    else if (t.deload.every > 6) push({ level: "warning", where: w0, message: `${lv} : une semaine allégée toutes les ${t.deload.every} semaines, c'est rare pour une reprise (3 à 5 conseillé).` });
+    // Règle de coach : un seul curseur à la fois d'un palier au suivant.
+    for (let i = 1; i < t.steps.length; i++) {
+      const a = t.steps[i - 1].sessions[0];
+      const b = t.steps[i].sessions[0];
+      if (!a || !b || a.type !== b.type) continue;
+      const ups = Object.keys(b.params ?? {}).filter((k) => k !== "b" && (b.params[k] ?? 0) > (a.params?.[k] ?? 0));
+      if (ups.length > 1) push({ level: "warning", where: { ...w0, step: i }, message: `${at(i)} : ${ups.join(" et ")} augmentent en même temps. Un seul curseur à la fois, c'est plus sûr.` });
+    }
   }
   if (issues.some((x) => x.level === "error")) return issues;
-  return [...issues, ...simulateWarnings(t, c)];
+  return [...issues, ...simulateWarnings(t0, c)];
 }
 
 /** Avertissements tirés d'une simulation sur les profils de référence. */
@@ -131,7 +134,7 @@ export function simulateWarnings(t: ProgramTemplate, c: Catalog): Issue[] {
   const out = new Map<string, Issue>();
   const add = (message: string, step?: number) => out.set(message, { level: "warning", where: { program: t.id, step }, message });
   for (const { name, profile } of REFERENCE_PROFILES) {
-    if (!t.steps.some((s) => s.levels.includes(profile.level))) continue;
+    if (!levelsOf(t).includes(profile.level)) continue;
     if (profile.healthFlag && !t.requires.allowHealthFlag) continue;
     if (profile.longestRunMin < t.requires.minLongestRunMin) continue;
     let sessions;
@@ -154,18 +157,23 @@ export function simulateWarnings(t: ProgramTemplate, c: Catalog): Issue[] {
       weekly.set(s.week, w);
     });
     const weeks = [...weekly.keys()].sort((a, b) => a - b);
-    for (let i = 1; i < weeks.length; i++) {
-      const prev = weekly.get(weeks[i - 1])!;
-      const cur = weekly.get(weeks[i])!;
-      const deload = sessions.find((s) => s.week === weeks[i - 1])?.deload;
+    // On compare chaque semaine à la dernière semaine normale : une semaine allégée ne sert pas de référence.
+    let ref: number | null = null;
+    for (const wk of weeks) {
+      const cur = weekly.get(wk)!;
+      const deload = sessions.find((s) => s.week === wk)?.deload;
       if (deload) continue;
-      const w = `entre les semaines ${weeks[i - 1] + 1} et ${weeks[i] + 1}`;
-      // En dessous de 30 min de course par semaine, on progresse par paliers : la règle ne s'applique qu'au-delà.
-      if (prev.run >= 30 && cur.run > prev.run * 1.1 && cur.run - prev.run > 10) {
-        add(`${name} : la course passe de ${Math.round(prev.run)} à ${Math.round(cur.run)} min par semaine ${w} (plus de +10 %).`);
-      } else if (cur.total > prev.total * 1.25 && cur.total - prev.total > 15) {
-        add(`${name} : le volume total passe de ${prev.total} à ${cur.total} min ${w} (plus de +25 %).`);
+      if (ref != null) {
+        const prev = weekly.get(ref)!;
+        const w = `entre les semaines ${ref + 1} et ${wk + 1}`;
+        // En dessous de 30 min de course par semaine, on progresse par paliers : la règle des +10 % ne s'applique qu'au-delà.
+        if (prev.run >= 30 && cur.run > prev.run * 1.1 && cur.run - prev.run > 10) {
+          add(`${name} : la course passe de ${Math.round(prev.run)} à ${Math.round(cur.run)} min par semaine ${w} (plus de +10 %).`);
+        } else if (cur.total > prev.total * 1.25 && cur.total - prev.total > 15) {
+          add(`${name} : le volume total passe de ${prev.total} à ${cur.total} min ${w} (plus de +25 %).`);
+        }
       }
+      ref = wk;
     }
     const longest = Math.max(...sessions.map(minutesOf));
     if (longest > profile.minutesPerSession + 15) add(`${name} : une séance dure ${longest} min, bien plus que les ${profile.minutesPerSession} min disponibles.`);

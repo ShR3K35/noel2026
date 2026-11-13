@@ -25,11 +25,11 @@ export const BLOCK_LABELS: Record<BlockKind | "REPEAT", string> = {
   TEST: "Test", COOLDOWN: "Retour au calme", REPEAT: "Répéter",
 };
 
-export type PaceName = "warm" | "recovery" | "walk" | "hill" | "run" | "tempo" | "fast" | "vr";
-export const PACES: PaceName[] = ["warm", "recovery", "walk", "hill", "run", "tempo", "fast", "vr"];
+export type PaceName = "warm" | "recovery" | "walk" | "hill" | "run" | "tempo" | "fast" | "vr" | "kmh";
+export const PACES: PaceName[] = ["warm", "recovery", "walk", "hill", "run", "tempo", "fast", "vr", "kmh"];
 export const PACE_LABELS: Record<PaceName, string> = {
   warm: "Marche lente (échauffement)", recovery: "Récupération", walk: "Marche active", hill: "Marche en côte",
-  run: "Course facile", tempo: "Allure soutenue", fast: "Rapide", vr: "Vitesse de référence (test)",
+  run: "Course facile", tempo: "Allure soutenue", fast: "Rapide", vr: "Vitesse de référence (test)", kmh: "Vitesse fixe (km/h)",
 };
 
 export interface Paces {
@@ -45,8 +45,10 @@ export interface BlockT {
   kind: BlockKind | "REPEAT";
   minutes: string;
   pace: PaceName;
-  paceFactor: number;
-  incline: string;
+  paceFactor?: number;
+  incline?: string;
+  /** Vitesse fixe en km/h quand pace vaut « kmh ». */
+  kmh?: number;
   repeat?: string;
   blocks?: BlockT[];
 }
@@ -57,7 +59,13 @@ export interface SessionType {
 }
 
 export interface SessionRef { type: string; params: Record<string, number> }
-export interface StepT { sessions: SessionRef[]; levels: Level[]; note: string }
+export interface StepT { sessions: SessionRef[]; levels?: Level[]; note?: string; easy?: SessionRef }
+
+/** Variante d'un programme pour un niveau ; les réglages absents reprennent ceux du programme. */
+export interface VariantT {
+  steps: StepT[]; description?: string; keysPerStep?: number; startAtMastered?: boolean;
+  easy?: EasyT; deload?: DeloadT; weekPatterns?: Record<string, string>; weekNotes?: Record<string, string>;
+}
 export interface Goal { kind: "none" | "duration" | "distance"; minutes: number; km: number }
 export interface Requires { minLongestRunMin: number; allowHealthFlag: boolean }
 export interface RecommendRule { levels: Level[]; minRun: number; maxRun: number; healthFlag?: boolean }
@@ -71,6 +79,8 @@ export interface ProgramTemplate {
   /** Séances clés à réussir pour valider un palier (2 par défaut). */
   keysPerStep?: number;
   weekPatterns: Record<string, string>; weekNotes: Record<string, string>;
+  /** Variantes par niveau ; vide : ancien format (paliers filtrés par niveau). */
+  variants?: Partial<Record<Level, VariantT>>;
 }
 
 export interface Catalog {
@@ -91,7 +101,7 @@ export interface PlannedSession {
   isKey: boolean; week: number; deload: boolean;
 }
 
-export interface ResolvedStep { sessions: SessionRef[]; note: string }
+export interface ResolvedStep { sessions: SessionRef[]; note: string; easy?: SessionRef }
 
 /** Position dans un programme (sous-ensemble de Program côté app, sans l'adaptation aux retours de séance). */
 export interface ProgramState {

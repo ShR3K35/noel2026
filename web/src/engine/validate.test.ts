@@ -15,7 +15,7 @@ describe("garde-fous", () => {
 
   it("repère un type de séance inconnu et un paramètre non déclaré", () => {
     const c = clone();
-    c.programs[0].steps[0].sessions[0].type = "nexiste-pas";
+    c.programs[0].variants!.N2!.steps[0].sessions[0].type = "nexiste-pas";
     c.sessionTypes[0].blocks[1].minutes = "duree-6";
     const errors = validateCatalog(c).filter((i) => i.level === "error").map((i) => i.message);
     expect(errors.some((m) => m.includes("nexiste-pas"))).toBe(true);
@@ -25,8 +25,9 @@ describe("garde-fous", () => {
   it("signale deux curseurs qui bougent ensemble et un saut de volume", () => {
     const c = clone();
     const p = c.programs.find((x) => x.id === "run-30")!;
-    const i = p.steps.findIndex((s) => s.sessions[0].type === "intervals");
-    p.steps[i + 1].sessions[0].params = { a: 3, b: 2, reps: 9 };
+    const steps = p.variants!.N2!.steps;
+    const i = steps.findIndex((s) => s.sessions[0].type === "intervals");
+    steps[i + 1].sessions[0].params = { a: 5, b: 2, reps: 12 };
     const warnings = validateProgram(p, c).map((x) => x.message);
     expect(warnings.some((m) => m.includes("Un seul curseur"))).toBe(true);
     expect(warnings.some((m) => m.includes("+10 %") || m.includes("+25 %"))).toBe(true);

@@ -1,6 +1,12 @@
 package fr.relance.app.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -65,13 +71,17 @@ fun MinutesPicker(minutes: Int, onChange: (Int) -> Unit) {
 
 /** Le catalogue, avec les durées calculées pour ce profil. */
 @Composable
-fun CatalogueList(profile: Profile, selected: ProgramTemplate?, onSelect: (ProgramTemplate) -> Unit) {
+fun CatalogueList(
+    profile: Profile, selected: ProgramTemplate?, level: Level?, onSelect: (ProgramTemplate) -> Unit, onLevel: (Level) -> Unit,
+) {
     val advised = Coach.recommended(profile)
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         for (type in Catalogs.current.visiblePrograms) {
             val locked = Coach.lockedReason(type, profile)
-            val ladder = Coach.ladderFor(type, profile)
             val isSel = type.id == selected?.id
+            val lv = if (isSel && level != null && level in type.levels) level else Coach.defaultLevel(type, profile)
+            val atLevel = profile.copy(level = lv)
+            val ladder = Coach.ladderFor(type, atLevel)
             val fg = if (isSel) Color.White else if (locked != null) C.Muted else C.Ink
             Card(
                 color = if (isSel) C.Accent else if (locked != null) C.Ground else C.Card, padding = 14.dp,
@@ -80,11 +90,31 @@ fun CatalogueList(profile: Profile, selected: ProgramTemplate?, onSelect: (Progr
                 if (type.id == advised?.id && locked == null) Label("Conseillé pour toi", if (isSel) Color.White else C.Accent)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Text(type.name, color = fg, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-                    Text(locked ?: "${Coach.weeksFor(type, ladder.size, Coach.sessionsPerWeek(profile))} semaines", color = if (isSel) Color.White else C.Muted, fontSize = 13.sp)
+                    Text(locked ?: "${Coach.weeksFor(type, ladder.size, Coach.sessionsPerWeek(profile), lv)} semaines", color = if (isSel) Color.White else C.Muted, fontSize = 13.sp)
                 }
-                if (locked == null && isSel && type.description.isNotBlank()) Small(type.description, Color.White)
+                if (locked == null && !isSel && type.levels.size < 4) Small("Niveaux : " + type.levels.joinToString(", ") { it.name }, fg)
+                val variantText = type.forLevel(lv)?.description ?: type.description
+                if (locked == null && isSel && variantText.isNotBlank()) Small(variantText, Color.White)
                 if (locked == null && isSel) {
-                    val longest = Coach.longestSessionMinutes(type, profile)
+                    Text("Ton niveau pour ce programme", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        for (l in Level.values()) {
+                            val available = l in type.levels
+                            val on = l == lv
+                            Box(
+                                Modifier.weight(1f).heightIn(min = 44.dp).clip(RoundedCornerShape(10.dp))
+                                    .background(if (on) Color.White else Color.Transparent)
+                                    .border(1.5.dp, if (available) Color.White else Color.White.copy(alpha = 0.3f), RoundedCornerShape(10.dp))
+                                    .semantics { this.selected = on }
+                                    .clickable(enabled = available, role = Role.Button) { onLevel(l) },
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Text(l.name, color = if (on) C.Accent else if (available) Color.White else Color.White.copy(alpha = 0.45f), fontSize = 15.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                    Small(lv.label + (if (lv == profile.level) " · ton niveau évalué" else " · ton niveau évalué : ${profile.level.name}"), Color.White)
+                    val longest = Coach.longestSessionMinutes(type, atLevel)
                     Small(
                         "Objectif : ${type.validation}." + if (longest > profile.minutesPerSession)
                             " Les séances iront jusqu'à $longest min en fin de programme." else "",
@@ -112,6 +142,7 @@ fun OnboardingScreen(vm: AppViewModel) {
     var days by remember { mutableStateOf(setOf(1, 3, 6)) }
     var minutes by remember { mutableIntStateOf(30) }
     var type by remember { mutableStateOf<ProgramTemplate?>(null) }
+    var level by remember { mutableStateOf<Level?>(null) }
 
     val draft = Profile(
         age = age, heightCm = height, weightKg = weight.toDouble(), lastPractice = practice,
@@ -217,7 +248,8 @@ fun OnboardingScreen(vm: AppViewModel) {
                 else -> {
                     Title("Choisis ton objectif")
                     Small("Niveau de départ : ${draft.level.label}. Durées calculées pour ${Coach.trainingDays(draft).size} séances par semaine. Un seul programme à la fois.")
-                    CatalogueList(draft, type ?: Coach.recommended(draft)) { type = it }
+                    val shown = type ?: Coach.recommended(draft)
+                    CatalogueList(draft, shown, level ?: shown?.let { Coach.defaultLevel(it, draft) }, { type = it; level = Coach.defaultLevel(it, draft) }) { level = it }
                 }
             }
             Spacer(Modifier.height(4.dp))
@@ -229,7 +261,9 @@ fun OnboardingScreen(vm: AppViewModel) {
                 if (step == last) "Voir mon programme" else "Continuer", Modifier.weight(1f),
                 enabled = !(step == 4 && days.isEmpty()),
             ) {
-                if (step < last) step++ else vm.completeOnboarding(draft, type ?: Coach.recommended(draft) ?: Catalogs.current.visiblePrograms.first(), testLater)
+                if (step < last) step++ else (type ?: Coach.recommended(draft) ?: Catalogs.current.visiblePrograms.first()).let { t ->
+                    vm.completeOnboarding(draft, t, testLater, level ?: Coach.defaultLevel(t, draft))
+                }
             }
         }
     }
@@ -240,17 +274,18 @@ fun OnboardingScreen(vm: AppViewModel) {
 fun CatalogueScreen(vm: AppViewModel) {
     val profile = vm.state.profile ?: return
     var type by remember { mutableStateOf(Coach.recommended(profile) ?: Catalogs.current.visiblePrograms.first()) }
+    var level by remember { mutableStateOf(Coach.defaultLevel(type, profile)) }
     Column(Modifier.fillMaxSize().background(C.Ground).padding(horizontal = 20.dp, vertical = 24.dp)) {
         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Title("Choisis ton objectif")
             Small("Niveau : ${profile.level.label} · vitesse de référence ${Fmt.kmh(profile.vr)} km/h. Durées calculées pour ${Coach.trainingDays(profile).size} séances par semaine.")
-            CatalogueList(profile, type) { type = it }
+            CatalogueList(profile, type, level, { type = it; level = Coach.defaultLevel(it, profile) }) { level = it }
             if (profile.level == Level.N1) Small("Tu démarres par la marche : c'est la base la plus solide.")
         }
         Spacer(Modifier.height(12.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             Btn("Retour", Modifier.width(110.dp), filled = false) { vm.back() }
-            Btn("Démarrer ce programme", Modifier.weight(1f), enabled = Coach.lockedReason(type, profile) == null) { vm.startProgram(type) }
+            Btn("Démarrer ce programme", Modifier.weight(1f), enabled = Coach.lockedReason(type, profile) == null) { vm.startProgram(type, level) }
         }
     }
 }

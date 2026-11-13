@@ -30,7 +30,7 @@ object Coach {
 
     private fun snapshotOf(t: ProgramTemplate, c: Catalog): ProgramSnapshot {
         val ids = HashSet<String>()
-        t.steps.forEach { st -> st.sessions.forEach { ids += it.type } }
+        t.steps.forEach { st -> st.sessions.forEach { ids += it.type }; st.easy?.let { ids += it.type } }
         ids += t.easy.types; ids += t.easy.fallback
         ids += c.specials.test; ids += c.specials.recovery; ids += c.specials.flatWalk
         return ProgramSnapshot(t, c.sessionTypes.filter { it.id in ids }, c.paces, c.specials, c.version)
@@ -39,16 +39,22 @@ object Coach {
     fun ladderFor(t: ProgramTemplate, p: Profile, c: Catalog = Catalogs.current): List<ResolvedStep> =
         Templates.resolve(t, p, c.paces) { c.type(it) }
 
-    /** Durée prévue pour `sessionsPerWeek` séances par semaine. */
-    fun weeksFor(t: ProgramTemplate, steps: Int, sessionsPerWeek: Int): Int =
-        Templates.weeksFor(steps, t.deload.every, Templates.keysPerWeek(t, sessionsPerWeek), t.keysPerStep)
+    /** Durée prévue pour `sessionsPerWeek` séances par semaine (réglages de la variante `level` s'il y en a une). */
+    fun weeksFor(t0: ProgramTemplate, steps: Int, sessionsPerWeek: Int, level: Level? = null): Int {
+        val t = level?.let { t0.forLevel(it) } ?: t0
+        return Templates.weeksFor(steps, t.deload.every, Templates.keysPerWeek(t, sessionsPerWeek), t.keysPerStep)
+    }
 
-    fun newProgram(t: ProgramTemplate, p: Profile, today: Long, c: Catalog = Catalogs.current): Program {
+    /** Démarre un programme au niveau choisi par le sportif (son niveau évalué par défaut). */
+    fun newProgram(t0: ProgramTemplate, p0: Profile, today: Long, c: Catalog = Catalogs.current, level: Level = p0.level): Program {
+        val chosen = if (level in t0.levels) level else t0.closestLevel(level) ?: level
+        val t = t0.forLevel(chosen) ?: t0
+        val p = p0.copy(level = chosen)
         val steps = ladderFor(t, p, c)
         val draft = Program(
             id = "p$today-${t.id}-${System.nanoTime() % 100000}", templateId = t.id, name = t.name, validation = t.validation,
             startDay = today, steps = steps, snapshot = snapshotOf(t, c), vrStart = p.vr, weeksPlanned = weeksFor(t, steps.size, sessionsPerWeek(p)),
-            startLevel = p.level, startLongestRun = p.longestRunMin,
+            startLevel = chosen, startLongestRun = p.longestRunMin,
         )
         return draft.copy(sessionsPlanned = plan(draft, p, today).size)
     }
@@ -60,7 +66,8 @@ object Coach {
     /** Programme créé avant le catalogue : on le reconstruit depuis le catalogue intégré, à la même position. */
     fun migrate(p: Program, profile: Profile): Program {
         if (p.snapshot != null) return p
-        val t = Catalogs.builtin.program(p.type?.id ?: "run-30") ?: return p
+        val t0 = Catalogs.builtin.program(p.type?.id ?: "run-30") ?: return p
+        val t = t0.forLevel(profile.level) ?: t0
         val steps = ladderFor(t, profile, Catalogs.builtin)
         return p.copy(
             templateId = t.id, name = t.name, validation = t.validation, steps = steps, snapshot = snapshotOf(t, Catalogs.builtin),
@@ -74,8 +81,9 @@ object Coach {
     fun hasUpdate(p: Program, c: Catalog = Catalogs.current): Boolean {
         val s = p.snapshot ?: return false
         if (p.status != ProgramStatus.ACTIVE || c.version <= s.catalogVersion) return false
-        val t = c.program(p.templateId) ?: return false
+        val t0 = c.program(p.templateId) ?: return false
         if (p.pending?.catalogVersion == c.version) return false
+        val t = t0.forLevel(p.startLevel ?: s.template.levels.firstOrNull() ?: return false) ?: return false
         return snapshotOf(t, c).copy(catalogVersion = 0) != s.copy(catalogVersion = 0)
     }
 
@@ -91,10 +99,14 @@ object Coach {
 
     /** Applique tout de suite si aucune séance de la semaine n'est faite, sinon au début de la semaine suivante. */
     fun scheduleUpdate(p: Program, profile: Profile, c: Catalog = Catalogs.current): Program {
-        val t = c.program(p.templateId) ?: return p
+        val t0 = c.program(p.templateId) ?: return p
+        val t = t0.forLevel(p.startLevel ?: profile.level) ?: return p
         val snap = snapshotOf(t, c)
         return if (p.sessionInWeek == 0 && !p.testNext) withSnapshot(p, snap, profile) else p.copy(pending = snap)
     }
+
+    /** Niveau proposé pour ce programme : celui du sportif s'il existe, sinon le plus proche. */
+    fun defaultLevel(t: ProgramTemplate, p: Profile): Level = if (p.level in t.levels) p.level else t.closestLevel(p.level) ?: p.level
 
     fun recommended(p: Profile, c: Catalog = Catalogs.current): ProgramTemplate? = Templates.recommended(c, p)
 
@@ -144,6 +156,13 @@ object Coach {
             val limit = min(max(15, profile.minutesPerSession), e.maxMinutes)
             val minutes = min(if (cap > 0) cap else limit, e.startMinutes + e.stepMinutes * p.week).coerceAtLeast(10)
             val wanted = if (e.types.isEmpty()) e.fallback else e.types[p.week % e.types.size]
+            // Séance d'endurance propre au palier, si le coach l'a prévue (ex. : marche de 25 puis 30 min).
+            val own = p.steps.getOrNull((p.stepIndex - (if (deload) 1 else 0)).coerceIn(0, maxOf(0, p.steps.size - 1)))?.easy
+            val ownType = own?.let { snap.type(it.type) }
+            if (own != null && ownType != null) {
+                val ps = ownType.params.associate { it.name to it.default } + own.params
+                return Templates.build(ownType, if (deload) Templates.deloaded(ps, t.deload.factor) else ps, profile, s, day, p.week, false, deload, cap)
+            }
             var type = snap.type(wanted) ?: snap.type(e.fallback)!!
             if (type.needsIncline && profile.inclinePct <= 0) type = snap.type(e.fallback) ?: type
             return Templates.build(type, mapOf("minutes" to minutes.toDouble()), profile, s, day, p.week, false, deload, cap)

@@ -413,7 +413,10 @@ private fun ProfileTab(vm: AppViewModel) {
         Strong("Poids")
         Stepper("${profile.weightKg.toInt()}", "kg", { vm.updateProfile { it.copy(weightKg = (it.weightKg - 1).coerceAtLeast(35.0)) } }, { vm.updateProfile { it.copy(weightKg = (it.weightKg + 1).coerceAtMost(200.0)) } })
         SettingRow("Niveau de départ", profile.level.label)
-        SettingRow("Vitesse de référence", "${Fmt.kmh(profile.vr)} km/h")
+        Strong("Vitesse de référence")
+        Stepper(Fmt.kmh(profile.vr), "km/h", { vm.setReferenceSpeed(profile.vr - 0.1) }, { vm.setReferenceSpeed(profile.vr + 0.1) })
+        Small("L'allure de marche la plus vive où tu peux encore parler. Toutes tes allures en découlent ; le changement vaut pour les prochaines séances.")
+        Btn("Refaire le test de marche (12 min)", Modifier.fillMaxWidth(), filled = false, height = 48.dp, enabled = vm.engine == null) { vm.startTestSession() }
     }
     Label("Mon tapis")
     Card {

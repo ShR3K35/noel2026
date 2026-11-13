@@ -35,13 +35,17 @@ class EngineFixturesTest {
 
     @Test
     fun writeFixtures() {
-        val catalog = Catalogs.builtin
+        // Catalogue intégré, plus les programmes d'exemple du contrat d'import.
+        val catalog = File("../contract/examples").listFiles()!!.filter { it.name.endsWith(".json") }.sortedBy { it.name }
+            .fold(Catalogs.builtin) { c, f -> ImportedProgramTest.merged(ImportedProgramTest.load(f.name)).let { m -> c.copy(programs = c.programs + m.programs.last(), sessionTypes = (c.sessionTypes + m.sessionTypes).distinctBy { it.id }) } }
+        File("../web/src/engine/fixtures-catalog.json").writeText(Catalogs.json.encodeToString(fr.relance.app.core.Catalog.serializer(), catalog))
         val cases = buildJsonArray {
-            for ((name, prof) in profiles) for (t in catalog.visiblePrograms) {
+            for ((name, prof) in profiles) for (t in catalog.programs) for (level in t.levels) {
                 if (Coach.lockedReason(t, prof) != null) continue
-                val p = Coach.newProgram(t, prof, today, catalog)
+                val p = Coach.newProgram(t, prof, today, catalog, level)
                 add(buildJsonObject {
-                    put("name", "$name/${t.id}")
+                    put("name", "$name/${t.id}/${level.name}")
+                    put("level", level.name)
                     put("program", t.id)
                     put("startDay", today)
                     put("profile", buildJsonObject {
@@ -52,7 +56,7 @@ class EngineFixturesTest {
                     })
                     put("weeks", p.weeksPlanned)
                     put("steps", p.steps.size)
-                    put("plan", JsonArray(Coach.plan(p, prof, today).map { s ->
+                    put("plan", JsonArray(Coach.plan(p, prof.copy(level = level), today).map { s ->
                         buildJsonObject {
                             put("day", s.day); put("kind", s.kind.name); put("title", s.title); put("detail", s.detail)
                             put("isKey", s.isKey); put("week", s.week); put("deload", s.deload)
@@ -64,7 +68,7 @@ class EngineFixturesTest {
                 })
             }
         }
-        assertTrue(cases.size > 40)
+        assertTrue(cases.size > 150)
         File("../web/src/engine/fixtures.json").writeText(cases.toString())
     }
 }

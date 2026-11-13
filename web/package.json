@@ -9,10 +9,14 @@
     "build": "tsc --noEmit && vite build",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "local": "vite-node scripts/local.ts"
+    "local": "vite-node scripts/local.ts",
+    "prebuild": "node scripts/copy-contract.mjs",
+    "predev": "node scripts/copy-contract.mjs"
   },
   "dependencies": {
     "@netlify/blobs": "8.2.0",
+    "ajv": "^8.17.1",
+    "ajv-i18n": "^4.2.0",
     "react": "19.1.10",
     "react-dom": "19.1.10"
   },
