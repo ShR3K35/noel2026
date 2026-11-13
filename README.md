@@ -40,7 +40,7 @@ Le coureur animé, à l'arrêt, en marche, au trot et en course rapide :
 
 ## Interface coach
 
-Les programmes ne sont plus figés dans l'app : un coach les construit et les publie depuis une interface web hébergée sur Netlify (dossier [`web/`](web/README.md)). L'app récupère le catalogue publié une fois par jour, ou tout de suite avec **Programmes → Mettre à jour les programmes**, et l'adapte au profil enregistré sur le téléphone. Un programme en cours garde sa version ; si le coach la modifie, l'app propose de l'appliquer, au plus tôt au début de la semaine suivante.
+Les programmes ne sont plus figés dans l'app : un coach les construit et les publie depuis une interface web hébergée sur Netlify, **https://relance-coach.netlify.app** (code dans [`web/`](web/README.md)). L'app récupère le catalogue publié une fois par jour, ou tout de suite avec **Programmes → Mettre à jour les programmes**, et l'adapte au profil enregistré sur le téléphone. Un programme en cours garde sa version ; si le coach la modifie, l'app propose de l'appliquer, au plus tôt au début de la semaine suivante.
 
 Le catalogue initial (`catalog/catalog.json`) reprend les programmes de la première version et sert hors ligne.
 

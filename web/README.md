@@ -24,7 +24,18 @@ Le profil du sportif ne quitte jamais son téléphone : le serveur ne stocke que
 | `GET /api/admin/history`, `GET /api/admin/history/:version` | jeton | Historique des versions. |
 | `POST /api/admin/restore` | jeton | Reprendre une version (0 = catalogue initial) dans le brouillon. |
 
-## Déployer sur Netlify (depuis GitHub, sans jeton)
+## En ligne
+
+Site : **https://relance-coach.netlify.app** (compte Netlify `shr3k35`). Le mot de passe est la variable `ADMIN_PASSWORD` du site (Netlify → Site configuration → Environment variables), modifiable à tout moment ; changer `SESSION_SECRET` déconnecte toutes les sessions ouvertes.
+
+Redéployer depuis ce dossier, avec la CLI Netlify connectée au compte :
+
+```bash
+npm run build
+npx netlify deploy --prod --dir=dist --functions=netlify/functions --site relance-coach
+```
+
+## Autre option : déploiement automatique depuis GitHub
 
 1. Sur app.netlify.com : **Add new site → Import an existing project → GitHub**, puis le dépôt `noel2026`.
 2. Réglages de build :
