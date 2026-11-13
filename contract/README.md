@@ -7,6 +7,7 @@ Format d'échange d'un programme Relance, pour l'import et l'export dans l'inter
 | [`program-import-v1.schema.json`](program-import-v1.schema.json) | Schéma JSON (2020-12), strict : tout champ inconnu est refusé. Publié sur https://relance-coach.netlify.app/schemas/program-import-v1.json |
 | [`AGENT.md`](AGENT.md) | Instructions à donner à un agent : format, types de séance, règles de coach, vérifications. |
 | [`examples/courir-30-min-tapis.json`](examples/courir-30-min-tapis.json) | Exemple complet : programme de 25 semaines transposé d'un document de coach. |
+| [`examples/courir-30-min-daniels.json`](examples/courir-30-min-daniels.json) | Exemple à quatre niveaux, allures relatives : « Courir 30 min · méthode Daniels » (paliers tenus deux semaines, sorties faciles propres aux paliers). |
 
 ## Principes
 

@@ -1,0 +1,676 @@
+{
+  "format": "relance.program",
+  "formatVersion": 1,
+  "meta": {
+    "source": "Conçu par Claude à partir de l'analyse critique des programmes Relance face à la méthode de Jack Daniels (Daniels' Running Formula)",
+    "generatedAt": "2026-11-13T18:00:00Z",
+    "rationale": "Principes repris de Daniels pour les débutants (son plan « blanc ») : uniquement de l'allure facile, où l'on peut parler ; une charge gardée deux semaines avant d'augmenter (4 séances clés par palier, au lieu d'un palier par semaine) ; des séances de durée voisine (30 à 42 min) dont seule la part de trot grandit ; pas de semaine allégée ni de test, la stabilité en tient lieu ; à partir de 20 min de trot par séance, la séance du milieu de semaine devient une sortie facile en marche-course, d'abord très courte (6 min de trot) puis jusqu'à 20 min, pour augmenter la fréquence avant la durée : la séance la plus longue reste sous 40 % du trot hebdomadaire à 3 séances, et le trot hebdomadaire ne monte pas de plus de 30 % par quinzaine au-delà de 30 min (soit environ 12 % par semaine en moyenne, au lieu de 20 à 33 % chaque semaine dans « Courir 30 min »). Aucune allure n'est calculée par un indice VDOT : cet indice demande une performance à fond, déconseillée en reprise, et ses tables commencent au-delà de ce niveau. Le trot suit le « trot facile » calibré du sportif (ou le repli de l'app). Limites connues : les lignes droites de 15 à 20 s de Daniels ne sont pas incluses (un bloc dure au moins 1 min dans le moteur) ; la règle « deux séances faciles font sauter un palier » de l'app reste active ; à 3 jours consécutifs, deux séances de trot peuvent se suivre à moins de 48 h : préférer des jours espacés. N1 démarre par de la marche et garde des séances du milieu en marche. N3 part des fractions de 2 min, N4 des fractions de 5 min. Durée à 2 séances ou plus par semaine : N1 24 semaines, N2 20, N3 16, N4 12. Après le programme, un chrono sur 5 km ou un test de 12 min permettra de calculer un VDOT pour un programme de performance."
+  },
+  "program": {
+    "id": "courir-30-min-daniels",
+    "name": "Courir 30 min · méthode Daniels",
+    "validation": "30 min de course continue",
+    "description": "Reprise à allure facile, inspirée de Jack Daniels (VDOT) : chaque palier est tenu deux semaines, les séances gardent la même durée et la part de trot grandit.",
+    "goal": {
+      "kind": "duration",
+      "minutes": 30,
+      "km": 0
+    },
+    "requires": {
+      "minLongestRunMin": 0,
+      "allowHealthFlag": false
+    },
+    "recommend": [],
+    "keysPerStep": 4,
+    "startAtMastered": true,
+    "deload": {
+      "every": 0,
+      "testAtEnd": false,
+      "factor": 0.7
+    },
+    "weekPatterns": {
+      "1": "K",
+      "2": "KK",
+      "3": "KEK",
+      "4": "KEKR"
+    },
+    "easy": {
+      "types": [
+        "hill",
+        "walk"
+      ],
+      "fallback": "walk",
+      "startMinutes": 20,
+      "stepMinutes": 5,
+      "maxMinutes": 30
+    },
+    "weekNotes": {
+      "1": "Méthode Daniels : une seule allure, facile. Tu dois pouvoir parler en trottant ; si ce n'est pas le cas, ralentis. Chaque palier dure deux semaines.",
+      "2": "Même séance que la semaine dernière, et c'est voulu : le corps s'adapte quand la charge reste stable.",
+      "3": "Nouveau palier. La durée de la séance change peu, c'est la part de trot qui grandit.",
+      "9": "Bientôt la sortie facile du milieu de semaine : courir un peu plus souvent avant de courir plus longtemps."
+    },
+    "variants": {
+      "N1": {
+        "description": "Départ en marche, puis fractions d'une minute. Les séances du milieu de semaine restent de la marche.",
+        "steps": [
+          {
+            "sessions": [
+              {
+                "type": "walk",
+                "params": {
+                  "minutes": 25
+                }
+              }
+            ],
+            "note": "Marche active, pour installer l'habitude."
+          },
+          {
+            "sessions": [
+              {
+                "type": "intervals",
+                "params": {
+                  "a": 1,
+                  "b": 3,
+                  "reps": 6
+                }
+              }
+            ],
+            "note": "6 min de trot : premières fractions d'une minute, longue récupération."
+          },
+          {
+            "sessions": [
+              {
+                "type": "intervals",
+                "params": {
+                  "a": 1,
+                  "b": 2,
+                  "reps": 8
+                }
+              }
+            ],
+            "note": "8 min de trot par séance. Deux semaines à l'identique : on stabilise avant d'ajouter."
+          },
+          {
+            "sessions": [
+              {
+                "type": "intervals",
+                "params": {
+                  "a": 1,
+                  "b": 1,
+                  "reps": 10
+                }
+              }
+            ],
+            "note": "10 min de trot : même fraction, récupération plus courte."
+          },
+          {
+            "sessions": [
+              {
+                "type": "intervals",
+                "params": {
+                  "a": 2,
+                  "b": 1,
+                  "reps": 7
+                }
+              }
+            ],
+            "note": "14 min de trot : fractions de 2 min."
+          },
+          {
+            "sessions": [
+              {
+                "type": "intervals",
+                "params": {
+                  "a": 3,
+                  "b": 1,
+                  "reps": 6
+                }
+              }
+            ],
+            "note": "18 min de trot : fractions de 3 min."
+          },
+          {
+            "sessions": [
+              {
+                "type": "intervals",
+                "params": {
+                  "a": 5,
+                  "b": 1,
+                  "reps": 4
+                }
+              }
+            ],
+            "note": "20 min de trot."
+          },
+          {
+            "sessions": [
+              {
+                "type": "intervals",
+                "params": {
+                  "a": 8,
+                  "b": 1,
+                  "reps": 3
+                }
+              }
+            ],
+            "note": "24 min de trot : fractions de 8 min."
+          },
+          {
+            "sessions": [
+              {
+                "type": "intervals",
+                "params": {
+                  "a": 9,
+                  "b": 1,
+                  "reps": 3
+                }
+              }
+            ],
+            "note": "27 min de trot : fractions de 9 min."
+          },
+          {
+            "sessions": [
+              {
+                "type": "intervals",
+                "params": {
+                  "a": 10,
+                  "b": 2,
+                  "reps": 3
+                }
+              }
+            ],
+            "note": "30 min de trot en trois blocs de 10 min."
+          },
+          {
+            "sessions": [
+              {
+                "type": "intervals",
+                "params": {
+                  "a": 15,
+                  "b": 2,
+                  "reps": 2
+                }
+              }
+            ],
+            "note": "30 min de trot en deux blocs de 15 min."
+          },
+          {
+            "sessions": [
+              {
+                "type": "continuous",
+                "params": {
+                  "minutes": 30
+                }
+              }
+            ],
+            "note": "30 min continues. Objectif atteint après quatre séances réussies."
+          }
+        ],
+        "weekNotes": {
+          "1": "On commence par marcher : deux semaines de marche active avant les premières fractions de trot.",
+          "3": "Premières fractions de trot : une minute, à une allure où tu peux parler."
+        }
+      },
+      "N2": {
+        "steps": [
+          {
+            "sessions": [
+              {
+                "type": "intervals",
+                "params": {
+                  "a": 1,
+                  "b": 2,
+                  "reps": 8
+                }
+              }
+            ],
+            "note": "8 min de trot par séance. Deux semaines à l'identique : on stabilise avant d'ajouter."
+          },
+          {
+            "sessions": [
+              {
+                "type": "intervals",
+                "params": {
+                  "a": 1,
+                  "b": 1,
+                  "reps": 10
+                }
+              }
+            ],
+            "note": "10 min de trot : même fraction, récupération plus courte."
+          },
+          {
+            "sessions": [
+              {
+                "type": "intervals",
+                "params": {
+                  "a": 2,
+                  "b": 1,
+                  "reps": 7
+                }
+              }
+            ],
+            "note": "14 min de trot : fractions de 2 min."
+          },
+          {
+            "sessions": [
+              {
+                "type": "intervals",
+                "params": {
+                  "a": 3,
+                  "b": 1,
+                  "reps": 6
+                }
+              }
+            ],
+            "note": "18 min de trot : fractions de 3 min."
+          },
+          {
+            "sessions": [
+              {
+                "type": "intervals",
+                "params": {
+                  "a": 5,
+                  "b": 1,
+                  "reps": 4
+                }
+              }
+            ],
+            "note": "20 min de trot. La séance du milieu devient une sortie facile en marche-course, très courte au début (6 min de trot).",
+            "easy": {
+              "type": "intervals",
+              "params": {
+                "a": 1,
+                "b": 2,
+                "reps": 6
+              }
+            }
+          },
+          {
+            "sessions": [
+              {
+                "type": "intervals",
+                "params": {
+                  "a": 8,
+                  "b": 1,
+                  "reps": 3
+                }
+              }
+            ],
+            "note": "24 min de trot : fractions de 8 min. Sortie facile : 8 min de trot.",
+            "easy": {
+              "type": "intervals",
+              "params": {
+                "a": 1,
+                "b": 2,
+                "reps": 8
+              }
+            }
+          },
+          {
+            "sessions": [
+              {
+                "type": "intervals",
+                "params": {
+                  "a": 9,
+                  "b": 1,
+                  "reps": 3
+                }
+              }
+            ],
+            "note": "27 min de trot : fractions de 9 min. Sortie facile : 14 min de trot.",
+            "easy": {
+              "type": "intervals",
+              "params": {
+                "a": 2,
+                "b": 1,
+                "reps": 7
+              }
+            }
+          },
+          {
+            "sessions": [
+              {
+                "type": "intervals",
+                "params": {
+                  "a": 10,
+                  "b": 2,
+                  "reps": 3
+                }
+              }
+            ],
+            "note": "30 min de trot en trois blocs de 10 min. Sortie facile : 18 min de trot.",
+            "easy": {
+              "type": "intervals",
+              "params": {
+                "a": 3,
+                "b": 1,
+                "reps": 6
+              }
+            }
+          },
+          {
+            "sessions": [
+              {
+                "type": "intervals",
+                "params": {
+                  "a": 15,
+                  "b": 2,
+                  "reps": 2
+                }
+              }
+            ],
+            "note": "30 min de trot en deux blocs de 15 min. Sortie facile : 20 min de trot.",
+            "easy": {
+              "type": "intervals",
+              "params": {
+                "a": 5,
+                "b": 1,
+                "reps": 4
+              }
+            }
+          },
+          {
+            "sessions": [
+              {
+                "type": "continuous",
+                "params": {
+                  "minutes": 30
+                }
+              }
+            ],
+            "note": "30 min continues. Objectif atteint après quatre séances réussies. Sortie facile : 20 min.",
+            "easy": {
+              "type": "continuous",
+              "params": {
+                "minutes": 20
+              }
+            }
+          }
+        ]
+      },
+      "N3": {
+        "description": "Tu trottes déjà par petits bouts : départ aux fractions de 2 min.",
+        "steps": [
+          {
+            "sessions": [
+              {
+                "type": "intervals",
+                "params": {
+                  "a": 2,
+                  "b": 1,
+                  "reps": 7
+                }
+              }
+            ],
+            "note": "14 min de trot : fractions de 2 min."
+          },
+          {
+            "sessions": [
+              {
+                "type": "intervals",
+                "params": {
+                  "a": 3,
+                  "b": 1,
+                  "reps": 6
+                }
+              }
+            ],
+            "note": "18 min de trot : fractions de 3 min."
+          },
+          {
+            "sessions": [
+              {
+                "type": "intervals",
+                "params": {
+                  "a": 5,
+                  "b": 1,
+                  "reps": 4
+                }
+              }
+            ],
+            "note": "20 min de trot. La séance du milieu devient une sortie facile en marche-course, très courte au début (6 min de trot).",
+            "easy": {
+              "type": "intervals",
+              "params": {
+                "a": 1,
+                "b": 2,
+                "reps": 6
+              }
+            }
+          },
+          {
+            "sessions": [
+              {
+                "type": "intervals",
+                "params": {
+                  "a": 8,
+                  "b": 1,
+                  "reps": 3
+                }
+              }
+            ],
+            "note": "24 min de trot : fractions de 8 min. Sortie facile : 8 min de trot.",
+            "easy": {
+              "type": "intervals",
+              "params": {
+                "a": 1,
+                "b": 2,
+                "reps": 8
+              }
+            }
+          },
+          {
+            "sessions": [
+              {
+                "type": "intervals",
+                "params": {
+                  "a": 9,
+                  "b": 1,
+                  "reps": 3
+                }
+              }
+            ],
+            "note": "27 min de trot : fractions de 9 min. Sortie facile : 14 min de trot.",
+            "easy": {
+              "type": "intervals",
+              "params": {
+                "a": 2,
+                "b": 1,
+                "reps": 7
+              }
+            }
+          },
+          {
+            "sessions": [
+              {
+                "type": "intervals",
+                "params": {
+                  "a": 10,
+                  "b": 2,
+                  "reps": 3
+                }
+              }
+            ],
+            "note": "30 min de trot en trois blocs de 10 min. Sortie facile : 18 min de trot.",
+            "easy": {
+              "type": "intervals",
+              "params": {
+                "a": 3,
+                "b": 1,
+                "reps": 6
+              }
+            }
+          },
+          {
+            "sessions": [
+              {
+                "type": "intervals",
+                "params": {
+                  "a": 15,
+                  "b": 2,
+                  "reps": 2
+                }
+              }
+            ],
+            "note": "30 min de trot en deux blocs de 15 min. Sortie facile : 20 min de trot.",
+            "easy": {
+              "type": "intervals",
+              "params": {
+                "a": 5,
+                "b": 1,
+                "reps": 4
+              }
+            }
+          },
+          {
+            "sessions": [
+              {
+                "type": "continuous",
+                "params": {
+                  "minutes": 30
+                }
+              }
+            ],
+            "note": "30 min continues. Objectif atteint après quatre séances réussies. Sortie facile : 20 min.",
+            "easy": {
+              "type": "continuous",
+              "params": {
+                "minutes": 20
+              }
+            }
+          }
+        ]
+      },
+      "N4": {
+        "description": "Reprise après une coupure : départ aux fractions de 5 min.",
+        "steps": [
+          {
+            "sessions": [
+              {
+                "type": "intervals",
+                "params": {
+                  "a": 5,
+                  "b": 1,
+                  "reps": 4
+                }
+              }
+            ],
+            "note": "20 min de trot. La séance du milieu devient une sortie facile en marche-course, très courte au début (6 min de trot).",
+            "easy": {
+              "type": "intervals",
+              "params": {
+                "a": 1,
+                "b": 2,
+                "reps": 6
+              }
+            }
+          },
+          {
+            "sessions": [
+              {
+                "type": "intervals",
+                "params": {
+                  "a": 8,
+                  "b": 1,
+                  "reps": 3
+                }
+              }
+            ],
+            "note": "24 min de trot : fractions de 8 min. Sortie facile : 8 min de trot.",
+            "easy": {
+              "type": "intervals",
+              "params": {
+                "a": 1,
+                "b": 2,
+                "reps": 8
+              }
+            }
+          },
+          {
+            "sessions": [
+              {
+                "type": "intervals",
+                "params": {
+                  "a": 9,
+                  "b": 1,
+                  "reps": 3
+                }
+              }
+            ],
+            "note": "27 min de trot : fractions de 9 min. Sortie facile : 14 min de trot.",
+            "easy": {
+              "type": "intervals",
+              "params": {
+                "a": 2,
+                "b": 1,
+                "reps": 7
+              }
+            }
+          },
+          {
+            "sessions": [
+              {
+                "type": "intervals",
+                "params": {
+                  "a": 10,
+                  "b": 2,
+                  "reps": 3
+                }
+              }
+            ],
+            "note": "30 min de trot en trois blocs de 10 min. Sortie facile : 18 min de trot.",
+            "easy": {
+              "type": "intervals",
+              "params": {
+                "a": 3,
+                "b": 1,
+                "reps": 6
+              }
+            }
+          },
+          {
+            "sessions": [
+              {
+                "type": "intervals",
+                "params": {
+                  "a": 15,
+                  "b": 2,
+                  "reps": 2
+                }
+              }
+            ],
+            "note": "30 min de trot en deux blocs de 15 min. Sortie facile : 20 min de trot.",
+            "easy": {
+              "type": "intervals",
+              "params": {
+                "a": 5,
+                "b": 1,
+                "reps": 4
+              }
+            }
+          },
+          {
+            "sessions": [
+              {
+                "type": "continuous",
+                "params": {
+                  "minutes": 30
+                }
+              }
+            ],
+            "note": "30 min continues. Objectif atteint après quatre séances réussies. Sortie facile : 20 min.",
+            "easy": {
+              "type": "continuous",
+              "params": {
+                "minutes": 20
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "sessionTypes": []
+}
