@@ -1,4 +1,4 @@
-import { StrictMode, useEffect, useState } from "react";
+import { lazy, StrictMode, Suspense, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import type { Catalog } from "../engine/types";
 import { api, auth } from "./api";
@@ -11,6 +11,9 @@ import { SessionTypeEditor, SessionTypes } from "./pages/SessionTypes";
 import { Simulator } from "./pages/Simulator";
 import { StoreProvider, useRoute, useStore } from "./store";
 import "./styles.css";
+
+// Le jeu n'est téléchargé qu'à l'ouverture du menu « Jeu ».
+const Game = lazy(() => import("./pages/Game").then((m) => ({ default: m.Game })));
 
 function Login({ onDone }: { onDone: () => void }) {
   const [password, setPassword] = useState("");
@@ -50,6 +53,7 @@ const NAV = [
   ["simulateur", "Simulateur"],
   ["allures", "Allures"],
   ["publication", "Publication"],
+  ["jeu", "Jeu 🎅"],
 ] as const;
 
 function Shell({ onLogout }: { onLogout: () => void }) {
@@ -91,6 +95,7 @@ function Shell({ onLogout }: { onLogout: () => void }) {
         {page === "simulateur" && <Simulator programId={route[1]} />}
         {page === "allures" && <Paces />}
         {page === "publication" && <Publish />}
+        {page === "jeu" && <Suspense fallback={<div className="game-host" />}><Game onExit={() => go("programmes")} /></Suspense>}
       </main>
     </div>
   );

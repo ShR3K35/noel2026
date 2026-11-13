@@ -14,6 +14,15 @@ Interface d'administration des programmes de l'app Relance, et API qui les sert 
 
 Le profil du sportif ne quitte jamais son téléphone : le serveur ne stocke que les programmes, et c'est le téléphone qui les adapte.
 
+## Jeu de Noël
+
+Le menu **Jeu 🎅** de l'interface lance « La Grande Tournée du Père Noël », un jeu de plates-formes en 2D sur trois niveaux (village enneigé, forêt boréale sous les aurores, toits de la ville), jouable sur téléphone, tablette et ordinateur. Il s'ouvre en plein écran par-dessus l'interface ; la croix ramène aux programmes.
+
+- **Commandes** : boutons tactiles (← → à gauche, Saut à droite, Lancer quand on a l'étoile), clavier (flèches ou ZQSD/WASD, Espace pour sauter, X pour lancer, Échap pour la pause) ou manette.
+- **Règles** : on récolte des clochettes (100 = une vie), on saute sur les bonshommes de neige, pingouins et corbeaux, on frappe les cadeaux par-dessous (clochette, étoile qui donne des boules de neige, chocolat chaud qui rend un cœur). Points de passage en cours de niveau ; le traîneau termine les deux premiers niveaux, la dernière cheminée termine le jeu.
+- **Technique** : TypeScript et Canvas 2D sans dépendance (`src/game/`). Graphismes vectoriels et sons synthétisés en direct, aucune image ni fichier audio à charger ; musique : refrain de « Jingle Bells » (domaine public). La simulation (`world.ts`) est séparée du rendu et testée sous Vitest (`world.test.ts` : hauteur de saut, coyote time, tampon de saut, écrasement, trous, accessibilité des niveaux). Progression et réglages (musique, secousses) gardés dans le navigateur.
+- Le réglage du saut et la structure suivent les skills de jeu vidéo installés dans `.claude/skills/` ([awesome-gamedev-agent-skills](https://github.com/gamedev-skills/awesome-gamedev-agent-skills), Apache-2.0) : `platformer` (constantes calculées avec `jump_tuner.py`), `game-feel`, `input-systems`, `camera-systems`.
+
 ## API
 
 | Route | Accès | Rôle |
