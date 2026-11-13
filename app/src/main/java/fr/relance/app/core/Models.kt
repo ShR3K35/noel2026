@@ -95,6 +95,8 @@ data class Profile(
     val treadmillAddress: String = "",
     val treadmillName: String = "",
     val runnerAnimation: Boolean = true,
+    /** Envoi automatique des séances vers Santé Connect. */
+    val healthConnect: Boolean = false,
     val voice: Boolean = true,
 )
 
@@ -177,6 +179,7 @@ data class CompletedSession(
     val completed: Boolean = true,
     val note: String = "",
     val coachMessage: String = "",
+    val healthConnectSynced: Boolean = false,
 )
 
 @Serializable

@@ -26,12 +26,15 @@ import fr.relance.app.core.ProgramStatus
 import fr.relance.app.core.ProgramType
 import fr.relance.app.core.Sample
 import fr.relance.app.core.SessionEngine
+import fr.relance.app.data.HcState
+import fr.relance.app.data.HealthConnect
 import fr.relance.app.data.Store
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.util.Locale
 import kotlin.math.min
@@ -51,6 +54,11 @@ sealed interface Screen {
 class AppViewModel(app: Application) : AndroidViewModel(app) {
     private val store = Store(app.filesDir)
     val ble = BleManager(app)
+    val hc = HealthConnect(app)
+    var hcState by mutableStateOf(HcState.UNAVAILABLE)
+    var hcBusy by mutableStateOf(false)
+        private set
+    var hcMessage by mutableStateOf("")
 
     var state by mutableStateOf(AppState())
         private set
@@ -78,6 +86,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         commit(loaded)
         stack += if (loaded.profile == null) Screen.Onboarding else Screen.Home
         reconnectSensors()
+        refreshHealthConnect()
         try {
             tts = TextToSpeech(app) { status ->
                 if (status == TextToSpeech.SUCCESS) {
@@ -252,6 +261,70 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         while (stack.size > 1) stack.removeAt(stack.size - 1)
         tab = 2
         stack += Screen.Detail(id)
+        if (newProfile.healthConnect) syncHealthConnect(listOf(id))
+    }
+
+    // ---------- Santé Connect ----------
+
+    fun refreshHealthConnect() {
+        viewModelScope.launch { hcState = hc.state() }
+    }
+
+    /** Après la fenêtre d'autorisation de Santé Connect. */
+    fun onHealthPermissions(granted: Set<String>) {
+        viewModelScope.launch {
+            hcState = hc.state()
+            if (granted.isEmpty()) {
+                hcMessage = "Aucune autorisation accordée : rien ne sera envoyé."
+                return@launch
+            }
+            updateProfile { it.copy(healthConnect = true) }
+            syncHealthConnect(null)
+        }
+    }
+
+    fun setHealthConnectAuto(on: Boolean) {
+        updateProfile { it.copy(healthConnect = on) }
+        if (on) syncHealthConnect(null)
+    }
+
+    fun unsyncedCount(): Int = state.sessions.count { !it.healthConnectSynced }
+
+    /** Envoie les séances données, ou toutes celles pas encore envoyées si `ids` est null. */
+    fun syncHealthConnect(ids: List<String>?) {
+        if (hcBusy) return
+        val weight = state.profile?.weightKg ?: return
+        val targets = state.sessions.filter { if (ids != null) it.id in ids else !it.healthConnectSynced }
+        if (targets.isEmpty()) {
+            hcMessage = "Toutes les séances sont déjà dans Santé Connect."
+            return
+        }
+        hcBusy = true
+        viewModelScope.launch {
+            val done = HashSet<String>()
+            var error: String? = null
+            withContext(Dispatchers.IO) {
+                for (s in targets) {
+                    try {
+                        if (hc.write(s, store.loadSamples(s.id), weight) > 0) done += s.id
+                    } catch (e: Exception) {
+                        error = e.message ?: e.javaClass.simpleName
+                        break
+                    }
+                }
+            }
+            if (done.isNotEmpty()) {
+                commit(state.copy(sessions = state.sessions.map { if (it.id in done) it.copy(healthConnectSynced = true) else it }))
+            }
+            hcState = hc.state()
+            hcMessage = when {
+                error != null -> "Envoi interrompu (${done.size} séance(s) envoyée(s)) : $error"
+                done.isEmpty() -> "Rien n'a été envoyé : vérifie les autorisations dans Santé Connect."
+                done.size == 1 -> "Séance envoyée vers Santé Connect."
+                else -> "${done.size} séances envoyées vers Santé Connect."
+            }
+            hcBusy = false
+        }
     }
 
     // ---------- Historique et export ----------

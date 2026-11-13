@@ -134,6 +134,9 @@ fun DetailScreen(vm: AppViewModel, id: String) {
                 Small(s.zoneSeconds.mapIndexedNotNull { i, sec -> if (sec >= 30) "Z${i + 1} · ${(sec + 30) / 60} min" else null }.joinToString("   "))
             }
             if (s.note.isNotBlank()) Card { Label("Ta note"); Body(s.note) }
+            if (s.healthConnectSynced) Small("Envoyée vers Santé Connect.")
+            else if (vm.hcState == fr.relance.app.data.HcState.READY)
+                Btn("Envoyer vers Santé Connect", Modifier.fillMaxWidth(), filled = false, enabled = !vm.hcBusy, height = 48.dp) { vm.syncHealthConnect(listOf(s.id)) }
             if (exported.isNotBlank()) Small(exported, C.Ink)
         }
         Spacer(Modifier.height(10.dp))

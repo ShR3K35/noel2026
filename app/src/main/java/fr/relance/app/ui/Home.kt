@@ -51,6 +51,12 @@ import fr.relance.app.core.Program
 import fr.relance.app.core.ProgramStatus
 import fr.relance.app.core.Stats
 import kotlin.math.max
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+import androidx.health.connect.client.PermissionController
+import fr.relance.app.data.HcState
+import fr.relance.app.data.HealthConnect
 
 private val TABS = listOf(
     "Aujourd'hui" to Icons.Filled.Home, "Planning" to Icons.Filled.DateRange, "Historique" to Icons.AutoMirrored.Filled.List,
@@ -389,6 +395,8 @@ private fun ProfileTab(vm: AppViewModel) {
         ChipRow(listOf("Aucune", "3 %", "5 %"), listOf(0.0, 3.0, 5.0).indexOf(profile.inclinePct)) { i -> vm.updateProfile { it.copy(inclinePct = listOf(0.0, 3.0, 5.0)[i]) } }
         Small("Réglages par défaut : Domyos Run100 (14 km/h, inclinaison manuelle 0 ou 3 %).")
     }
+    Label("Santé Connect")
+    HealthConnectCard(vm)
     Label("Pendant la séance")
     Card {
         Strong("Coureur animé")
@@ -397,4 +405,49 @@ private fun ProfileTab(vm: AppViewModel) {
         ChipRow(listOf("Activées", "Désactivées"), if (profile.voice) 0 else 1) { i -> vm.updateProfile { it.copy(voice = i == 0) } }
     }
     Small("Relance donne des conseils d'entraînement, pas un avis médical. En cas de douleur dans la poitrine ou de vertige, arrête-toi et consulte.")
+}
+
+/** Envoi des séances vers Santé Connect, pour les retrouver dans Google Health. */
+@Composable
+private fun HealthConnectCard(vm: AppViewModel) {
+    val profile = vm.state.profile ?: return
+    val ctx = LocalContext.current
+    val ask = rememberLauncherForActivityResult(PermissionController.createRequestPermissionResultContract(HealthConnect.PROVIDER)) { granted ->
+        vm.onHealthPermissions(granted.intersect(HealthConnect.PERMISSIONS))
+    }
+    LaunchedEffect(Unit) { vm.refreshHealthConnect() }
+    Card {
+        when (vm.hcState) {
+            HcState.UNAVAILABLE -> {
+                Strong("Non disponible sur ce téléphone")
+                Small("Santé Connect demande Android 9 ou plus récent.")
+            }
+            HcState.INSTALL_REQUIRED -> {
+                Strong("Santé Connect n'est pas installé")
+                Small("Sur Android 13 et avant, c'est une application à installer depuis le Play Store. Elle est intégrée à partir d'Android 14.")
+                Btn("Installer Santé Connect", Modifier.fillMaxWidth(), height = 48.dp) {
+                    try { ctx.startActivity(vm.hc.installIntent()) } catch (e: Exception) { vm.hcMessage = "Play Store introuvable sur ce téléphone." }
+                }
+            }
+            HcState.NO_PERMISSION -> {
+                Strong("Retrouve tes séances dans Google Health")
+                Small("Relance écrit chaque séance dans Santé Connect : exercice, distance, calories actives estimées, vitesse et fréquence cardiaque. Elle ne lit rien.")
+                Btn("Connecter Santé Connect", Modifier.fillMaxWidth(), height = 48.dp) { ask.launch(HealthConnect.PERMISSIONS) }
+            }
+            HcState.READY -> {
+                Strong("Envoi après chaque séance")
+                ChipRow(listOf("Activé", "Désactivé"), if (profile.healthConnect) 0 else 1) { vm.setHealthConnectAuto(it == 0) }
+                val pending = vm.unsyncedCount()
+                Small(if (pending == 0) "Toutes tes séances sont dans Santé Connect." else "$pending séance(s) pas encore envoyée(s).")
+                Btn(
+                    if (vm.hcBusy) "Envoi en cours…" else "Envoyer l'historique", Modifier.fillMaxWidth(), filled = false,
+                    enabled = !vm.hcBusy && pending > 0, height = 48.dp,
+                ) { vm.syncHealthConnect(null) }
+                Btn("Revoir les autorisations", Modifier.fillMaxWidth(), filled = false, outline = Color.Transparent, onOutline = C.Accent, height = 44.dp) {
+                    ask.launch(HealthConnect.PERMISSIONS)
+                }
+            }
+        }
+        if (vm.hcMessage.isNotBlank()) Small(vm.hcMessage, C.Ink)
+    }
 }

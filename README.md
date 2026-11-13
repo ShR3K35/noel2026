@@ -4,13 +4,13 @@ App Android de remise au sport sur tapis de course : un coach qui s'adapte à to
 
 ## Installer l'app
 
-**[Télécharger l'APK (relance.apk)](apk/relance.apk?raw=true)** — version 0.3.0, Android 8 ou plus récent.
+**[Télécharger l'APK (relance.apk)](apk/relance.apk?raw=true)** — version 0.4.0, Android 8 ou plus récent.
 
 1. Ouvre ce lien depuis le téléphone, ou copie le fichier `apk/relance.apk` dessus.
 2. Ouvre le fichier et accepte l'installation depuis cette source (Android le demande pour toute app hors Play Store).
 3. Lance « Relance » et fais le bilan de départ.
 
-Les données restent sur le téléphone : pas de compte, pas de serveur.
+Les données restent sur le téléphone : pas de compte, pas de serveur. Elles n'en sortent que si tu les exportes ou actives Santé Connect.
 
 | Aujourd'hui | Séance guidée | Fiche de séance | Planning |
 |---|---|---|---|
@@ -30,6 +30,7 @@ Le coureur animé, à l'arrêt, en marche, au trot et en course rapide :
 - **Adaptation** : l'effort ressenti, une douleur ou une séance écourtée modifient la suite du programme ; une coupure de deux semaines fait reculer de deux paliers.
 - **Historique** : statistiques par séance (durée, distance, allure, cardio et zones, calories estimées), courbes, cumuls et records.
 - **Export** : chaque séance en TCX (accepté par Strava et Garmin Connect) ou en CSV.
+- **Santé Connect** : chaque séance est écrite dans Santé Connect (exercice sur tapis, distance, calories actives estimées, vitesse, fréquence cardiaque) pour apparaître dans Google Health et les autres apps de santé. Envoi automatique après chaque séance, envoi de l'historique en un geste, depuis Profil › Santé Connect. Relance écrit seulement, elle ne lit rien.
 - **Capteurs Bluetooth** : ceinture cardio standard, et tapis ou boîtier ESP32 parlant FTMS, en lecture seule.
 - **Fréquence cardiaque de repos** : bouton « Mesurer avec ma ceinture » dans le profil. Assis, 2 minutes d'écoute, puis la valeur est enregistrée et les zones cardiaques recalculées.
 - **Étalonnage du boîtier** : trois paliers de marche, bande à vide, pour caler la vitesse mesurée sur celle de la console.
@@ -52,15 +53,15 @@ Le Run100 classique n'est pas connecté : un boîtier ESP32 (environ 20 €) com
 
 L'app a été construite et testée sans téléphone ni émulateur :
 
-- le moteur de coaching, l'export, l'étalonnage et le décodage Bluetooth sont couverts par 26 tests unitaires ;
+- le moteur de coaching, l'export, l'étalonnage et le décodage Bluetooth sont couverts par 26 tests unitaires, et la conversion d'une séance pour Santé Connect par 2 autres ;
 - le programme du boîtier compile pour ESP32 et sa logique de mesure passe 7 tests ; une trame qu'il produit est décodée par l'app dans les tests ;
-- des tests parcourent toute l'interface (bilan de départ, séance, bilan, fiche, arrêt de programme, étalonnage, mesure de la FC de repos) et produisent les captures ci-dessus.
+- des tests parcourent toute l'interface (bilan de départ, séance, bilan, fiche, arrêt de programme, étalonnage, mesure de la FC de repos, carte Santé Connect) et produisent les captures ci-dessus.
 
-**Non vérifié sur un vrai appareil** : le boîtier monté sur un vrai tapis, la connexion Bluetooth à une ceinture ou au boîtier, les annonces vocales, l'enregistrement du fichier d'export, et le comportement quand l'app passe en arrière-plan pendant une séance (garde l'écran de séance ouvert : il reste allumé).
+**Non vérifié sur un vrai appareil** : l'envoi réel vers Santé Connect et l'affichage dans Google Health, le boîtier monté sur un vrai tapis, la connexion Bluetooth à une ceinture ou au boîtier, les annonces vocales, l'enregistrement du fichier d'export, et le comportement quand l'app passe en arrière-plan pendant une séance (garde l'écran de séance ouvert : il reste allumé).
 
 ## Construire l'APK
 
-Il faut le SDK Android (plateforme 35) et un JDK 17 ou plus récent.
+Il faut le SDK Android (plateforme 36) et un JDK 17 ou plus récent.
 
 ```bash
 ./gradlew :app:testDebugUnitTest   # tests, captures dans app/build/shots
