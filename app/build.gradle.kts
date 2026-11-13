@@ -13,9 +13,11 @@ android {
         applicationId = "fr.relance.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 11
-        versionName = "0.9.2"
+        versionCode = 12
+        versionName = "0.10.0"
         // Adresse du catalogue publié depuis l'interface coach.
+        // Reconnaissance vocale locale (Vosk) : bibliothèques natives des téléphones ARM seulement (un émulateur x86 tourne sans la voix).
+        ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }
         buildConfigField("String", "CATALOG_URL", "\"" + (project.findProperty("relance.catalogUrl") ?: "https://relance-coach.netlify.app/api/catalog") + "\"")
     }
 
@@ -79,6 +81,9 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
     implementation("androidx.health.connect:connect-client:1.1.0")
     implementation("androidx.work:work-runtime-ktx:2.10.5")
+    // Reconnaissance vocale hors ligne (Apache 2.0). Le modèle français est téléchargé à la demande.
+    implementation("com.alphacephei:vosk-android:0.3.75@aar")
+    implementation("net.java.dev.jna:jna:5.18.1@aar")
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.14.1")

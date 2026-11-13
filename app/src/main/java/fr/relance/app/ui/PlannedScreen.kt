@@ -93,6 +93,16 @@ fun PlannedScreen(vm: AppViewModel, index: Int) {
                     if (i == s.blocks.size - 1) Small("Fin à ${Fmt.clock(t)}")
                 }
             }
+            if (s.warnings.isNotEmpty()) Card(color = Color(0xFFFFE7D6)) {
+                Strong("Réglages du tapis")
+                s.warnings.forEach { Small(it, C.Ink) }
+            }
+            s.basis?.let { b ->
+                Label("D'où viennent ces vitesses")
+                Card(padding = 14.dp, onClick = { vm.open(Screen.Paces) }) {
+                    b.lines().forEach { Small(it) }
+                }
+            }
             if (!first) Card(color = C.Soft) {
                 Body(
                     "Elle vient après ${if (index == 1) "la prochaine séance" else "les $index prochaines séances"}. " +

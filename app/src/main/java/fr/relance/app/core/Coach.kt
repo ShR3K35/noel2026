@@ -75,6 +75,31 @@ object Coach {
         )
     }
 
+    /**
+     * Programme démarré avant que l'app garde les objectifs de distance : ses paliers ne connaissent que des minutes.
+     * On retrouve les distances dans sa version du catalogue, pour recalculer la durée avec la vitesse retenue.
+     */
+    fun restoreDistances(p: Program, profile: Profile): Program {
+        val snap = p.snapshot ?: return p
+        if (p.steps.any { st -> st.sessions.any { "km" in it.params } }) return p
+        val start = profile.copy(level = p.startLevel ?: profile.level, longestRunMin = if (p.startLevel != null) p.startLongestRun else profile.longestRunMin)
+        val catalog = Catalog(paces = snap.paces, specials = snap.specials, sessionTypes = snap.sessionTypes, programs = listOf(snap.template), version = snap.catalogVersion)
+        val fresh = ladderFor(snap.template, start, catalog)
+        if (fresh.size != p.steps.size) return p
+        var changed = false
+        val steps = p.steps.mapIndexed { i, st ->
+            st.copy(sessions = st.sessions.mapIndexed { j, r ->
+                val f = fresh[i].sessions.getOrNull(j)
+                val km = f?.params?.get("km")
+                if (f != null && f.type == r.type && km != null && km > 0) {
+                    changed = true
+                    r.copy(params = r.params + ("km" to km))
+                } else r
+            })
+        }
+        return if (changed) p.copy(steps = steps) else p
+    }
+
     // ---------- Mises à jour du catalogue ----------
 
     /** Le coach a publié une version différente de ce programme. */
@@ -170,7 +195,9 @@ object Coach {
         val idx = (p.stepIndex - (if (deload) 1 else 0) - (if (p.fallbackNext) 1 else 0)).coerceIn(0, p.steps.size - 1)
         val step = p.steps[idx]
         val keyIndex = pattern.take(slot).count { it == 'K' }
-        val ref = step.sessions[keyIndex % step.sessions.size]
+        val ref0 = step.sessions[keyIndex % step.sessions.size]
+        // Objectif de distance : durée recalculée avec la vitesse de trot retenue aujourd'hui (références, tapis).
+        val ref = ref0.copy(params = Distances.apply(ref0.params, Treadmill.fit(s.run, Treadmill.spec(profile))))
         val type = snap.type(ref.type)!!
         val params = if (deload) Templates.deloaded(type.params.associate { it.name to it.default } + ref.params, t.deload.factor) else ref.params
         return Templates.build(type, params, profile, s, day, p.week, true, deload, cap)

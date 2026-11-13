@@ -40,7 +40,7 @@ class ReferenceSpeedUiTest {
             vm.completeOnboarding(Profile(vr = 5.8, level = Level.N2), ProgramType.RUN_30, false)
             vm.tab = 4
         }
-        rule.onNodeWithText("Vitesse de référence").performScrollTo()
+        rule.onNodeWithText("Vitesse de référence (ancien calcul)").performScrollTo()
         // Réglage à la main : + puis +.
         rule.runOnIdle { vm.setReferenceSpeed(vm.state.profile!!.vr + 0.1) }
         rule.runOnIdle { vm.setReferenceSpeed(vm.state.profile!!.vr + 0.1) }

@@ -128,6 +128,8 @@ class SessionEngine(val session: PlannedSession, private val profile: Profile) {
             runBlocksPlanned = session.blocks.count { it.kind == BlockKind.RUN || it.kind == BlockKind.FAST },
             runBlocksDone = runBlocksDone, longestRunMin = bestRunStreak / 60,
             speedMeasured = speedMeasured,
+            // Références d'allure utilisées : l'historique garde la base de la séance, même si elles changent ensuite.
+            basis = session.basis,
         )
     }
 }

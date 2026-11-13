@@ -179,6 +179,21 @@ object Catalogs {
     }
 }
 
+/** Objectifs de distance : durée en minutes = 60 × distance (km) / vitesse retenue (km/h), arrondie à la minute supérieure. */
+object Distances {
+    fun minutes(km: Double, kmh: Double): Double = if (kmh <= 0) 0.0 else ceil(60.0 * km / kmh - 1e-9)
+
+    /**
+     * Recalcule la durée des séances à objectif de distance avec la vitesse de trot effectivement retenue
+     * (références, pas et bornes du tapis). Les autres séances ne changent pas.
+     */
+    fun apply(params: Map<String, Double>, runKmh: Double): Map<String, Double> {
+        val km = params["km"] ?: return params
+        if (km <= 0) return params
+        return params + ("minutes" to minutes(km, runKmh))
+    }
+}
+
 /** Un palier une fois adapté au profil : paramètres résolus (distance convertie en minutes, etc.). */
 @Serializable
 data class ResolvedStep(val sessions: List<SessionRef>, val note: String = "", val easy: SessionRef? = null)
@@ -210,7 +225,7 @@ object Templates {
         var steps = t.steps.map { s ->
             ResolvedStep(s.sessions.map { r ->
                 val km = r.params["km"]
-                if (km != null && km > 0) r.copy(params = r.params - "km" + ("minutes" to ceil(km / run * 60))) else r
+                if (km != null && km > 0) r.copy(params = r.params + ("minutes" to Distances.minutes(km, run))) else r
             }, s.note, s.easy)
         }
         if (steps.isEmpty()) return steps
@@ -287,13 +302,29 @@ object Templates {
         return params[e] ?: 0.0
     }
 
-    private fun speedOf(pace: String, factor: Double, s: Speeds, p: Profile, kmh: Double = 0.0): Double = Physio.round1(
+    private fun rawSpeedOf(pace: String, factor: Double, s: Speeds, p: Profile, kmh: Double = 0.0): Double = Physio.round1(
         when (pace) {
             "warm" -> s.warm; "recovery" -> s.recovery; "walk" -> s.walk; "hill" -> s.hill
             "run" -> s.run; "tempo" -> s.tempo; "fast" -> s.fast; "vr" -> p.vr; "kmh" -> kmh
             else -> s.walk
         } * factor
-    ).coerceAtMost(p.treadmillMaxKmh)
+    )
+
+    /** Vitesse réellement réglable : pas et bornes du tapis. Une vitesse fixe (`kmh`) garde sa valeur, bornée de même. */
+    private fun speedOf(pace: String, factor: Double, s: Speeds, p: Profile, kmh: Double = 0.0): Double =
+        Treadmill.fit(rawSpeedOf(pace, factor, s, p, kmh), Treadmill.spec(p))
+
+    private val paceNames = mapOf(
+        "warm" to "marche facile", "recovery" to "marche de récupération", "walk" to "marche", "hill" to "marche en côte",
+        "run" to "trot", "tempo" to "allure soutenue", "fast" to "allure rapide", "vr" to "test", "kmh" to "vitesse fixée",
+    )
+
+    /** Explique une vitesse prévue hors des bornes du tapis. */
+    private fun conflict(pace: String, raw: Double, fitted: Double, p: Profile): String? = when {
+        raw < p.treadmillMinKmh - 0.001 -> "${(paceNames[pace] ?: pace).replaceFirstChar { it.uppercase() }} prévue à ${Fmt.kmh(raw)} km/h, sous la vitesse minimale du tapis (${Fmt.kmh(p.treadmillMinKmh)} km/h) : la consigne passe à ${Fmt.kmh(fitted)} km/h. Si c'est trop rapide, marche à côté de la bande ou arrête le bloc."
+        raw > p.treadmillMaxKmh + 0.001 -> "${(paceNames[pace] ?: pace).replaceFirstChar { it.uppercase() }} prévue à ${Fmt.kmh(raw)} km/h, au-dessus de la vitesse maximale du tapis (${Fmt.kmh(p.treadmillMaxKmh)} km/h) : la consigne est plafonnée, l'effort sera plus facile que prévu et une distance prendra plus de temps."
+        else -> null
+    }
 
     private fun inclineOf(expr: String, p: Profile): Double = if (expr == "profile") p.inclinePct else expr.toDoubleOrNull() ?: 0.0
 
@@ -304,15 +335,18 @@ object Templates {
     }
 
     /** Déplie les blocs d'un type de séance avec ses paramètres. */
-    fun expand(blocks: List<BlockT>, params: Map<String, Double>, s: Speeds, p: Profile): List<Block> {
+    fun expand(blocks: List<BlockT>, params: Map<String, Double>, s: Speeds, p: Profile, warnings: MutableSet<String>? = null): List<Block> {
         val out = ArrayList<Block>()
         for (b in blocks) {
             if (b.kind == "REPEAT") {
                 val n = (params[b.repeat] ?: evalMinutes(b.repeat, params)).roundToInt().coerceAtLeast(0)
-                repeat(n) { out += expand(b.blocks, params, s, p) }
+                repeat(n) { out += expand(b.blocks, params, s, p, warnings) }
             } else {
                 val minutes = max(1.0, evalMinutes(b.minutes, params))
-                out += Block(kindOf(b.kind), (minutes * 60).roundToInt(), speedOf(b.pace, b.paceFactor, s, p, b.kmh), inclineOf(b.incline, p))
+                val raw = rawSpeedOf(b.pace, b.paceFactor, s, p, b.kmh)
+                val v = speedOf(b.pace, b.paceFactor, s, p, b.kmh)
+                if (warnings != null) conflict(b.pace, raw, v, p)?.let { warnings += it }
+                out += Block(kindOf(b.kind), (minutes * 60).roundToInt(), v, inclineOf(b.incline, p))
             }
         }
         return out
@@ -384,9 +418,11 @@ object Templates {
     ): PlannedSession {
         val withDefaults = type.params.associate { it.name to it.default } + params0
         val params = if (cap > 0) shorten(type, withDefaults, cap) else withDefaults
+        val warnings = LinkedHashSet<String>()
+        val blocks = expand(type.blocks, params, speeds, p, warnings)
         return PlannedSession(
             day, type.kind, fill(type.title.ifBlank { type.name }, params, speeds, p), fill(type.detail, params, speeds, p),
-            expand(type.blocks, params, speeds, p), isKey, week, deload,
+            blocks, isKey, week, deload, PaceBasis.of(p), warnings.toList(),
         )
     }
 }

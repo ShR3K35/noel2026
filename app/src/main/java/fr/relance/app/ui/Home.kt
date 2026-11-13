@@ -404,6 +404,13 @@ private fun ProfileTab(vm: AppViewModel) {
         MinutesPicker(profile.minutesPerSession) { m -> vm.updateProfile { it.copy(minutesPerSession = m) } }
         Small("${Coach.trainingDays(profile).size} séance(s) par semaine. Le planning se recalcule tout de suite.")
     }
+    Label("Mes allures")
+    Card(onClick = { vm.open(Screen.Paces) }) {
+        val r = profile.paceRefs
+        for (k in fr.relance.app.core.RefKind.values()) SettingRow(k.label, r[k]?.let { "${Fmt.kmh(it.kmh)} km/h · ${if (it.source == fr.relance.app.core.RefSource.MANUAL) "manuelle" else it.status.label}" } ?: "non mesurée")
+        Small(if (r.isEmpty) "Pas encore de test : tes allures viennent de ta vitesse de référence. Un test de 20 minutes au plus les mesure." else "Repères mesurés lors de tests dédiés. Touche pour les voir, refaire un test ou les saisir.")
+        Btn("Mes allures et tests", Modifier.fillMaxWidth(), filled = false, height = 48.dp) { vm.open(Screen.Paces) }
+    }
     Label("Mon corps")
     Card {
         Strong("Fréquence cardiaque de repos")
@@ -413,15 +420,14 @@ private fun ProfileTab(vm: AppViewModel) {
         Strong("Poids")
         Stepper("${profile.weightKg.toInt()}", "kg", { vm.updateProfile { it.copy(weightKg = (it.weightKg - 1).coerceAtLeast(35.0)) } }, { vm.updateProfile { it.copy(weightKg = (it.weightKg + 1).coerceAtMost(200.0)) } })
         SettingRow("Niveau de départ", profile.level.label)
-        Strong("Vitesse de référence")
+        Strong("Vitesse de référence (ancien calcul)")
         Stepper(Fmt.kmh(profile.vr), "km/h", { vm.setReferenceSpeed(profile.vr - 0.1) }, { vm.setReferenceSpeed(profile.vr + 0.1) })
-        Small("L'allure de marche la plus vive où tu peux encore parler. Toutes tes allures en découlent ; le changement vaut pour les prochaines séances.")
+        Small("La marche la plus vive où tu peux encore parler. Elle sert de repli pour les allures sans référence mesurée, et pour la côte ; le changement vaut pour les prochaines séances.")
         Btn("Refaire le test de marche (12 min)", Modifier.fillMaxWidth(), filled = false, height = 48.dp, enabled = vm.engine == null) { vm.startTestSession() }
     }
     Label("Mon tapis")
     Card {
-        Strong("Vitesse maximale")
-        Stepper(Fmt.kmh(profile.treadmillMaxKmh), "km/h", { vm.updateProfile { it.copy(treadmillMaxKmh = (it.treadmillMaxKmh - 1).coerceAtLeast(6.0)) } }, { vm.updateProfile { it.copy(treadmillMaxKmh = (it.treadmillMaxKmh + 1).coerceAtMost(25.0)) } })
+        TreadmillSettings(vm, profile)
         Strong("Inclinaison disponible")
         ChipRow(listOf("Aucune", "3 %", "5 %"), listOf(0.0, 3.0, 5.0).indexOf(profile.inclinePct)) { i -> vm.updateProfile { it.copy(inclinePct = listOf(0.0, 3.0, 5.0)[i]) } }
         Small("Réglages par défaut : Domyos Run100 (14 km/h, inclinaison manuelle 0 ou 3 %).")

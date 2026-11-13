@@ -52,6 +52,10 @@ data class PlannedSession(
     val isKey: Boolean,
     val week: Int,
     val deload: Boolean,
+    /** Références d'allure utilisées pour cette séance. */
+    val basis: PaceBasis? = null,
+    /** Conflits avec les réglages du tapis (vitesse hors bornes), expliqués à l'utilisateur. */
+    val warnings: List<String> = emptyList(),
 ) {
     val minutes: Int get() = (blocks.sumOf { it.seconds } + 59) / 60
     val inclinePct: Double get() = blocks.maxOfOrNull { it.inclinePct } ?: 0.0
@@ -77,6 +81,19 @@ data class Profile(
     val longestRunMin: Int = 0,
     val level: Level = Level.N2,
     val treadmillMaxKmh: Double = 14.0,
+    val treadmillMinKmh: Double = 1.0,
+    /** Pas de réglage de la vitesse du tapis. */
+    val treadmillStepKmh: Double = 0.1,
+    /** Bornes et pas confirmés par l'utilisateur (sinon : valeurs par défaut, à demander avant un test). */
+    val treadmillChecked: Boolean = false,
+    /** Références d'allure issues des tests de calibration ou saisies à la main. */
+    val paceRefs: PaceRefs = PaceRefs(),
+    val capacity: Capacity? = null,
+    /** Vitesses habituelles déclarées, 0 = inconnue. */
+    val usualWalkKmh: Double = 0.0,
+    val usualRunKmh: Double = 0.0,
+    /** Conserver les enregistrements des tests pour diagnostic (désactivé : l'audio est effacé après analyse). */
+    val keepVoiceDiagnostics: Boolean = false,
     val inclinePct: Double = 3.0,
     val hrAddress: String = "",
     val hrName: String = "",
@@ -187,6 +204,8 @@ data class CompletedSession(
     /** État du programme juste avant cette séance : sert à l'annuler pour la refaire. */
     val programBefore: Program? = null,
     val profileBefore: CoachSnapshot? = null,
+    /** Références d'allure utilisées pour construire la séance. */
+    val basis: PaceBasis? = null,
 )
 
 /** Ce qu'une séance peut changer dans le profil, pour pouvoir revenir en arrière. */
@@ -205,4 +224,8 @@ data class AppState(
     val program: Program? = null,
     val archived: List<Program> = emptyList(),
     val sessions: List<CompletedSession> = emptyList(),
+    /** Résultats des tests de calibration, du plus récent au plus ancien. */
+    val calibrations: List<CalibrationRecord> = emptyList(),
+    /** Test de calibration en cours : jamais repris sans confirmation après un redémarrage. */
+    val paceTest: PaceTestState? = null,
 )

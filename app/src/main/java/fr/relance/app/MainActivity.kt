@@ -36,7 +36,7 @@ class MainActivity : ComponentActivity() {
             MaterialTheme(colorScheme = lightColorScheme(primary = C.Accent, surface = C.Card, background = C.Ground)) {
                 val vm: AppViewModel = viewModel()
                 val screen = vm.stack.lastOrNull() ?: Screen.Home
-                val night = screen == Screen.Session
+                val night = screen == Screen.Session || screen == Screen.PaceRun
                 BackHandler(enabled = vm.stack.size > 1) { vm.back() }
                 Box(Modifier.fillMaxSize().background(if (night) C.Night else C.Ground).safeDrawingPadding()) {
                     when (screen) {
@@ -51,9 +51,19 @@ class MainActivity : ComponentActivity() {
                         Screen.RestingHr -> RestingHrScreen(vm)
                         Screen.ManualLog -> ManualLogScreen(vm)
                         is Screen.Planned -> PlannedScreen(vm, screen.index)
+                        Screen.Paces -> fr.relance.app.ui.PacesScreen(vm)
+                        Screen.PacePrep -> fr.relance.app.ui.PacePrepScreen(vm)
+                        Screen.PaceRun -> fr.relance.app.ui.PaceRunScreen(vm)
+                        Screen.PaceResult -> fr.relance.app.ui.PaceResultScreen(vm)
                     }
                 }
             }
         }
+    }
+
+    /** Passage en arrière-plan (appel, autre app, écran verrouillé) : un test de calibration se met en pause. */
+    override fun onStop() {
+        super.onStop()
+        androidx.lifecycle.ViewModelProvider(this)[AppViewModel::class.java].onBackground()
     }
 }

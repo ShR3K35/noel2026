@@ -33,14 +33,25 @@ object Physio {
         else -> Level.N2
     }
 
+    /**
+     * Allures d'une séance. Les références de calibration priment :
+     * échauffement, récupération et retour au calme = marche facile ; marche = marche active ; trot = trot facile.
+     * Sans référence, repli explicite sur l'ancien calcul depuis la vitesse de référence (`vr`) et les réglages du catalogue.
+     * Côte, allure soutenue et rapide gardent le mécanisme du catalogue (côte depuis `vr`, soutenue et rapide depuis le trot).
+     * La course facile n'est jamais déduite de la marche par un multiplicateur.
+     */
     fun speedsFor(p: Profile, factor: Double = 1.0, paces: Paces = Catalogs.current.paces): Speeds {
-        val cap = p.treadmillMaxKmh
-        fun c(v: Double) = round1(min(v, cap))
-        val run = min(max(p.vr * paces.runOfVr, paces.runMin), paces.runMax) * factor
+        // Non bornées ici : les bornes et le pas du tapis s'appliquent à la construction de la séance, qui explique les conflits.
+        fun c(v: Double) = round1(v)
+        val r = p.paceRefs
+        val legacyRun = min(max(p.vr * paces.runOfVr, paces.runMin), paces.runMax)
+        val run = (r.runEasy?.kmh ?: legacyRun) * factor
+        val easy = r.walkEasy?.kmh
+        val walk = r.walkActive?.kmh ?: max(p.vr * paces.walk, easy ?: 0.0)
         return Speeds(
-            warm = c(p.vr * paces.warm),
-            recovery = c(p.vr * paces.recovery),
-            walk = c(p.vr * paces.walk * factor),
+            warm = c(easy ?: p.vr * paces.warm),
+            recovery = c(easy ?: p.vr * paces.recovery),
+            walk = c(walk * factor),
             hill = c(p.vr * paces.hill * factor),
             run = c(run),
             tempo = c(run * paces.tempoOfRun),

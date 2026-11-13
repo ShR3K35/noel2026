@@ -4,7 +4,7 @@ App Android de remise au sport sur tapis de course : un coach qui s'adapte à to
 
 ## Installer l'app
 
-**[Télécharger l'APK (relance.apk)](apk/relance.apk?raw=true)** — version 0.9.2, Android 8 ou plus récent.
+**[Télécharger l'APK (relance.apk)](apk/relance.apk?raw=true)** — version 0.10.0, Android 8 ou plus récent.
 
 1. Ouvre ce lien depuis le téléphone, ou copie le fichier `apk/relance.apk` dessus.
 2. Ouvre le fichier et accepte l'installation depuis cette source (Android le demande pour toute app hors Play Store).
@@ -24,6 +24,7 @@ Le coureur animé, à l'arrêt, en marche, au trot et en course rapide :
 
 - **Bilan de départ** : questions de santé, profil, zones sensibles, test de marche, jours et durée disponibles.
 - **Niveau au choix** : avant chaque programme, le sportif choisit son niveau (N1 à N4) parmi ceux que le programme propose ; son niveau évalué est présélectionné.
+- **Mes allures (calibration)** : trois repères mesurés lors de tests dédiés de 20 minutes au plus (marche facile, marche active, trot facile), avec test de la parole, boutons ou voix. Reconnaissance vocale et analyse de la lecture entièrement sur le téléphone (Vosk, modèle français gratuit téléchargé une fois). Les séances utilisent ces repères, arrondis au pas du tapis ; sans repère, l'ancien calcul sert de repli affiché. Voir [le protocole et ses limites](docs/CALIBRATION.md).
 - **Vitesse de référence** : modifiable à la main dans le profil, ou en relançant le test de marche de 12 min ; le test hors programme ne fait pas avancer le programme.
 - **Programmes sur mesure** : courir 10 min, 30 min, 45 min, 1 h, 5 km, 10 km, améliorer ses performances, santé et forme. Un seul programme à la fois, avec pause, arrêt et liste des programmes effectués.
 - **Planning** : toutes les semaines jusqu'à l'objectif, à déplier une par une ; chaque séance s'ouvre sur son détail bloc par bloc (durées, vitesses, inclinaison, distance et calories estimées). Une semaine allégée sur quatre avec test de forme. Un palier se valide après 2 séances clés : à 1 séance par semaine, le programme est deux fois plus long ; à 2, 3 ou 4 séances, sa durée ne change pas et les séances en plus sont de l'endurance. Une séance manquée glisse, elle n'est jamais doublée.
@@ -68,9 +69,10 @@ L'app a été construite et testée sans téléphone ni émulateur :
 
 - le moteur de coaching, l'export, l'étalonnage et le décodage Bluetooth sont couverts par 40 tests unitaires, et la conversion d'une séance pour Santé Connect par 2 autres ;
 - le programme du boîtier compile pour ESP32 et sa logique de mesure passe 7 tests ; une trame qu'il produit est décodée par l'app dans les tests ;
+- la calibration des allures est couverte par 36 tests (classement des réponses, arrondis du tapis, trois protocoles, limite de 20 minutes sur 400 parcours aléatoires, interruptions, migration, distances, analyse acoustique et bruit, parcours complet aux boutons) ; la reconnaissance Vosk a été vérifiée hors réseau sur PC avec des voix de synthèse ([détail](docs/CALIBRATION.md#vérifications-faites-et-restant-à-faire)) ;
 - des tests parcourent toute l'interface (bilan de départ, séance, bilan, fiche, arrêt de programme, étalonnage, mesure de la FC de repos, carte Santé Connect, saisie d'une séance faite sans le téléphone, planning détaillé, séance faite en avance puis annulée et refaite) et produisent les captures ci-dessus.
 
-**Non vérifié sur un vrai appareil** : l'envoi réel vers Santé Connect et l'affichage dans Google Health, le boîtier monté sur un vrai tapis, la connexion Bluetooth à une ceinture ou au boîtier, les annonces vocales, l'enregistrement du fichier d'export, et le comportement quand l'app passe en arrière-plan pendant une séance (garde l'écran de séance ouvert : il reste allumé).
+**Non vérifié sur un vrai appareil** : le micro et la reconnaissance vocale pendant un vrai test sur tapis (voix humaines, bruit réel, micro Bluetooth, appels), le téléchargement du modèle vocal, l'envoi réel vers Santé Connect et l'affichage dans Google Health, le boîtier monté sur un vrai tapis, la connexion Bluetooth à une ceinture ou au boîtier, les annonces vocales, l'enregistrement du fichier d'export, et le comportement quand l'app passe en arrière-plan pendant une séance (garde l'écran de séance ouvert : il reste allumé).
 
 ## Construire l'APK
 

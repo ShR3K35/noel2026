@@ -19,6 +19,6 @@ class ManifestTest {
         // Sans INTERNET, Android refuse toute requête : la mise à jour des programmes échouerait toujours.
         assertTrue(requested.toString(), "android.permission.INTERNET" in requested)
         assertTrue("android.permission.ACCESS_NETWORK_STATE" in requested)
-        assertTrue("android.permission.BLUETOOTH_CONNECT" in requested)
+        assertTrue("android.permission.BLUETOOTH_CONNECT", "android.permission.RECORD_AUDIO" in requested)
     }
 }

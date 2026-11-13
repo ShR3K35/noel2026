@@ -2,7 +2,6 @@ package fr.relance.app.ui
 
 import android.app.Application
 import android.os.SystemClock
-import android.speech.tts.TextToSpeech
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -55,6 +54,11 @@ sealed interface Screen {
     data object ManualLog : Screen
     /** Séance du planning, par sa place dans la liste des séances à venir. */
     data class Planned(val index: Int) : Screen
+    /** Mes allures : références, tests de calibration, historique. */
+    data object Paces : Screen
+    data object PacePrep : Screen
+    data object PaceRun : Screen
+    data object PaceResult : Screen
 }
 
 class AppViewModel(app: Application) : AndroidViewModel(app) {
@@ -81,8 +85,20 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     private var sessionStartMillis = 0L
     private var tickJob: Job? = null
-    private var tts: TextToSpeech? = null
-    private var ttsReady = false
+    val speaker = fr.relance.app.voice.Speaker(app)
+
+    /** Test de calibration des allures (voix locale, horloge monotone). */
+    val pace = PaceController(
+        app, speaker, persist = { persistPace(it) },
+        voiceOn = { state.profile?.voice != false }, keepDiagnostics = { state.profile?.keepVoiceDiagnostics == true },
+    )
+    var paceRecord by mutableStateOf<fr.relance.app.core.CalibrationRecord?>(null)
+        private set
+    private var paceJob: Job? = null
+
+    init {
+        pace.onFinished = { showPaceResult() }
+    }
 
     fun today(): Long = LocalDate.now().toEpochDay()
 
@@ -105,27 +121,25 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         loaded.profile?.let { if (it.minutesPerSession < 30) loaded = loaded.copy(profile = it.copy(minutesPerSession = 30)) }
         loaded.program?.let { p ->
             val prof = loaded.profile
-            val migrated = if (prof != null) Coach.migrate(p, prof) else p
+            val migrated = if (prof != null) Coach.restoreDistances(Coach.migrate(p, prof), prof) else p
             loaded = loaded.copy(program = Coach.applyGap(migrated, today()))
         }
         commit(loaded)
         stack += if (loaded.profile == null) Screen.Onboarding else Screen.Home
+        // Test de calibration interrompu (appli fermée, téléphone redémarré) : affiché en pause, jamais repris tout seul.
+        loaded.paceTest?.let { t ->
+            if (loaded.profile != null) {
+                pace.restore(t)
+                stack += Screen.PaceRun
+                startPaceLoop()
+            }
+        }
         reconnectSensors()
         refreshHealthConnect()
         try {
             fr.relance.app.data.CatalogSync.schedule(app)
         } catch (e: Exception) {
             // WorkManager indisponible (tests) : la mise à jour manuelle reste possible.
-        }
-        try {
-            tts = TextToSpeech(app) { status ->
-                if (status == TextToSpeech.SUCCESS) {
-                    tts?.language = Locale.FRANCE
-                    ttsReady = true
-                }
-            }
-        } catch (e: Exception) {
-            // Pas de synthèse vocale sur cet appareil : le guidage reste visuel.
         }
     }
 
@@ -147,6 +161,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun back(): Boolean {
         if (stack.size <= 1) return false
         if (stack.last() == Screen.Session || stack.last() == Screen.Bilan) return true
+        if (stack.last() == Screen.PaceRun || stack.last() == Screen.PaceResult) return true
         stack.removeAt(stack.size - 1)
         return true
     }
@@ -546,6 +561,88 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         updateProfile { it.copy(treadmillAddress = "", treadmillName = "") }
     }
 
+    // ---------- Calibration des allures ----------
+
+    /** Sauvegarde de l'état du test, sans recalculer le planning. */
+    private fun persistPace(t: fr.relance.app.core.PaceTestState?) {
+        state = state.copy(paceTest = t)
+        val s = state
+        viewModelScope.launch(Dispatchers.IO) { store.save(s) }
+    }
+
+    fun beginPaceTest(kind: fr.relance.app.core.TestKind, easyKmh: Double, candidateKmh: Double, usualActiveKmh: Double) {
+        val prof = state.profile ?: return
+        if (pace.engine != null) return
+        val st = fr.relance.app.core.PaceTestState(
+            "c${System.currentTimeMillis()}", kind, today(), fr.relance.app.core.Treadmill.spec(prof),
+            easyKmh, candidateKmh, usualActiveKmh,
+        )
+        pace.begin(st, easyKmh)
+        stack.remove(Screen.PacePrep)
+        stack += Screen.PaceRun
+        startPaceLoop()
+    }
+
+    private fun startPaceLoop() {
+        paceJob?.cancel()
+        paceJob = viewModelScope.launch {
+            while (isActive) {
+                val e = pace.engine ?: break
+                if (e.s.phase == fr.relance.app.core.Phase.FINISHED) {
+                    showPaceResult(); break
+                }
+                pace.tick()
+                delay(250)
+            }
+        }
+    }
+
+    private fun showPaceResult() {
+        if (paceRecord != null && stack.lastOrNull() == Screen.PaceResult) return
+        paceJob?.cancel()
+        paceRecord = pace.result()
+        stack.remove(Screen.PaceRun)
+        if (stack.lastOrNull() != Screen.PaceResult) stack += Screen.PaceResult
+    }
+
+    /**
+     * Enregistre le résultat dans l'historique et, si demandé, applique les références au profil : le planning à venir
+     * est recalculé d'un seul coup ; les séances déjà faites gardent leurs vitesses.
+     */
+    fun savePaceResult(apply: Boolean) {
+        val r = paceRecord ?: return
+        val prof = state.profile ?: return
+        val (refs, kept) = if (apply) prof.paceRefs.merge(r.refs) else prof.paceRefs to r.refs
+        val applied = r.refs.filter { it !in kept }.map { it.kind }
+        commit(state.copy(profile = prof.copy(paceRefs = refs), calibrations = listOf(r.copy(applied = applied)) + state.calibrations, paceTest = null))
+        paceRecord = null
+        pace.close()
+        stack.remove(Screen.PaceResult)
+        if (Screen.Paces !in stack) stack += Screen.Paces
+        while (stack.size > 1 && stack.last() != Screen.Paces) stack.removeAt(stack.size - 1)
+    }
+
+    /** Saisie manuelle d'une référence : identifiable comme telle, jamais « confirmée ». */
+    fun setManualRef(kind: fr.relance.app.core.RefKind, kmh: Double) {
+        updateProfile { p ->
+            val v = fr.relance.app.core.Treadmill.fit(kmh, fr.relance.app.core.Treadmill.spec(p))
+            p.copy(paceRefs = p.paceRefs.with(fr.relance.app.core.PaceRef(kind, v, 0.0, today(), "manuel", fr.relance.app.core.PaceProtocol.VERSION, fr.relance.app.core.RefSource.MANUAL, fr.relance.app.core.RefStatus.PROVISIONAL, 0)))
+        }
+    }
+
+    fun clearRef(kind: fr.relance.app.core.RefKind) = updateProfile { it.copy(paceRefs = it.paceRefs.without(kind)) }
+
+    /** L'app passe en arrière-plan (appel, autre app) : un test en cours se met en pause. */
+    fun onBackground() {
+        val ph = pace.engine?.s?.phase ?: return
+        if (ph == fr.relance.app.core.Phase.RUNNING || ph == fr.relance.app.core.Phase.AWAIT_SPEED) pace.pause(fr.relance.app.core.PauseReason.BACKGROUND)
+    }
+
+    fun setVoiceDiagnostics(on: Boolean) {
+        updateProfile { it.copy(keepVoiceDiagnostics = on) }
+        if (!on) pace.diagnostics.clear()
+    }
+
     // ---------- Voix ----------
 
     private fun announce(kind: BlockKind, seconds: Int, speed: Double, prefix: String) {
@@ -556,12 +653,13 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     private fun say(text: String) {
-        if (!ttsReady || state.profile?.voice == false) return
-        tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "relance")
+        if (state.profile?.voice == false) return
+        speaker.say(text)
     }
 
     override fun onCleared() {
-        tts?.shutdown()
+        speaker.shutdown()
+        pace.shutdown()
         ble.shutdown()
     }
 }
