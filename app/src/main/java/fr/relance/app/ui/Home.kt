@@ -171,6 +171,7 @@ private fun TodayTab(vm: AppViewModel) {
                 if (next.minutes > 15) Btn("Je n'ai que 15 min", Modifier.weight(1f), filled = false, height = 48.dp) { vm.startSession(15) }
                 Btn("Reporter", Modifier.weight(1f), filled = false, height = 48.dp) { vm.postpone() }
             }
+            ManualButton(vm)
         }
         else -> {
             val resting = p.restUntilDay > today && p.painCount > 0
@@ -180,6 +181,7 @@ private fun TodayTab(vm: AppViewModel) {
             )
             Label("Prochaine séance · ${Dates.relative(next.day, today)}")
             SessionHero(next, vm, canStart = !resting, startLabel = "La faire aujourd'hui")
+            if (!resting) ManualButton(vm)
         }
     }
     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -300,7 +302,7 @@ private fun HistoryTab(vm: AppViewModel) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Strong(s.title)
-                    Small("${Dates.short(s.day)} · ${Fmt.duration(s.durationSec)} · ${Fmt.km(s.distanceM)} km")
+                    Small("${Dates.short(s.day)} · ${Fmt.duration(s.durationSec)} · ${Fmt.km(s.distanceM)} km" + if (s.manual) " · saisie manuelle" else "")
                 }
                 Small("Effort ${s.rpe}")
             }
@@ -449,5 +451,13 @@ private fun HealthConnectCard(vm: AppViewModel) {
             }
         }
         if (vm.hcMessage.isNotBlank()) Small(vm.hcMessage, C.Ink)
+    }
+}
+
+/** Pour déclarer une séance faite sans le téléphone. */
+@Composable
+private fun ManualButton(vm: AppViewModel) {
+    Btn("Je l'ai faite sans le téléphone", Modifier.fillMaxWidth(), filled = false, outline = Color.Transparent, onOutline = C.Accent, height = 48.dp) {
+        vm.open(Screen.ManualLog)
     }
 }

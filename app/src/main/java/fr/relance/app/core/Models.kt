@@ -180,6 +180,8 @@ data class CompletedSession(
     val note: String = "",
     val coachMessage: String = "",
     val healthConnectSynced: Boolean = false,
+    /** Séance saisie à la main après coup : rien n'a été mesuré. */
+    val manual: Boolean = false,
 )
 
 @Serializable

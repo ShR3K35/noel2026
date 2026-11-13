@@ -49,6 +49,7 @@ sealed interface Screen {
     data object Sensors : Screen
     data object Calibration : Screen
     data object RestingHr : Screen
+    data object ManualLog : Screen
 }
 
 class AppViewModel(app: Application) : AndroidViewModel(app) {
@@ -262,6 +263,46 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         tab = 2
         stack += Screen.Detail(id)
         if (newProfile.healthConnect) syncHealthConnect(listOf(id))
+    }
+
+    // ---------- Séance faite sans le téléphone ----------
+
+    /** Jours où l'on peut déclarer la séance : de la dernière séance enregistrée (ou du début du programme) à aujourd'hui, 7 jours au plus. */
+    fun manualDays(): List<Long> {
+        val p = state.program ?: return emptyList()
+        val from = maxOf(p.startDay, p.lastSessionDay, today() - 6)
+        return (today() downTo from).toList()
+    }
+
+    fun plannedFor(day: Long): PlannedSession? {
+        val p = state.program ?: return null
+        val prof = state.profile ?: return null
+        return Coach.sessionFor(p, prof, day)
+    }
+
+    fun logManual(day: Long, minuteOfDay: Int, durationMin: Int, distanceM: Double?, fb: Feedback) {
+        val p = state.program ?: return
+        val prof = state.profile ?: return
+        val planned = Coach.sessionFor(p, prof, day)
+        val start = java.time.LocalDate.ofEpochDay(day).atStartOfDay(java.time.ZoneId.systemDefault())
+            .plusMinutes(minuteOfDay.toLong()).toInstant().toEpochMilli()
+        val id = "m$start"
+        var summary = fr.relance.app.core.ManualEntry.summary(planned, prof, p, id, day, start, durationMin * 60, distanceM, fb.completed)
+        val r = Coach.applyFeedback(p, prof, planned, fb, day, 0.0, summary.longestRunMin)
+        summary = summary.copy(rpe = fb.rpe, pain = fb.pain, completed = fb.completed, note = fb.note, coachMessage = r.message)
+        val ended = r.program.status != ProgramStatus.ACTIVE
+        commit(
+            state.copy(
+                profile = r.profile,
+                program = if (ended) null else r.program,
+                archived = if (ended) listOf(r.program) + state.archived else state.archived,
+                sessions = (listOf(summary) + state.sessions).sortedByDescending { it.startMillis },
+            )
+        )
+        while (stack.size > 1) stack.removeAt(stack.size - 1)
+        tab = 2
+        stack += Screen.Detail(id)
+        if (r.profile.healthConnect) syncHealthConnect(listOf(id))
     }
 
     // ---------- Santé Connect ----------

@@ -80,6 +80,16 @@ class HealthConnectTest {
     }
 
     @Test
+    fun manualSessionIsDeclaredAsManualEntry() {
+        val (s, _) = runSession(null)
+        val manual = s.copy(manual = true)
+        val records = HealthRecords.build(manual, emptyList(), 80.0, ZoneId.of("Europe/Paris"))
+        assertTrue(records.all { it.metadata.recordingMethod == androidx.health.connect.client.records.metadata.Metadata.RECORDING_METHOD_MANUAL_ENTRY })
+        assertTrue(records.none { it is HeartRateRecord || it is SpeedRecord })
+        assertTrue(records.filterIsInstance<ActiveCaloriesBurnedRecord>().single().energy.inKilocalories > 0)
+    }
+
+    @Test
     fun profileShowsHealthConnectCard() {
         val vm = ViewModelProvider(rule.activity)[AppViewModel::class.java]
         rule.runOnIdle {

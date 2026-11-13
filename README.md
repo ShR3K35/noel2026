@@ -4,7 +4,7 @@ App Android de remise au sport sur tapis de course : un coach qui s'adapte à to
 
 ## Installer l'app
 
-**[Télécharger l'APK (relance.apk)](apk/relance.apk?raw=true)** — version 0.4.0, Android 8 ou plus récent.
+**[Télécharger l'APK (relance.apk)](apk/relance.apk?raw=true)** — version 0.5.0, Android 8 ou plus récent.
 
 1. Ouvre ce lien depuis le téléphone, ou copie le fichier `apk/relance.apk` dessus.
 2. Ouvre le fichier et accepte l'installation depuis cette source (Android le demande pour toute app hors Play Store).
@@ -27,6 +27,7 @@ Le coureur animé, à l'arrêt, en marche, au trot et en course rapide :
 - **Planning** : prochaines séances datées selon tes jours, une semaine allégée sur quatre avec test de forme. Une séance manquée glisse, elle n'est jamais doublée.
 - **Séance guidée** : compte à rebours par bloc, vitesse à régler, annonces vocales, version courte « je n'ai que 15 min », bouton « trop dur ».
 - **Coureur animé** : il suit la vitesse du tapis (ou la consigne), chante en marchant, parle en trottinant, transpire quand ça va vite.
+- **Séance faite sans le téléphone** : bouton « Je l'ai faite sans le téléphone » sur l'écran Aujourd'hui. On indique le jour (jusqu'à 7 jours en arrière), le moment, la durée, la distance si on la connaît et le ressenti ; le programme avance comme après une séance guidée. Distance et calories sont alors estimées d'après la séance prévue.
 - **Adaptation** : l'effort ressenti, une douleur ou une séance écourtée modifient la suite du programme ; une coupure de deux semaines fait reculer de deux paliers.
 - **Historique** : statistiques par séance (durée, distance, allure, cardio et zones, calories estimées), courbes, cumuls et records.
 - **Export** : chaque séance en TCX (accepté par Strava et Garmin Connect) ou en CSV.
@@ -53,9 +54,9 @@ Le Run100 classique n'est pas connecté : un boîtier ESP32 (environ 20 €) com
 
 L'app a été construite et testée sans téléphone ni émulateur :
 
-- le moteur de coaching, l'export, l'étalonnage et le décodage Bluetooth sont couverts par 26 tests unitaires, et la conversion d'une séance pour Santé Connect par 2 autres ;
+- le moteur de coaching, l'export, l'étalonnage et le décodage Bluetooth sont couverts par 27 tests unitaires, et la conversion d'une séance pour Santé Connect par 2 autres ;
 - le programme du boîtier compile pour ESP32 et sa logique de mesure passe 7 tests ; une trame qu'il produit est décodée par l'app dans les tests ;
-- des tests parcourent toute l'interface (bilan de départ, séance, bilan, fiche, arrêt de programme, étalonnage, mesure de la FC de repos, carte Santé Connect) et produisent les captures ci-dessus.
+- des tests parcourent toute l'interface (bilan de départ, séance, bilan, fiche, arrêt de programme, étalonnage, mesure de la FC de repos, carte Santé Connect, saisie d'une séance faite sans le téléphone) et produisent les captures ci-dessus.
 
 **Non vérifié sur un vrai appareil** : l'envoi réel vers Santé Connect et l'affichage dans Google Health, le boîtier monté sur un vrai tapis, la connexion Bluetooth à une ceinture ou au boîtier, les annonces vocales, l'enregistrement du fichier d'export, et le comportement quand l'app passe en arrière-plan pendant une séance (garde l'écran de séance ouvert : il reste allumé).
 

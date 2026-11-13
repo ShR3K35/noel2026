@@ -2,6 +2,7 @@ package fr.relance.app
 
 import fr.relance.app.core.BleParsers
 import fr.relance.app.core.BlockKind
+import fr.relance.app.core.ManualEntry
 import fr.relance.app.core.RestingHr
 import fr.relance.app.core.Calibration
 import fr.relance.app.core.Coach
@@ -313,6 +314,31 @@ class CoreTest {
         assertEquals(RestingHr.Result.NotEnoughData, RestingHr.compute(List(30) { 70 } + List(50) { 60 } + List(40) { 0 }))
         // Pas au calme.
         assertEquals(RestingHr.Result.Implausible(125), RestingHr.compute(List(120) { 125 }))
+    }
+
+    @Test fun manualEntryEstimatesFromThePlannedSession() {
+        val prof = n2.copy(level = Level.N3)
+        val p = Coach.newProgram(ProgramType.RUN_30, prof, today)
+        val planned = Coach.sessionFor(p, prof, today)
+        val full = ManualEntry.summary(planned, prof, p, "m1", today, 0, planned.blocks.sumOf { it.seconds }, null, true)
+        val e = SessionEngine(planned, prof)
+        while (!e.finished) e.tick(null, null, null)
+        val guided = e.summary("g", 0, today, p)
+        // Même séance faite en entier : mêmes estimations que la séance guidée sans tapis.
+        assertEquals(guided.distanceM, full.distanceM, 1.0)
+        assertEquals(guided.calories.toDouble(), full.calories.toDouble(), 2.0)
+        assertEquals(1, full.longestRunMin)
+        assertTrue(full.manual)
+        // Moitié du temps, distance connue, écourtée : pas de course continue créditée.
+        val half = ManualEntry.summary(planned, prof, p, "m2", today, 0, 15 * 60, 1800.0, false)
+        assertEquals(1800.0, half.distanceM, 0.0)
+        assertEquals(7.2, half.avgSpeed, 0.01)
+        assertEquals(0, half.longestRunMin)
+        assertTrue(half.calories < full.calories)
+        // Le programme avance comme après une séance guidée.
+        val r = Coach.applyFeedback(p, prof, planned, Feedback(rpe = 5), today - 1, 0.0, full.longestRunMin)
+        assertEquals(1, r.program.sessionsDone)
+        assertEquals(today - 1, r.program.lastSessionDay)
     }
 
     @Test fun historyAggregates() {

@@ -107,11 +107,15 @@ fun DetailScreen(vm: AppViewModel, id: String) {
                     Stat("${s.calories} kcal", "calories (est.)", Modifier.weight(1f))
                 }
                 Small(
-                    (if (s.speedMeasured) "Vitesse et distance mesurées par le tapis." else "Tapis non connecté : vitesse et distance estimées d'après les consignes.") +
+                    (when {
+                        s.manual -> "Saisie manuelle : rien n'a été mesuré. Les calories sont estimées d'après la séance prévue ; la distance aussi, sauf si tu l'as indiquée."
+                        s.speedMeasured -> "Vitesse et distance mesurées par le tapis."
+                        else -> "Tapis non connecté : vitesse et distance estimées d'après les consignes."
+                    }) +
                         if (s.elevationM >= 1) " Dénivelé équivalent : ${s.elevationM.toInt()} m." else ""
                 )
             }
-            Card {
+            if (samples.isNotEmpty()) Card {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Strong(if (s.speedMeasured) "Vitesse du tapis" else "Vitesse demandée")
                     if (s.runBlocksPlanned > 0) Small("${s.runBlocksDone} bloc(s) de course sur ${s.runBlocksPlanned}")
@@ -140,7 +144,8 @@ fun DetailScreen(vm: AppViewModel, id: String) {
             if (exported.isNotBlank()) Small(exported, C.Ink)
         }
         Spacer(Modifier.height(10.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        if (samples.isEmpty()) Small(if (s.manual) "Séance saisie à la main : pas de mesures à exporter en fichier." else "Pas de mesures enregistrées pour cette séance.")
+        else Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             Btn("Exporter en TCX", Modifier.weight(1.6f), enabled = samples.isNotEmpty()) {
                 pending = Export.tcx(s, samples); saver.launch(Export.fileName(s, "tcx"))
             }

@@ -91,7 +91,9 @@ object HealthRecords {
         val so = zone.rules.getOffset(start)
         val eo = zone.rules.getOffset(end)
         val device = Device(type = Device.TYPE_PHONE)
-        fun meta(kind: String) = Metadata.activelyRecorded(device, clientId(session, kind), 1L)
+        fun meta(kind: String) =
+            if (session.manual) Metadata.manualEntry(clientId(session, kind), 1L, device)
+            else Metadata.activelyRecorded(device, clientId(session, kind), 1L)
         fun at(t: Int): Instant = start.plusSeconds(t.toLong().coerceIn(0, session.durationSec.toLong()))
 
         val out = ArrayList<Record>()
@@ -111,8 +113,12 @@ object HealthRecords {
             out += DistanceRecord(start, so, end, eo, Length.meters(session.distanceM), meta("distance"))
         }
         // Calories actives : dépense estimée moins la dépense de repos (1 MET), pour ne pas compter deux fois le métabolisme de base.
-        val active = samples.sumOf {
-            (Physio.kcalPerMin(it.speed.toDouble(), it.incline.toDouble(), weightKg) - 3.5 * weightKg / 200).coerceAtLeast(0.0) / 60
+        val restingPerMin = 3.5 * weightKg / 200
+        val active = if (samples.isEmpty()) {
+            // Séance saisie à la main : on part de l'estimation déjà calculée pour la séance.
+            (session.calories - restingPerMin * session.durationSec / 60).coerceAtLeast(0.0)
+        } else samples.sumOf {
+            (Physio.kcalPerMin(it.speed.toDouble(), it.incline.toDouble(), weightKg) - restingPerMin).coerceAtLeast(0.0) / 60
         }
         if (active >= 1) {
             out += ActiveCaloriesBurnedRecord(start, so, end, eo, Energy.kilocalories(active), meta("calories"))
