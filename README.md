@@ -4,7 +4,7 @@ App Android de remise au sport sur tapis de course : un coach qui s'adapte à to
 
 ## Installer l'app
 
-**[Télécharger l'APK (relance.apk)](apk/relance.apk?raw=true)** — version 0.5.0, Android 8 ou plus récent.
+**[Télécharger l'APK (relance.apk)](apk/relance.apk?raw=true)** — version 0.6.0, Android 8 ou plus récent.
 
 1. Ouvre ce lien depuis le téléphone, ou copie le fichier `apk/relance.apk` dessus.
 2. Ouvre le fichier et accepte l'installation depuis cette source (Android le demande pour toute app hors Play Store).
@@ -24,7 +24,9 @@ Le coureur animé, à l'arrêt, en marche, au trot et en course rapide :
 
 - **Bilan de départ** : questions de santé, profil, zones sensibles, test de marche, jours et durée disponibles.
 - **Programmes sur mesure** : courir 10 min, 30 min, 45 min, 1 h, 5 km, 10 km, améliorer ses performances, santé et forme. Un seul programme à la fois, avec pause, arrêt et liste des programmes effectués.
-- **Planning** : prochaines séances datées selon tes jours, une semaine allégée sur quatre avec test de forme. Une séance manquée glisse, elle n'est jamais doublée.
+- **Planning** : toutes les semaines jusqu'à l'objectif, à déplier une par une ; chaque séance s'ouvre sur son détail bloc par bloc (durées, vitesses, inclinaison, distance et calories estimées). Une semaine allégée sur quatre avec test de forme. Une séance manquée glisse, elle n'est jamais doublée.
+- **Séance en avance** : la prochaine séance peut se faire avant sa date ; les suivantes avancent d'autant.
+- **Annuler une séance** depuis sa fiche : la dernière séance du programme est annulée « pour la refaire » (le programme revient à son état d'avant et elle redevient la prochaine séance) ; une séance plus ancienne est seulement retirée de l'historique.
 - **Séance guidée** : compte à rebours par bloc, vitesse à régler, annonces vocales, version courte « je n'ai que 15 min », bouton « trop dur ».
 - **Coureur animé** : il suit la vitesse du tapis (ou la consigne), chante en marchant, parle en trottinant, transpire quand ça va vite.
 - **Séance faite sans le téléphone** : bouton « Je l'ai faite sans le téléphone » sur l'écran Aujourd'hui. On indique le jour (jusqu'à 7 jours en arrière), le moment, la durée, la distance si on la connaît et le ressenti ; le programme avance comme après une séance guidée. Distance et calories sont alors estimées d'après la séance prévue.
@@ -54,9 +56,9 @@ Le Run100 classique n'est pas connecté : un boîtier ESP32 (environ 20 €) com
 
 L'app a été construite et testée sans téléphone ni émulateur :
 
-- le moteur de coaching, l'export, l'étalonnage et le décodage Bluetooth sont couverts par 27 tests unitaires, et la conversion d'une séance pour Santé Connect par 2 autres ;
+- le moteur de coaching, l'export, l'étalonnage et le décodage Bluetooth sont couverts par 32 tests unitaires, et la conversion d'une séance pour Santé Connect par 2 autres ;
 - le programme du boîtier compile pour ESP32 et sa logique de mesure passe 7 tests ; une trame qu'il produit est décodée par l'app dans les tests ;
-- des tests parcourent toute l'interface (bilan de départ, séance, bilan, fiche, arrêt de programme, étalonnage, mesure de la FC de repos, carte Santé Connect, saisie d'une séance faite sans le téléphone) et produisent les captures ci-dessus.
+- des tests parcourent toute l'interface (bilan de départ, séance, bilan, fiche, arrêt de programme, étalonnage, mesure de la FC de repos, carte Santé Connect, saisie d'une séance faite sans le téléphone, planning détaillé, séance faite en avance puis annulée et refaite) et produisent les captures ci-dessus.
 
 **Non vérifié sur un vrai appareil** : l'envoi réel vers Santé Connect et l'affichage dans Google Health, le boîtier monté sur un vrai tapis, la connexion Bluetooth à une ceinture ou au boîtier, les annonces vocales, l'enregistrement du fichier d'export, et le comportement quand l'app passe en arrière-plan pendant une séance (garde l'écran de séance ouvert : il reste allumé).
 

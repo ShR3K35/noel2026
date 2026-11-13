@@ -109,7 +109,7 @@ private fun ProgramProgress(p: Program) {
 
 @Composable
 private fun SessionHero(s: PlannedSession, vm: AppViewModel, canStart: Boolean, startLabel: String) {
-    Card(color = C.Accent, padding = 20.dp) {
+    Card(color = C.Accent, padding = 20.dp, onClick = { vm.open(Screen.Planned(0)) }) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Label(s.title, Color.White)
             Box(Modifier.clip(RoundedCornerShape(50)).background(Color.White).padding(horizontal = 10.dp, vertical = 4.dp)) {
@@ -119,6 +119,7 @@ private fun SessionHero(s: PlannedSession, vm: AppViewModel, canStart: Boolean, 
         Text("${s.minutes} min", color = Color.White, fontSize = 44.sp, fontWeight = FontWeight.Bold)
         Body(s.detail, Color.White)
         if (s.inclinePct > 0) Strong("Règle l'inclinaison avant de monter sur le tapis.", Color.White)
+        Small("Touche pour voir le détail bloc par bloc", Color.White)
         if (canStart) {
             Spacer(Modifier.height(4.dp))
             Btn(startLabel, Modifier.fillMaxWidth(), fill = Color.White, onFill = C.Accent, height = 54.dp) { vm.startSession() }
@@ -134,6 +135,7 @@ private fun TodayTab(vm: AppViewModel) {
     val hrLink by vm.ble.hrLink.collectAsState()
     val tmLink by vm.ble.treadmillLink.collectAsState()
     Small(Dates.long(today))
+    if (vm.notice.isNotBlank()) Card(color = C.Soft) { Body(vm.notice) }
     if (p == null) {
         Title("Prêt pour la suite ?")
         val lastDone = vm.state.archived.firstOrNull()
@@ -204,9 +206,9 @@ private fun SensorPill(name: String, paired: Boolean, link: Link, modifier: Modi
 }
 
 @Composable
-private fun PlanRow(s: PlannedSession, today: Long) {
+private fun PlanRow(s: PlannedSession, today: Long, onClick: () -> Unit) {
     val isToday = s.day == today
-    Card(color = if (isToday) C.Accent else C.Card, padding = 12.dp) {
+    Card(color = if (isToday) C.Accent else C.Card, padding = 12.dp, onClick = onClick) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Column(Modifier.width(44.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(Dates.dow(s.day), fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = if (isToday) Color.White else C.Muted)
@@ -216,6 +218,7 @@ private fun PlanRow(s: PlannedSession, today: Long) {
                 Strong("${s.title} · ${s.minutes} min", if (isToday) Color.White else C.Ink)
                 Small(s.detail, if (isToday) Color.White else C.Muted)
             }
+            Text("›", fontSize = 22.sp, color = if (isToday) Color.White else C.Muted)
         }
     }
 }
@@ -229,28 +232,33 @@ private fun PlanningTab(vm: AppViewModel) {
         Body(if (p?.paused == true) "Programme en pause : pas de séance planifiée." else "Aucun programme en cours.", C.Muted)
         return
     }
-    val weeks = vm.plan.groupBy { it.week }.toSortedMap()
-    val detailed = weeks.keys.take(2)
-    for (w in detailed) {
-        val list = weeks[w] ?: continue
-        Label("Semaine ${w + 1}" + if (list.first().deload) " · allégée" else "")
-        list.forEach { PlanRow(it, today) }
-    }
-    val rest = weeks.keys.drop(2)
-    if (rest.isNotEmpty()) {
-        Label("Ensuite · prévisionnel")
-        Card(padding = 14.dp) {
-            for (w in rest) {
-                val list = weeks[w] ?: continue
-                val key = list.firstOrNull { it.isKey } ?: list.first()
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text("Sem. ${w + 1}", fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = C.Ink, modifier = Modifier.width(62.dp))
-                    Small(if (list.first().deload) "Allégée + test de forme" else key.detail, modifier = Modifier.weight(1f))
-                }
+    val indexed = vm.plan.withIndex().toList()
+    val weeks = indexed.groupBy { it.value.week }.toSortedMap()
+    val firstWeeks = weeks.keys.take(2)
+    // Les deux premières semaines sont ouvertes ; les suivantes s'ouvrent d'un appui.
+    var open by remember { mutableStateOf(firstWeeks.toList()) }
+    Small("${vm.plan.size} séances jusqu'à l'objectif · arrivée estimée ${Dates.long(vm.plan.last().day).replaceFirstChar { it.lowercase() }}.")
+    for ((w, list) in weeks) {
+        val isOpen = w in open
+        val sessions = list.map { it.value }
+        val forecast = w !in firstWeeks
+        Row(
+            Modifier.fillMaxWidth().clickable(role = Role.Button) { open = if (isOpen) open - w else open + w }.padding(vertical = 6.dp),
+            horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Label("Semaine ${w + 1}" + (if (sessions.first().deload) " · allégée" else "") + if (forecast) " · prévisionnel" else "")
+                Small(
+                    (if (sessions.size == 1) Dates.short(sessions.first().day).replaceFirstChar { it.uppercase() }
+                    else "Du ${Dates.short(sessions.first().day)} au ${Dates.short(sessions.last().day)}") +
+                        " · ${sessions.size} séance(s), ${sessions.sumOf { it.minutes }} min"
+                )
             }
+            Text(if (isOpen) "▾" else "▸", fontSize = 20.sp, color = C.Muted)
         }
-        Small("Arrivée estimée : ${Dates.long(vm.plan.last().day)}. Ce calendrier s'ajuste à tes séances réelles.")
+        if (isOpen) list.forEach { (i, s) -> PlanRow(s, today) { vm.open(Screen.Planned(i)) } }
     }
+    Small("Au-delà des deux premières semaines, le planning est prévisionnel : dates, vitesses et contenu s'ajustent à tes séances réelles.")
     Btn("Modifier mes jours", Modifier.fillMaxWidth(), filled = false) { vm.tab = 4 }
 }
 
@@ -259,6 +267,7 @@ private fun HistoryTab(vm: AppViewModel) {
     val today = vm.today()
     val sessions = vm.state.sessions
     Title("Historique")
+    if (vm.notice.isNotBlank()) Card(color = C.Soft) { Body(vm.notice) }
     if (sessions.isEmpty()) {
         Body("Tes séances apparaîtront ici, avec leurs statistiques.", C.Muted)
         return

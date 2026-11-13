@@ -13,8 +13,8 @@ android {
         applicationId = "fr.relance.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 5
-        versionName = "0.5.0"
+        versionCode = 6
+        versionName = "0.6.0"
     }
 
     // Clé de signature de développement, volontairement versionnée : elle garantit que

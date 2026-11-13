@@ -1,7 +1,10 @@
 package fr.relance.app
 
 import fr.relance.app.core.BleParsers
+import fr.relance.app.core.AppState
 import fr.relance.app.core.BlockKind
+import fr.relance.app.core.CoachSnapshot
+import fr.relance.app.core.History
 import fr.relance.app.core.ManualEntry
 import fr.relance.app.core.RestingHr
 import fr.relance.app.core.Calibration
@@ -339,6 +342,105 @@ class CoreTest {
         val r = Coach.applyFeedback(p, prof, planned, Feedback(rpe = 5), today - 1, 0.0, full.longestRunMin)
         assertEquals(1, r.program.sessionsDone)
         assertEquals(today - 1, r.program.lastSessionDay)
+    }
+
+    /** Enregistre une séance comme le fait l'app : instantané d'avant, puis retour du coach. */
+    private fun record(state: AppState, day: Long, fb: Feedback, testSpeed: Double = 0.0): AppState {
+        val p = state.program!!
+        val prof = state.profile!!
+        val planned = Coach.sessionFor(p, prof, day)
+        val e = SessionEngine(planned, prof)
+        while (!e.finished) e.tick(null, null, null)
+        val sum = e.summary("s$day-${p.sessionsDone}", day * 86_400_000, day, p)
+            .copy(programBefore = p, profileBefore = CoachSnapshot.of(prof), rpe = fb.rpe)
+        val r = Coach.applyFeedback(p, prof, planned, fb.copy(testSpeed = testSpeed), day, 0.0, sum.longestRunMin)
+        val ended = r.program.status != fr.relance.app.core.ProgramStatus.ACTIVE
+        return state.copy(
+            profile = r.profile, program = if (ended) null else r.program,
+            archived = if (ended) listOf(r.program) + state.archived else state.archived,
+            sessions = listOf(sum) + state.sessions,
+        )
+    }
+
+    @Test fun cancellingTheLastSessionPutsItBackInThePlan() {
+        val p0 = Coach.newProgram(ProgramType.RUN_30, n2, today)
+        var st = AppState(profile = n2, program = p0)
+        val firstPlanned = Coach.plan(p0, n2, today).first()
+        st = record(st, firstPlanned.day, Feedback(rpe = 9, pain = Pain.PAIN))
+        val second = Coach.plan(st.program!!, st.profile!!, firstPlanned.day).first()
+        assertTrue(second.day >= firstPlanned.day + 3) // repos après la douleur
+        val id = st.sessions.first().id
+        assertTrue(History.canRollback(st, st.sessions.first()))
+        val (back, effect) = History.cancel(st, id)!!
+        assertEquals(History.Effect.ROLLED_BACK, effect)
+        assertEquals(p0, back.program)
+        assertTrue(back.sessions.isEmpty())
+        // La séance annulée redevient la première séance du planning.
+        val again = Coach.plan(back.program!!, back.profile!!, today).first()
+        assertEquals(firstPlanned.title, again.title)
+        assertEquals(firstPlanned.detail, again.detail)
+        assertEquals(firstPlanned.day, again.day)
+    }
+
+    @Test fun cancellingATestRestoresTheReferenceSpeed() {
+        val p0 = Coach.newProgram(ProgramType.RUN_30, n2, today).copy(testNext = true)
+        var st = AppState(profile = n2, program = p0)
+        st = record(st, today, Feedback(rpe = 5), testSpeed = 6.4)
+        assertEquals(6.4, st.profile!!.vr, 0.001)
+        val back = History.cancel(st, st.sessions.first().id)!!.first
+        assertEquals(n2.vr, back.profile!!.vr, 0.001)
+        assertTrue(back.program!!.testNext)
+    }
+
+    @Test fun onlyTheLatestSessionRollsBackOlderOnesAreJustRemoved() {
+        val p0 = Coach.newProgram(ProgramType.RUN_30, n2, today)
+        var st = AppState(profile = n2, program = p0)
+        st = record(st, today, Feedback(rpe = 5))
+        st = record(st, today + 2, Feedback(rpe = 5))
+        val older = st.sessions.last()
+        assertFalse(History.canRollback(st, older))
+        val (after, effect) = History.cancel(st, older.id)!!
+        assertEquals(History.Effect.REMOVED_ONLY, effect)
+        assertEquals(st.program, after.program)
+        assertEquals(1, after.sessions.size)
+        // La plus récente reste annulable : le programme revient à l'état d'après la première séance.
+        val (back, e2) = History.cancel(after, after.sessions.first().id)!!
+        assertEquals(History.Effect.ROLLED_BACK, e2)
+        assertEquals(1, back.program!!.sessionsDone)
+    }
+
+    @Test fun cancellingTheFinalSessionReopensTheProgram() {
+        val prof = n2.copy(level = Level.N3)
+        val ladder = Coach.ladderFor(ProgramType.RUN_10, prof)
+        val p0 = Coach.newProgram(ProgramType.RUN_10, prof, today)
+        var st = AppState(profile = prof, program = p0)
+        var day = today
+        var guard = 0
+        while (st.program != null && guard++ < 200) {
+            day = Coach.plan(st.program!!, st.profile!!, day).first().day
+            st = record(st, day, Feedback(rpe = 5), testSpeed = prof.vr)
+        }
+        assertTrue(ladder.isNotEmpty())
+        assertEquals(fr.relance.app.core.ProgramStatus.SUCCESS, st.archived.first().status)
+        val (back, effect) = History.cancel(st, st.sessions.first().id)!!
+        assertEquals(History.Effect.ROLLED_BACK, effect)
+        assertTrue(back.archived.isEmpty())
+        assertEquals(fr.relance.app.core.ProgramStatus.ACTIVE, back.program!!.status)
+        assertEquals(1, Coach.plan(back.program!!, back.profile!!, day).size)
+    }
+
+    @Test fun startingTheNextSessionEarlyShiftsThePlan() {
+        // Séances le samedi seulement ; on fait celle du samedi dès le jeudi.
+        val prof = n2.copy(days = setOf(6))
+        val p0 = Coach.newProgram(ProgramType.RUN_30, prof, today)
+        val before = Coach.plan(p0, prof, today)
+        assertEquals(today + 2, before.first().day)
+        val st = record(AppState(profile = prof, program = p0), today, Feedback(rpe = 5))
+        val after = Coach.plan(st.program!!, st.profile!!, today)
+        assertEquals(before[1].title, after.first().title)
+        assertEquals(today + 2, after.first().day) // la suivante prend le samedi libéré
+        assertEquals(before.size - 1, after.size)
+        assertEquals(before.last().day - 7, after.last().day) // l'arrivée avance d'une semaine
     }
 
     @Test fun historyAggregates() {

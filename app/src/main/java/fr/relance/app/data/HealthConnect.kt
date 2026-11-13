@@ -69,6 +69,16 @@ class HealthConnect(private val ctx: Context) {
         return records.size
     }
 
+    /** Retire une séance de Santé Connect (tous ses enregistrements). */
+    suspend fun delete(session: CompletedSession) {
+        val client = HealthConnectClient.getOrCreate(ctx, PROVIDER)
+        val allowed = granted()
+        for ((kind, type) in HealthRecords.KINDS) {
+            if (HealthPermission.getWritePermission(type) !in allowed) continue
+            client.deleteRecords(type, emptyList(), listOf(HealthRecords.clientId(session, kind)))
+        }
+    }
+
     /** Page Play Store pour installer ou mettre à jour Santé Connect (Android 13 et avant). */
     fun installIntent(): Intent = Intent(Intent.ACTION_VIEW).apply {
         setPackage("com.android.vending")
@@ -82,6 +92,12 @@ class HealthConnect(private val ctx: Context) {
 /** Traduction d'une séance Relance en enregistrements Santé Connect. Sans appel au téléphone : testable. */
 object HealthRecords {
     private const val SPEED_EVERY_S = 5
+
+    /** Suffixe d'identifiant de chaque type d'enregistrement écrit pour une séance. */
+    val KINDS: List<Pair<String, KClass<out Record>>> = listOf(
+        "session" to ExerciseSessionRecord::class, "distance" to DistanceRecord::class,
+        "calories" to ActiveCaloriesBurnedRecord::class, "heart-rate" to HeartRateRecord::class, "speed" to SpeedRecord::class,
+    )
 
     fun clientId(session: CompletedSession, kind: String) = "relance-${session.id}-$kind"
 

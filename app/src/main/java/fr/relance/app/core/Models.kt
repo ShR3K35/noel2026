@@ -182,7 +182,20 @@ data class CompletedSession(
     val healthConnectSynced: Boolean = false,
     /** Séance saisie à la main après coup : rien n'a été mesuré. */
     val manual: Boolean = false,
+    /** État du programme juste avant cette séance : sert à l'annuler pour la refaire. */
+    val programBefore: Program? = null,
+    val profileBefore: CoachSnapshot? = null,
 )
+
+/** Ce qu'une séance peut changer dans le profil, pour pouvoir revenir en arrière. */
+@Serializable
+data class CoachSnapshot(val vr: Double, val testRpe: Int, val longestRunMin: Int, val maxHrObserved: Int) {
+    companion object {
+        fun of(p: Profile) = CoachSnapshot(p.vr, p.testRpe, p.longestRunMin, p.maxHrObserved)
+    }
+
+    fun restore(p: Profile) = p.copy(vr = vr, testRpe = testRpe, longestRunMin = longestRunMin, maxHrObserved = maxHrObserved)
+}
 
 @Serializable
 data class AppState(

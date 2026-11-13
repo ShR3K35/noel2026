@@ -75,6 +75,7 @@ fun DetailScreen(vm: AppViewModel, id: String) {
     val ctx = LocalContext.current
     var pending by remember { mutableStateOf("") }
     var exported by remember { mutableStateOf("") }
+    var confirmCancel by remember { mutableStateOf(false) }
     val saver = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
         if (uri != null) {
             try {
@@ -138,6 +139,25 @@ fun DetailScreen(vm: AppViewModel, id: String) {
                 Small(s.zoneSeconds.mapIndexedNotNull { i, sec -> if (sec >= 30) "Z${i + 1} · ${(sec + 30) / 60} min" else null }.joinToString("   "))
             }
             if (s.note.isNotBlank()) Card { Label("Ta note"); Body(s.note) }
+            val rollback = vm.canRollback(s.id)
+            Btn(
+                if (rollback) "Annuler cette séance" else "Supprimer de l'historique", Modifier.fillMaxWidth(), filled = false,
+                outline = Color.Transparent, onOutline = Color(0xFFB3261E), height = 48.dp,
+            ) { confirmCancel = true }
+            if (confirmCancel) androidx.compose.material3.AlertDialog(
+                onDismissRequest = { confirmCancel = false }, containerColor = C.Card,
+                title = { androidx.compose.material3.Text(if (rollback) "Annuler cette séance ?" else "Supprimer cette séance ?") },
+                text = {
+                    androidx.compose.material3.Text(
+                        if (rollback) "Elle sera retirée de l'historique et le programme reviendra à son état d'avant : elle redeviendra ta prochaine séance, à refaire." +
+                            if (s.healthConnectSynced) " Elle sera aussi retirée de Santé Connect." else ""
+                        else "Elle sera retirée de l'historique, sans changer le programme : d'autres séances ont été faites depuis. Pour la refaire, annule d'abord les plus récentes." +
+                            if (s.healthConnectSynced) " Elle sera aussi retirée de Santé Connect." else ""
+                    )
+                },
+                confirmButton = { androidx.compose.material3.TextButton(onClick = { confirmCancel = false; vm.cancelSession(s.id) }) { androidx.compose.material3.Text(if (rollback) "Annuler la séance" else "Supprimer") } },
+                dismissButton = { androidx.compose.material3.TextButton(onClick = { confirmCancel = false }) { androidx.compose.material3.Text("Garder") } },
+            )
             if (s.healthConnectSynced) Small("Envoyée vers Santé Connect.")
             else if (vm.hcState == fr.relance.app.data.HcState.READY)
                 Btn("Envoyer vers Santé Connect", Modifier.fillMaxWidth(), filled = false, enabled = !vm.hcBusy, height = 48.dp) { vm.syncHealthConnect(listOf(s.id)) }

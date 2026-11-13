@@ -50,6 +50,8 @@ sealed interface Screen {
     data object Calibration : Screen
     data object RestingHr : Screen
     data object ManualLog : Screen
+    /** Séance du planning, par sa place dans la liste des séances à venir. */
+    data class Planned(val index: Int) : Screen
 }
 
 class AppViewModel(app: Application) : AndroidViewModel(app) {
@@ -168,6 +170,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     // ---------- Séance ----------
 
     fun startSession(capMinutes: Int = 0) {
+        notice = ""
         val p = state.program ?: return
         val prof = state.profile ?: return
         val session = Coach.sessionFor(p, prof, today(), capMinutes)
@@ -236,6 +239,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         tickJob?.cancel()
         val id = "s${sessionStartMillis}"
         var summary = e.summary(id, sessionStartMillis, today(), p)
+            .copy(programBefore = p, profileBefore = fr.relance.app.core.CoachSnapshot.of(prof))
         var newProfile = prof
         var newProgram = p
         var message = "Séance enregistrée."
@@ -265,6 +269,31 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         if (newProfile.healthConnect) syncHealthConnect(listOf(id))
     }
 
+    // ---------- Annulation ----------
+
+    /** Message affiché une fois sur l'écran Aujourd'hui ou l'historique, après une annulation. */
+    var notice by mutableStateOf("")
+
+    fun canRollback(id: String): Boolean = session(id)?.let { fr.relance.app.core.History.canRollback(state, it) } ?: false
+
+    fun cancelSession(id: String) {
+        val s = session(id) ?: return
+        val (next, effect) = fr.relance.app.core.History.cancel(state, id) ?: return
+        commit(next)
+        viewModelScope.launch(Dispatchers.IO) {
+            store.deleteSamples(id)
+            if (s.healthConnectSynced) try { hc.delete(s) } catch (e: Exception) { /* Santé Connect indisponible : la séance y reste. */ }
+        }
+        while (stack.size > 1) stack.removeAt(stack.size - 1)
+        if (effect == fr.relance.app.core.History.Effect.ROLLED_BACK) {
+            notice = "Séance annulée : « ${s.title} » est de nouveau la prochaine séance du planning."
+            tab = 0
+        } else {
+            notice = "Séance retirée de l'historique. Le programme n'a pas changé."
+            tab = 2
+        }
+    }
+
     // ---------- Séance faite sans le téléphone ----------
 
     /** Jours où l'on peut déclarer la séance : de la dernière séance enregistrée (ou du début du programme) à aujourd'hui, 7 jours au plus. */
@@ -288,6 +317,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             .plusMinutes(minuteOfDay.toLong()).toInstant().toEpochMilli()
         val id = "m$start"
         var summary = fr.relance.app.core.ManualEntry.summary(planned, prof, p, id, day, start, durationMin * 60, distanceM, fb.completed)
+            .copy(programBefore = p, profileBefore = fr.relance.app.core.CoachSnapshot.of(prof))
         val r = Coach.applyFeedback(p, prof, planned, fb, day, 0.0, summary.longestRunMin)
         summary = summary.copy(rpe = fb.rpe, pain = fb.pain, completed = fb.completed, note = fb.note, coachMessage = r.message)
         val ended = r.program.status != ProgramStatus.ACTIVE

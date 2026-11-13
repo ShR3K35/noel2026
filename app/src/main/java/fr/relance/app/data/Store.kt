@@ -36,6 +36,10 @@ class Store(private val dir: File) {
         File(samplesDir, "$id.json").writeText(json.encodeToString(ListSerializer(Sample.serializer()), samples))
     }
 
+    fun deleteSamples(id: String) {
+        File(samplesDir, "$id.json").delete()
+    }
+
     fun loadSamples(id: String): List<Sample> = try {
         val f = File(samplesDir, "$id.json")
         if (f.exists()) json.decodeFromString(ListSerializer(Sample.serializer()), f.readText()) else emptyList()
