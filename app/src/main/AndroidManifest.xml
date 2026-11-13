@@ -24,6 +24,10 @@
 
     <queries>
         <package android:name="com.google.android.apps.healthdata" />
+        <!-- Reconnaissance vocale d'Android, sur l'appareil. -->
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
     </queries>
 
     <application

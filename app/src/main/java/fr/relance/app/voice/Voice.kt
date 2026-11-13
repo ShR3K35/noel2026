@@ -26,7 +26,7 @@ enum class MicState(val label: String) {
     NO_MODEL("Modèle vocal français absent : réponses par les boutons"),
     DOWNLOADING("Téléchargement du modèle vocal…"),
     LOADING("Préparation de la reconnaissance vocale…"),
-    READY("Micro prêt : dis « pause », « ralentir » ou « arrêter » si besoin"),
+    READY("Micro prêt"),
     SPEAKING("L'app parle : micro en sourdine"),
     READING("Enregistrement de la lecture…"),
     LISTENING("J'écoute ta réponse…"),

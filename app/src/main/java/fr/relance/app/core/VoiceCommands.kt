@@ -37,6 +37,16 @@ object VoiceCommands {
         "sept" to 7, "huit" to 8, "neuf" to 9, "dix" to 10,
     )
 
+    /**
+     * Parmi les hypothèses d'un moteur (la plus probable d'abord), celle à retenir : la première qui veut dire quelque chose
+     * pour la question en cours. Une première hypothèse ambiguë reste ambiguë.
+     */
+    fun best(hypotheses: List<String>, q: Question?): String {
+        val first = hypotheses.firstOrNull() ?: return ""
+        if (parse(first, q) is Heard.Ambiguous) return first
+        return hypotheses.firstOrNull { parse(it, q) !is Heard.Nothing } ?: first
+    }
+
     fun normalize(text: String): String =
         Normalizer.normalize(text.lowercase(), Normalizer.Form.NFD).replace(Regex("\\p{M}+"), "")
             .replace("[unk]", " ").replace(Regex("[^a-z0-9 ]"), " ").replace(Regex("\\s+"), " ").trim()

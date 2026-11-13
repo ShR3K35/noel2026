@@ -262,7 +262,11 @@ fun PacePrepScreen(vm: AppViewModel) {
                         MicState.OFF, MicState.ERROR -> Btn("Utiliser la voix", Modifier.fillMaxWidth(), filled = false) {
                             if (vm.pace.models.ready || true) ask.launch(Manifest.permission.RECORD_AUDIO)
                         }
-                        MicState.NO_MODEL -> Btn("Télécharger le modèle vocal (41 Mo)", Modifier.fillMaxWidth(), filled = false) { c.downloadModel() }
+                        MicState.NO_MODEL -> if (c.androidDownloadable) {
+                            Btn("Installer le français hors ligne (Android)", Modifier.fillMaxWidth(), filled = false) { c.installAndroidFrench() }
+                            Btn("Vérifier", Modifier.fillMaxWidth(), filled = false, height = 48.dp) { c.prepareVoice() }
+                            Btn("Utiliser Vosk à la place (41 Mo)", Modifier.fillMaxWidth(), filled = false, height = 48.dp) { c.chooseVosk() }
+                        } else Btn("Télécharger le modèle vocal Vosk (41 Mo)", Modifier.fillMaxWidth(), filled = false) { c.downloadModel() }
                         MicState.DOWNLOADING -> {
                             ProgressBar(c.downloadProgress)
                             Btn("Annuler", Modifier.fillMaxWidth(), filled = false, height = 48.dp) { c.cancelDownload() }

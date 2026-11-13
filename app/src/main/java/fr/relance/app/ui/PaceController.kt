@@ -69,6 +69,19 @@ class PaceController(
     val models = SpeechModelStore(File(ctx.filesDir, "models"))
     val diagnostics = Diagnostics(ctx.noBackupFilesDir)
     private val capture = AudioCapture(ctx)
+    private val android = fr.relance.app.voice.AndroidSpeech(ctx)
+
+    /** Moteur de reconnaissance retenu : celui d'Android sur l'appareil (Pixel…), sinon Vosk. */
+    enum class Asr(val label: String) {
+        NONE(""),
+        ANDROID("Reconnaissance vocale d'Android, sur le téléphone (sans Internet)"),
+        VOSK("Reconnaissance vocale Vosk, sur le téléphone (sans Internet)"),
+    }
+    var asr by mutableStateOf(Asr.NONE)
+        private set
+    /** Le français hors ligne d'Android peut être installé par le système. */
+    var androidDownloadable by mutableStateOf(false)
+        private set
 
     var engine by mutableStateOf<PaceTest?>(null)
         private set
@@ -123,11 +136,53 @@ class PaceController(
         micMessage = "Sans micro, le test se fait entièrement avec les boutons."
     }
 
-    /** Prépare la reconnaissance : permission accordée, modèle présent. */
+    /** Prépare la reconnaissance : permission accordée, puis moteur d'Android sur l'appareil, sinon Vosk. */
     fun prepareVoice() {
         if (!capture.permitted()) {
             permissionDenied(); return
         }
+        if (asr == Asr.ANDROID) {
+            useAndroid(); return
+        }
+        if (fr.relance.app.voice.AndroidSpeech.available(ctx) && asr != Asr.VOSK) {
+            mic = MicState.LOADING
+            android.checkSupport { support ->
+                main.post {
+                    when (support) {
+                        fr.relance.app.voice.AndroidSpeech.Support.INSTALLED, fr.relance.app.voice.AndroidSpeech.Support.UNKNOWN -> useAndroid()
+                        fr.relance.app.voice.AndroidSpeech.Support.DOWNLOADABLE -> {
+                            androidDownloadable = true
+                            mic = MicState.NO_MODEL
+                            micMessage = "Le français hors ligne d'Android n'est pas encore installé. Installe-le (gratuit, géré par Android), puis touche « Vérifier » ; ou utilise Vosk."
+                        }
+                        fr.relance.app.voice.AndroidSpeech.Support.UNSUPPORTED -> prepareVosk()
+                    }
+                }
+            }
+            return
+        }
+        prepareVosk()
+    }
+
+    /** Installation du français hors ligne par Android. */
+    fun installAndroidFrench() = android.download()
+
+    /** Choisir Vosk plutôt que la reconnaissance d'Android. */
+    fun chooseVosk() {
+        asr = Asr.VOSK
+        androidDownloadable = false
+        prepareVosk()
+    }
+
+    private fun useAndroid() {
+        asr = Asr.ANDROID
+        androidDownloadable = false
+        mic = MicState.READY
+        micMessage = Asr.ANDROID.label + ". Réponds à voix haute pendant les contrôles ; « pause », « ralentir » et « arrêter » marchent pendant les questions."
+    }
+
+    private fun prepareVosk() {
+        asr = Asr.VOSK
         if (!models.ready) {
             mic = MicState.NO_MODEL
             micMessage = "Le modèle vocal français (41 Mo, gratuit, licence Apache 2.0) doit être téléchargé une fois. Il fonctionne ensuite sans Internet."
@@ -190,13 +245,27 @@ class PaceController(
             mic = MicState.ERROR
             micMessage = "$err Continue avec les boutons."
         } else {
-            mic = MicState.READY
-            micMessage = capture.device.replaceFirstChar { it.uppercase() } + " utilisé. Garde le téléphone au même endroit pendant tout le test."
+            if (asr == Asr.VOSK) {
+                mic = MicState.READY
+                micMessage = capture.device.replaceFirstChar { it.uppercase() } + " utilisé. Garde le téléphone au même endroit pendant tout le test."
+            }
         }
+    }
+
+    /**
+     * Avec la reconnaissance d'Android, le micro de l'app ne tourne que pendant une lecture : les deux ne se disputent
+     * jamais le micro.
+     */
+    private fun ensureCapture(): Boolean {
+        if (asr != Asr.ANDROID) return true
+        android.cancel()
+        startCapture()
+        return mic != MicState.ERROR
     }
 
     fun stopVoice() {
         mode = Mode.IDLE
+        android.cancel()
         capture.stop()
         if (mic != MicState.NO_PERMISSION && mic != MicState.NO_MODEL) mic = MicState.OFF
     }
@@ -204,6 +273,7 @@ class PaceController(
     /** Trois secondes de silence : bruit ambiant. */
     fun recordAmbient() {
         if (!voiceAvailable) return
+        if (!ensureCapture()) return
         prepBusy = "Reste silencieux trois secondes…"
         buffer.clear()
         onReading = { pcm ->
@@ -217,6 +287,7 @@ class PaceController(
     fun recordBaselineReading() {
         if (!voiceAvailable) return
         speaker.say("Lis le texte à voix haute, naturellement.") {
+            if (!ensureCapture()) return@say
             prepBusy = "Lis le texte à voix haute…"
             mic = MicState.READING
             buffer.clear(); chunks = 0
@@ -270,7 +341,13 @@ class PaceController(
         val cb = onReading
         onReading = null
         // L'audio n'est gardé qu'en mémoire, le temps de l'analyse.
-        main.post { cb?.invoke(pcm) }
+        main.post {
+            if (asr == Asr.ANDROID) {
+                capture.stop()
+                if (mic == MicState.READING) mic = MicState.READY
+            }
+            cb?.invoke(pcm)
+        }
     }
 
     // ---------- Test ----------
@@ -371,6 +448,9 @@ class PaceController(
         val b = engine?.s?.voiceBaseline
         if (voiceAvailable && b != null && !f.late) {
             speaker.say("Contrôle. Lis le texte à voix haute, naturellement.") {
+                if (!ensureCapture()) {
+                    f.reading = true; return@say
+                }
                 mic = MicState.READING
                 buffer.clear(); chunks = 0
                 onReading = { pcm ->
@@ -422,6 +502,25 @@ class PaceController(
     private fun listen(q: Question?) {
         if (!voiceAvailable && mic != MicState.SPEAKING) return
         question = q
+        if (asr == Asr.ANDROID) {
+            mode = Mode.IDLE
+            if (q == null) {
+                android.cancel(); mic = MicState.READY; return
+            }
+            mic = MicState.LISTENING
+            android.listen(
+                { hyps -> main.post { if (question == q) heard(VoiceCommands.best(hyps, q)) } },
+                { err ->
+                    main.post {
+                        if (err in fr.relance.app.voice.AndroidSpeech.LANGUAGE_ERRORS) {
+                            mic = MicState.ERROR
+                            micMessage = "Le français n'est pas disponible hors ligne sur ce téléphone : réponds avec les boutons, ou choisis Vosk dans la préparation."
+                        } else if (question == q) heard("")
+                    }
+                },
+            )
+            return
+        }
         try {
             recognizer?.reset()
         } catch (e: Throwable) {
@@ -555,6 +654,7 @@ class PaceController(
 
     fun shutdown() {
         capture.stop()
+        android.destroy()
         try {
             recognizer?.close()
         } catch (e: Throwable) {
