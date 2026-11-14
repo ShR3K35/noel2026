@@ -14,10 +14,10 @@ type Screen = "menu" | "race" | "pause" | "results";
 interface Saved { best: Record<string, number>; music: boolean }
 function loadSaved(): Saved {
   const base: Saved = { best: {}, music: true };
-  try { const raw = localStorage.getItem("relance.kart.v1"); if (raw) return { ...base, ...JSON.parse(raw) }; } catch { /* sans sauvegarde */ }
+  try { const raw = localStorage.getItem("relance.kart.v2"); if (raw) return { ...base, ...JSON.parse(raw) }; } catch { /* sans sauvegarde */ }
   return base;
 }
-function store(s: Saved) { try { localStorage.setItem("relance.kart.v1", JSON.stringify(s)); } catch { /* ignoré */ } }
+function store(s: Saved) { try { localStorage.setItem("relance.kart.v2", JSON.stringify(s)); } catch { /* ignoré */ } }
 
 const fmtTime = (t: number) => { const m = Math.floor(t / 60), s = t - m * 60; return `${m}:${s < 10 ? "0" : ""}${s.toFixed(2)}`; };
 const ordinal = (n: number) => (n === 1 ? "1er" : `${n}e`);

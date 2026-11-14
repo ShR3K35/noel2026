@@ -30,22 +30,22 @@ export interface Track {
 export const TRACKS: TrackDef[] = [
   {
     id: "pole", name: "Circuit du Pôle Nord", tagline: "Larges virages dans la neige", theme: "north", difficulty: 1,
-    halfWidth: 8, grip: 7.5, outside: "slow", laps: 3,
+    halfWidth: 8, grip: 7.5, outside: "slow", laps: 5,
     points: [[0, 0], [60, -4], [108, 12], [128, 52], [108, 94], [60, 100], [28, 76], [-12, 90], [-56, 98], [-86, 60], [-70, 16]],
   },
   {
     id: "lac", name: "Lac Gelé", tagline: "La glace glisse : anticipe !", theme: "lake", difficulty: 2,
-    halfWidth: 9, grip: 2.4, outside: "slow", laps: 3,
+    halfWidth: 9, grip: 2.4, outside: "slow", laps: 5,
     points: [[0, 0], [70, 0], [122, -28], [164, 4], [152, 62], [104, 84], [66, 52], [28, 72], [30, 112], [4, 136], [-42, 128], [-74, 80], [-52, 28]],
   },
   {
     id: "village", name: "Village des Lutins", tagline: "Épingles entre les maisons, de nuit", theme: "village", difficulty: 2,
-    halfWidth: 7, grip: 7.5, outside: "slow", laps: 3,
+    halfWidth: 7, grip: 7.5, outside: "slow", laps: 5,
     points: [[0, 0], [52, 0], [92, -18], [100, -62], [64, -84], [36, -52], [2, -66], [-26, -108], [-76, -98], [-94, -58], [-72, -22], [-86, 14], [-46, 40]],
   },
   {
     id: "etoiles", name: "Chemin des Étoiles", tagline: "Piste suspendue : ne tombe pas !", theme: "stars", difficulty: 3,
-    halfWidth: 7.5, grip: 6.5, outside: "void", laps: 3,
+    halfWidth: 7.5, grip: 6.5, outside: "void", laps: 5,
     points: [[0, 0], [80, 0], [132, 30], [124, 88], [72, 98], [50, 144], [0, 164], [-52, 132], [-40, 82], [-92, 60], [-102, 10], [-50, -14]],
   },
 ];
