@@ -101,3 +101,42 @@ describe("course", () => {
 
   it("le pas de temps est fixe", () => { expect(DT).toBeCloseTo(1 / 60); });
 });
+
+describe("compteur de tours", () => {
+  // Conduite chaotique (demi-tours, marche arrière, murs, tout droit) : le tour compté par le jeu doit
+  // toujours correspondre à la distance réellement parcourue le long de la piste, mesurée à part.
+  for (const def of TRACKS) {
+    it(`${def.name} : jamais de tour compté en trop ou en moins`, () => {
+      const track = buildTrack(def);
+      const n = track.samples.length;
+      for (let seed = 1; seed <= 8; seed++) {
+        let s = seed * 104729;
+        const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+        const race = new Race(track);
+        race.time = 0;
+        const p = race.player;
+        let g = nearestIndex(track, p.x, p.z);
+        let truth = g - n;
+        let mode = 0, modeT = 0, steer = 0;
+        for (let t = 0; t < 60 * 90 && !p.finished; t++) {
+          modeT -= DT;
+          if (modeT <= 0) { modeT = 0.4 + rnd() * 3; mode = Math.floor(rnd() * 5); steer = rnd() * 2 - 1; }
+          const look = track.samples[(p.idx + 10) % n];
+          let diff = Math.atan2(look.z - p.z, look.x - p.x) - p.heading;
+          while (diff > Math.PI) diff -= 2 * Math.PI;
+          while (diff < -Math.PI) diff += 2 * Math.PI;
+          const follow = Math.max(-1, Math.min(1, diff * 2.5));
+          race.step(mode <= 1 ? { ...IDLE, accel: true, steer: follow, drift: rnd() < 0.3 }
+            : mode === 2 ? { ...IDLE, accel: true, steer, drift: rnd() < 0.5 }
+            : mode === 3 ? { ...IDLE, brake: true, steer }
+            : { ...IDLE, accel: true, steer: 0 });
+          const g2 = nearestIndex(track, p.x, p.z);
+          let d = g2 - g; if (d > n / 2) d -= n; else if (d < -n / 2) d += n;
+          truth += d; g = g2;
+          if (p.fallT <= 0) expect(Math.abs(p.progress - truth), `graine ${seed}, t=${(t / 60).toFixed(1)} s`).toBeLessThan(40);
+        }
+        if (p.finished) expect(truth / n).toBeGreaterThan(def.laps - 0.05);
+      }
+    });
+  }
+});

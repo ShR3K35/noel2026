@@ -233,7 +233,7 @@ export function startKart(host: HTMLElement, opts: { onExit: () => void }): { st
         if (mine) { sound.play("hit"); flash = 0.3; }
         break;
       case "lap":
-        if (mine) { sound.play("lap"); banner = { text: e.n === track.def.laps ? "Dernier tour !" : `Tour ${e.n}`, t: 1.8 }; }
+        if (mine) { sound.play("lap"); banner = { text: e.n === track.def.laps ? `Dernier tour ! (${e.n}/${track.def.laps})` : `Tour ${e.n} sur ${track.def.laps}`, t: 2.2 }; }
         break;
       case "finish":
         if (mine && k) {
@@ -539,10 +539,18 @@ export function startKart(host: HTMLElement, opts: { onExit: () => void }): { st
     const rankCol = ["#ffd86b", "#e8ecf8", "#f0a060", "#fff", "#fff"][p.rank - 1];
     text(ordinal(p.rank), 24, 12 + ph * 0.5, small ? 34 : 44, rankCol, "left", 700, 5);
     const rankW = ctx.measureText(ordinal(p.rank)).width;
-    text("/5", 24 + rankW + 4, 12 + ph * 0.62, small ? 13 : 16, "rgba(255,255,255,0.75)", "left", 600);
+    if (!small) text("/5", 24 + rankW + 4, 12 + ph * 0.62, 16, "rgba(255,255,255,0.75)", "left", 600);
     const lap = Math.max(1, Math.min(track.def.laps, p.lap));
     text(`Tour ${lap}/${track.def.laps}`, 12 + pw - 12, 12 + ph * 0.3, small ? 13 : 16, "#fff", "right", 600);
-    text(fmtTime(Math.max(0, p.finished ? p.finishTime : race.time)), 12 + pw - 12, 12 + ph * 0.68, small ? 14 : 17, "#ffe9a0", "right", 600);
+    text(fmtTime(Math.max(0, p.finished ? p.finishTime : race.time)), 12 + pw - 12, 12 + ph * 0.6, small ? 14 : 17, "#ffe9a0", "right", 600);
+    // une pastille par tour : pleine quand le tour est bouclé, cerclée pour le tour en cours
+    const done = Math.max(0, Math.min(track.def.laps, p.lap - 1));
+    for (let i = 0; i < track.def.laps; i++) {
+      const dx = 12 + pw - 16 - (track.def.laps - 1 - i) * (small ? 13 : 16), dy = 12 + ph * 0.86;
+      ctx.beginPath(); ctx.arc(dx, dy, small ? 4 : 5, 0, Math.PI * 2);
+      ctx.fillStyle = i < done ? "#7dff9a" : "rgba(255,255,255,0.18)"; ctx.fill();
+      if (i === done && !p.finished) { ctx.strokeStyle = "#ffe9a0"; ctx.lineWidth = 2; ctx.stroke(); }
+    }
 
     // case objet
     const is = small ? 54 : 66, ix = 12 + pw + 10, iy = 12;
