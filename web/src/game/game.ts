@@ -766,7 +766,7 @@ export function startGame(host: HTMLElement, opts: { onExit: () => void }): Game
   function drawTouch() {
     if (!(coarse || controls.touchSeen)) return;
     drawJoystick();
-    const held = { jump: controls.heldButton("jump"), action: controls.heldButton("action") };
+    const held: Record<string, boolean> = { jump: controls.heldButton("jump"), action: controls.heldButton("action") };
     for (const b of controls.touchButtons) {
       if (b.id === "action" && !world.player.power) continue;
       const on = held[b.id];

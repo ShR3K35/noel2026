@@ -23,6 +23,16 @@ Le menu **Jeu 🎅** de l'interface lance « La Grande Tournée du Père Noël �
 - **Technique** : TypeScript et Canvas 2D sans dépendance (`src/game/`). Graphismes vectoriels et sons synthétisés en direct, aucune image ni fichier audio à charger ; musique : refrain de « Jingle Bells » (domaine public). La simulation (`world.ts`) est séparée du rendu et testée sous Vitest (`world.test.ts` : hauteur de saut, coyote time, tampon de saut, écrasement, trous, accessibilité des niveaux). Progression et réglages (musique, secousses) gardés dans le navigateur.
 - Le réglage du saut et la structure suivent les skills de jeu vidéo installés dans `.claude/skills/` ([awesome-gamedev-agent-skills](https://github.com/gamedev-skills/awesome-gamedev-agent-skills), Apache-2.0) : `platformer` (constantes calculées avec `jump_tuner.py`), `game-feel`, `input-systems`, `camera-systems`.
 
+## Course de karts
+
+Le menu **Kart 🏁** lance « Le Grand Prix du Père Noël », une course de karts en 3D low-poly, jouable sur téléphone, tablette et ordinateur.
+
+- **Pilotes** : on joue toujours le Père Noël, contre quatre concurrents : le Grincheux (un grognon vert original, cornes et écharpe violette), Mère Noël, le Renne et le Lutin.
+- **Quatre circuits**, choisis dans un menu qui survole le circuit sélectionné : Circuit du Pôle Nord (facile), Lac Gelé (la glace glisse), Village des Lutins (épingles, de nuit) et Chemin des Étoiles (piste suspendue : en sortir fait tomber, puis on est remis en piste). Trois tours, meilleur temps gardé par circuit.
+- **Course** : départ en dernière position, décompte, classement en direct, mini-carte. Les cadeaux « ? » donnent un objet : turbo, boule de neige (tête-à-queue pour celui qui la reçoit) ou glaçons à laisser derrière soi. Tenir « Dérapage » dans un virage le resserre et donne un mini-turbo au relâchement. Hors piste, on est ralenti.
+- **Commandes** : sur écran tactile, le kart accélère tout seul ; joystick à gauche pour tourner, boutons Objet, Dérapage et Frein à droite. Au clavier : flèches (ou ZQSD/WASD), Espace pour l'objet, Maj ou X pour déraper, Échap pour la pause. Manette prise en charge.
+- **Technique** : `src/kart/`, avec three.js (chargé seulement à l'ouverture du menu). Tout est construit en code : circuits (splines), décors et personnages en formes simples, textures dessinées sur canvas, sons et musique synthétisés (« Deck the Halls », domaine public). La course (`sim.ts`) est séparée du rendu et testée (`sim.test.ts`) : circuits fermés sans chevauchement, virages négociables, et une course complète où les cinq karts finissent sur chaque circuit.
+
 ## API
 
 | Route | Accès | Rôle |

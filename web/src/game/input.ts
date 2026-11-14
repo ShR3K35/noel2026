@@ -5,7 +5,7 @@
 import type { Input } from "./world";
 
 export interface Rect { x: number; y: number; w: number; h: number }
-export interface TouchButton extends Rect { id: "jump" | "action"; r: number; cx: number; cy: number }
+export interface TouchButton extends Rect { id: string; r: number; cx: number; cy: number }
 
 /** Joystick tactile : il apparaît là où le pouce se pose dans sa zone (moitié gauche de l'écran). */
 export interface Joystick {
@@ -27,6 +27,7 @@ export class Controls {
   /** Vrai dès qu'un doigt a touché l'écran : on affiche alors les boutons tactiles. */
   touchSeen = false;
   private taps: { x: number; y: number }[] = [];
+  private latched = new Set<string>();
   private pressedKeys: string[] = [];
   private cleanup: (() => void)[] = [];
 
@@ -43,6 +44,8 @@ export class Controls {
       const p = pos(e);
       this.pointers.set(e.pointerId, p);
       this.taps.push(p);
+      // appui mémorisé : un toucher très bref compte même s'il tombe entre deux images
+      if (p.type !== "mouse") for (const b of this.touchButtons) if ((p.x - b.cx) ** 2 + (p.y - b.cy) ** 2 <= (b.r * 1.35) ** 2) this.latched.add(b.id);
       const j = this.joy, z = j.zone;
       if (this.joyEnabled && p.type !== "mouse" && j.pointer === null && p.x >= z.x && p.x <= z.x + z.w && p.y >= z.y && p.y <= z.y + z.h) {
         j.pointer = e.pointerId;
@@ -123,6 +126,18 @@ export class Controls {
     const j = this.joy;
     if (j.pointer === null) return 0;
     return deadzone((j.knobX - j.baseX) / j.radius);
+  }
+
+  /** Vrai une fois si le bouton tactile a été touché depuis le dernier appel. */
+  takePressed(id: string) { return this.latched.delete(id); }
+
+  /** Touche physique tenue (code clavier, ex. "ArrowUp"). */
+  key(...codes: string[]) { return codes.some((c) => this.keys.has(c)); }
+
+  /** Manette connectée : axe horizontal (zone morte retirée) et boutons. */
+  pad() {
+    const pad = navigator.getGamepads?.().find((g) => g && g.connected) ?? null;
+    return { axis: pad ? deadzone(pad.axes[0] ?? 0) : 0, btn: (i: number) => !!pad?.buttons[i]?.pressed };
   }
 
   /** Appuis brefs depuis le dernier appel (pour les menus et boutons d'interface). */

@@ -14,6 +14,7 @@ import "./styles.css";
 
 // Le jeu n'est téléchargé qu'à l'ouverture du menu « Jeu ».
 const Game = lazy(() => import("./pages/Game").then((m) => ({ default: m.Game })));
+const KartGame = lazy(() => import("./pages/Kart").then((m) => ({ default: m.KartGame })));
 
 function Login({ onDone }: { onDone: () => void }) {
   const [password, setPassword] = useState("");
@@ -54,6 +55,7 @@ const NAV = [
   ["allures", "Allures"],
   ["publication", "Publication"],
   ["jeu", "Jeu 🎅"],
+  ["kart", "Kart 🏁"],
 ] as const;
 
 function Shell({ onLogout }: { onLogout: () => void }) {
@@ -95,6 +97,7 @@ function Shell({ onLogout }: { onLogout: () => void }) {
         {page === "simulateur" && <Simulator programId={route[1]} />}
         {page === "allures" && <Paces />}
         {page === "publication" && <Publish />}
+        {page === "kart" && <Suspense fallback={<div className="game-host" />}><KartGame onExit={() => go("programmes")} /></Suspense>}
         {page === "jeu" && <Suspense fallback={<div className="game-host" />}><Game onExit={() => go("programmes")} /></Suspense>}
       </main>
     </div>
