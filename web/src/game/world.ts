@@ -8,7 +8,8 @@ import {
 } from "./config";
 import type { EnemyKind, LevelDef } from "./levels";
 
-export interface Input { left: boolean; right: boolean; jump: boolean; action: boolean }
+/** `axis` : déplacement analogique de -1 à 1 (joystick tactile ou stick), prioritaire sur gauche/droite s'il n'est pas nul. */
+export interface Input { left: boolean; right: boolean; jump: boolean; action: boolean; axis?: number }
 export const NO_INPUT: Input = { left: false, right: false, jump: false, action: false };
 
 export type EventType =
@@ -136,10 +137,12 @@ export class World {
     const p = this.player;
     const pressed = input.jump && !this.prev.jump;
     const released = !input.jump && this.prev.jump;
-    const dir = (input.right ? 1 : 0) - (input.left ? 1 : 0);
+    const digital = (input.right ? 1 : 0) - (input.left ? 1 : 0);
+    const axis = digital !== 0 ? digital : Math.max(-1, Math.min(1, input.axis ?? 0));
+    const dir = Math.sign(axis);
 
-    // course
-    const target = dir * RUN_SPEED;
+    // course : pousser un peu le joystick fait marcher, à fond fait courir
+    const target = dir === 0 ? 0 : dir * RUN_SPEED * (0.4 + 0.6 * Math.min(1, Math.abs(axis) / 0.85));
     const accel = p.onGround ? (dir !== 0 ? GROUND_ACCEL : GROUND_DECEL) : AIR_ACCEL;
     if (p.vx < target) p.vx = Math.min(target, p.vx + accel * DT);
     else if (p.vx > target) p.vx = Math.max(target, p.vx - accel * DT);

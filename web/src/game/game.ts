@@ -105,16 +105,18 @@ export function startGame(host: HTMLElement, opts: { onExit: () => void }): Game
     const R = Math.max(30, Math.min(48, Math.min(cssW, cssH) * 0.1));
     const m = 16 + (cssW > cssH ? 14 : 0);
     const cy = cssH - m - R;
-    const lx = m + R, rx = m + R * 3.3;
-    const mid = (lx + rx) / 2;
-    const top = cy - R * 1.8;
-    const btn = (id: TouchButton["id"], cx: number, cy2: number, r: number, x: number, y: number, w: number, h: number): TouchButton => ({ id, cx, cy: cy2, r, x, y, w, h });
+    const btn = (id: TouchButton["id"], cx: number, cy2: number, r: number): TouchButton => ({ id, cx, cy: cy2, r, x: 0, y: 0, w: 0, h: 0 });
     controls.touchButtons = [
-      btn("left", lx, cy, R, 0, top, mid, cssH - top),
-      btn("right", rx, cy, R, mid, top, rx + R * 1.4 - mid, cssH - top),
-      btn("jump", cssW - m - R * 1.15, cy - R * 0.15, R * 1.2, 0, 0, 0, 0),
-      btn("action", cssW - m - R * 3.6, cy + R * 0.25, R * 0.95, 0, 0, 0, 0),
+      btn("jump", cssW - m - R * 1.15, cy - R * 0.15, R * 1.2),
+      btn("action", cssW - m - R * 3.6, cy + R * 0.25, R * 0.95),
     ];
+    // joystick : rayon un peu plus grand que les boutons, zone = moitié gauche sous l'interface du haut
+    const j = controls.joy;
+    j.radius = Math.max(42, Math.min(64, Math.min(cssW, cssH) * 0.13));
+    j.homeX = m + j.radius + 6;
+    j.homeY = cssH - m - j.radius;
+    j.zone = { x: 0, y: Math.min(cssH * 0.3, 90), w: cssW * 0.48, h: cssH - Math.min(cssH * 0.3, 90) };
+    controls.releaseJoy();
   }
 
   const ro = new ResizeObserver(resize);
@@ -242,6 +244,8 @@ export function startGame(host: HTMLElement, opts: { onExit: () => void }): Game
     last = now;
     time += real;
     handleUi();
+    controls.joyEnabled = screen === "play";
+    if (screen !== "play" && controls.joy.pointer !== null) controls.releaseJoy();
     if (screen === "play") {
       acc += real;
       while (acc >= DT) {
@@ -761,7 +765,8 @@ export function startGame(host: HTMLElement, opts: { onExit: () => void }): Game
 
   function drawTouch() {
     if (!(coarse || controls.touchSeen)) return;
-    const held = { left: controls.heldButton("left"), right: controls.heldButton("right"), jump: controls.heldButton("jump"), action: controls.heldButton("action") };
+    drawJoystick();
+    const held = { jump: controls.heldButton("jump"), action: controls.heldButton("action") };
     for (const b of controls.touchButtons) {
       if (b.id === "action" && !world.player.power) continue;
       const on = held[b.id];
@@ -770,10 +775,7 @@ export function startGame(host: HTMLElement, opts: { onExit: () => void }): Game
       ctx.strokeStyle = on ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.5)"; ctx.lineWidth = 2.5; ctx.stroke();
       ctx.fillStyle = "rgba(255,255,255,0.92)";
       const r = b.r * 0.38;
-      if (b.id === "left" || b.id === "right") {
-        const d = b.id === "left" ? -1 : 1;
-        ctx.beginPath(); ctx.moveTo(b.cx + d * r, b.cy); ctx.lineTo(b.cx - d * r * 0.6, b.cy - r); ctx.lineTo(b.cx - d * r * 0.6, b.cy + r); ctx.fill();
-      } else if (b.id === "jump") {
+      if (b.id === "jump") {
         ctx.beginPath(); ctx.moveTo(b.cx, b.cy - r * 1.1); ctx.lineTo(b.cx + r, b.cy + r * 0.4); ctx.lineTo(b.cx - r, b.cy + r * 0.4); ctx.fill();
         text("Saut", b.cx, b.cy + b.r * 0.62, Math.max(10, b.r * 0.26), "rgba(255,255,255,0.8)", "center", 600);
       } else {
@@ -781,6 +783,39 @@ export function startGame(host: HTMLElement, opts: { onExit: () => void }): Game
         text("Lancer", b.cx, b.cy + b.r * 0.6, Math.max(10, b.r * 0.26), "rgba(255,255,255,0.8)", "center", 600);
       }
     }
+  }
+
+  function drawJoystick() {
+    const j = controls.joy;
+    const active = j.pointer !== null;
+    const axis = controls.joyAxis();
+    ctx.save();
+    ctx.globalAlpha = active ? 1 : 0.75;
+    // socle
+    const g = ctx.createRadialGradient(j.baseX, j.baseY, j.radius * 0.2, j.baseX, j.baseY, j.radius);
+    g.addColorStop(0, "rgba(20,18,55,0.15)"); g.addColorStop(1, "rgba(20,18,55,0.42)");
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(j.baseX, j.baseY, j.radius, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,0.5)"; ctx.lineWidth = 2.5; ctx.stroke();
+    // flèches gauche/droite, la direction poussée s'allume
+    const a = j.radius * 0.72, s2 = j.radius * 0.16;
+    for (const d of [-1, 1]) {
+      ctx.fillStyle = axis * d > 0 ? "rgba(255,233,160,0.95)" : "rgba(255,255,255,0.5)";
+      ctx.beginPath();
+      ctx.moveTo(j.baseX + d * (a + s2), j.baseY);
+      ctx.lineTo(j.baseX + d * (a - s2 * 0.4), j.baseY - s2);
+      ctx.lineTo(j.baseX + d * (a - s2 * 0.4), j.baseY + s2);
+      ctx.fill();
+    }
+    // manette (bouton qu'on déplace)
+    const kr = j.radius * 0.46;
+    ctx.shadowColor = "rgba(0,0,0,0.35)"; ctx.shadowBlur = 10; ctx.shadowOffsetY = 3;
+    const kg = ctx.createRadialGradient(j.knobX - kr * 0.35, j.knobY - kr * 0.35, kr * 0.1, j.knobX, j.knobY, kr);
+    kg.addColorStop(0, active ? "rgba(255,255,255,0.98)" : "rgba(255,255,255,0.8)");
+    kg.addColorStop(1, active ? "rgba(210,222,255,0.9)" : "rgba(190,200,240,0.6)");
+    ctx.fillStyle = kg;
+    ctx.beginPath(); ctx.arc(j.knobX, j.knobY, kr, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
   }
 
   function drawIntro() {
@@ -844,7 +879,7 @@ export function startGame(host: HTMLElement, opts: { onExit: () => void }): Game
     const h = cssH < 420 ? 44 : 52;
     const top = Math.min(cssH - items.length * (h + 12) - 60, ty + (compact ? 110 : 190) * Math.max(0.8, sz / 1.6));
     menu(items, top);
-    const hint = coarse ? "Flèches à gauche pour courir, bouton de droite pour sauter" : "← → pour courir · Espace pour sauter · X pour lancer";
+    const hint = coarse ? "Joystick à gauche pour avancer, bouton de droite pour sauter" : "← → pour courir · Espace pour sauter · X pour lancer";
     text(hint, cssW / 2, cssH - 26, Math.max(12, Math.min(15, cssW / 40)), "rgba(255,255,255,0.8)", "center", 500, 4);
     if (coarse && cssH > cssW) text("Tourne l'écran pour jouer en grand", cssW / 2, cssH - 50, 14, "#ffe9a0", "center", 600, 4);
     if (saved.best > 0) text(`Record : ${saved.best} clochettes`, 16, cssH - 26, 13, "rgba(255,255,255,0.7)", "left", 500, 3);

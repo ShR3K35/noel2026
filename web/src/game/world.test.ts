@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { BUFFER_TICKS, COYOTE_TICKS, ROWS, TILE } from "./config";
 import { LEVELS, type LevelDef } from "./levels";
+import { deadzone } from "./input";
 import { NO_INPUT, World, type Input } from "./world";
 
 /** Terrain plat de 40 cases, sol sur 3 cases, avec un rebord à droite (trou à partir de la colonne 20). */
@@ -150,4 +151,29 @@ describe("niveaux", () => {
       }
     });
   }
+});
+
+describe("joystick analogique", () => {
+  it("pousser à moitié fait marcher, à fond fait courir", () => {
+    const speed = (axis: number) => {
+      const w = new World(flat());
+      w.player.x = 10 * TILE;
+      settle(w);
+      for (let i = 0; i < 30; i++) w.step(hold({ axis }));
+      return w.player.vx;
+    };
+    const half = speed(0.4), full = speed(1);
+    expect(full).toBeCloseTo(7 * TILE, 0);
+    expect(half).toBeGreaterThan(0.4 * full);
+    expect(half).toBeLessThan(0.8 * full);
+    expect(speed(-1)).toBeCloseTo(-7 * TILE, 0);
+  });
+
+  it("zone morte : un pouce qui tremble ne fait pas bouger", () => {
+    expect(deadzone(0.1)).toBe(0);
+    expect(deadzone(-0.15)).toBe(0);
+    expect(deadzone(1)).toBe(1);
+    expect(deadzone(-1.4)).toBe(-1);
+    expect(deadzone(0.6)).toBeGreaterThan(0.4);
+  });
 });
