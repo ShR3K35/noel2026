@@ -99,6 +99,8 @@ data class Profile(
     val hrName: String = "",
     val treadmillAddress: String = "",
     val treadmillName: String = "",
+    /** Pendant les séances, envoyer la vitesse de chaque bloc au tapis (boîtier avec optocoupleurs ou tapis FTMS). */
+    val autoSpeed: Boolean = false,
     val runnerAnimation: Boolean = true,
     /** Envoi automatique des séances vers Santé Connect. */
     val healthConnect: Boolean = false,

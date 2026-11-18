@@ -1,6 +1,8 @@
 # Monter le boîtier sur un Domyos Run100
 
-Le Run100 classique n'est pas connecté. Ce boîtier compte les tours d'un rouleau et envoie la vitesse et la distance au téléphone en Bluetooth, au standard FTMS. Il **lit seulement** : il ne se branche pas sur l'électronique du tapis et ne le commande jamais. La console et la clé de sécurité restent seules maîtres.
+Le Run100 classique n'est pas connecté. Ce boîtier compte les tours d'un rouleau et envoie la vitesse et la distance au téléphone en Bluetooth, au standard FTMS. Dans sa version de base, il **lit seulement** : il ne se branche pas sur l'électronique du tapis et ne le commande jamais.
+
+En option (§ 7), trois optocoupleurs soudés sur les touches +, − et stop de la console lui permettent aussi de **régler la vitesse**. Même alors, il ne démarre jamais le tapis, et la console et la clé de sécurité restent prioritaires.
 
 > Un Run100**E** (version connectée) émet déjà ces données : pas de boîtier à fabriquer.
 
@@ -21,15 +23,16 @@ Prix en ordre de grandeur, environ 20 € au total.
 ## 2. Câblage
 
 ```
-Module KY-003            Carte ESP32
-  +  (VCC)  ───────────  VIN (5 V)
-  -  (GND)  ───────────  GND
-  S  (signal) ─────────  GPIO 27
+Module KY-003              Carte ESP32
+  -  (GND)       ────────  GND
+  broche du milieu ──────  3V3
+  S  (signal)    ────────  GPIO 27
 ```
 
-- Le capteur A3144 a besoin de 5 V : il est alimenté par la broche VIN, qui reçoit le 5 V de l'USB.
-- Sa sortie ne fait que tirer le signal vers la masse : la carte la ramène en 3,3 V elle-même. Pas de résistance à ajouter.
-- Rien d'autre n'est relié au tapis.
+- Le module KY-003 porte sa propre résistance de tirage vers son alimentation : alimenté en 5 V, sa sortie S monterait à 5 V, au-delà de ce que supporte une entrée de l'ESP32 (3,3 V). On l'alimente donc en **3,3 V**.
+- **Vérifie** en approchant l'aimant : la LED du module doit s'allumer.
+- **Si elle ne s'allume pas** : la puce A3144 est prévue pour 4,5 V au minimum et certaines ne réagissent pas en 3,3 V. Passe alors la broche du milieu sur **VIN (5 V)** et ajoute une **résistance de 15 kΩ entre S et GND**. Mesure S au multimètre sans aimant : environ 3 V, jamais plus de 3,3 V.
+- Rien d'autre n'est relié au tapis (sauf l'option du § 7).
 
 ## 3. Charger le programme dans l'ESP32
 
@@ -70,5 +73,61 @@ Si tu changes l'aimant de place ou de rouleau, refais l'étalonnage.
 
 - **Inclinaison** : elle n'est pas mesurée. L'app utilise l'inclinaison prévue par la séance (0 ou 3 % sur le Run100).
 - **Autres applications** : le boîtier parle le standard FTMS ; Zwift ou Kinomap devraient le voir comme un tapis connecté (non testé).
-- **Ne jamais** toucher à la carte de contrôle ni au moteur du tapis, ni alimenter l'ESP32 depuis le tapis.
+- **Ne jamais** toucher à la carte de contrôle ni au moteur du tapis, ni alimenter l'ESP32 depuis le tapis. L'option du § 7 ne touche qu'aux touches de la console, en basse tension, à travers des optocoupleurs.
 - **Ce qui n'a pas été vérifié** : le montage sur un vrai Run100 (accès à l'embout du rouleau, place pour le capteur), la détection de l'aimant et la connexion Bluetooth avec le téléphone. Le programme est compilé et sa logique de calcul est testée, mais il n'a pas tourné sur une vraie carte.
+
+## 7. Option : régler la vitesse depuis le boîtier
+
+L'ESP32 « appuie » sur les touches de la console à travers des optocoupleurs : il n'y a aucun lien électrique entre la carte et le tapis. Les touches d'origine continuent de fonctionner.
+
+### Ce qu'il faut en plus
+
+| Élément | Détail | Prix |
+|---|---|---|
+| Modules optocoupleur PC817, 2 voies | type « 817 Module 2 Channel Isolation » (Hailege ou équivalent) ; 2 modules pour 3 voies | ~6 € les 2 |
+| Fil fin | 6 fils souples d'environ 30 cm vers la console, fer à souder | — |
+
+### Câblage
+
+Pour chaque voie, l'entrée (IN, G) est côté ESP32, la sortie côté console.
+
+| Touche | Voie | IN | G (entrée) | Sortie OUT | G (sortie) |
+|---|---|---|---|---|---|
+| + | module 1, voie 1 | VIN (5 V) | GPIO 25 | côté + du bouton | côté − du bouton |
+| − | module 1, voie 2 | VIN (5 V) | GPIO 26 | côté + du bouton | côté − du bouton |
+| stop | module 2, voie 1 | VIN (5 V) | GPIO 32 | côté + du bouton | côté − du bouton |
+
+- « Sortie OUT » : la borne de sortie qui n'est ni V/VCC ni G (son nom varie selon les modules). La borne V/VCC de sortie reste vide. La quatrième voie reste libre : **start n'est volontairement pas câblé**, le boîtier ne peut pas démarrer le tapis.
+- Pourquoi IN au 5 V et G sur le GPIO : ces modules demandent au moins 3,6 V en entrée, une sortie de l'ESP32 n'en donne que 3,3. L'ESP32 met donc la borne G à la masse pour « appuyer » (GPIO à l'état bas) ; à l'état haut, il reste trop peu de tension pour allumer l'optocoupleur.
+
+### Avant de souder
+
+1. **Retire les cavaliers jaunes** des deux modules. Selon les versions, ils relient la masse d'entrée à celle de sortie ou ajoutent une résistance de tirage en sortie : dans les deux cas, ils sont à enlever.
+2. **Vérifie que les G d'entrée sont séparés** : au multimètre en mode continuité, entre le G de la voie 1 et celui de la voie 2 d'un même module. S'ils sont reliés, ce câblage ne convient pas (un appui déclencherait les deux voies) : il faut alors un transistor NPN par voie.
+3. **Débranche le tapis**, ouvre la console et repère les deux pastilles de chaque touche.
+4. **Repère la polarité** : console rebranchée et allumée, mesure la tension continue entre les deux pastilles de chaque touche. La pastille positive reçoit la sortie OUT, l'autre le G de sortie. Si la tension est nulle ou instable, le clavier est lu en matrice : essaie quand même, et si l'appui n'est pas pris en compte, remplace le PC817 par un relais statique PhotoMOS (AQY212, TLP222A), qui conduit dans les deux sens.
+5. **Soude en parallèle** des touches, sans couper les pistes. Fais sortir les fils par un passage existant, à l'écart de la bande.
+
+### Essai sans application
+
+Carte en USB, `pio device monitor` ouvert, tapis démarré à 3 km/h sur la console (en restant sur les repose-pieds) :
+
+- `+` puis `-` : la console doit monter puis redescendre de 0,1 km/h ;
+- `v 4` : le boîtier enchaîne les appuis, attend que la bande se stabilise, corrige si besoin et affiche « Consigne atteinte » ;
+- `s` : le tapis s'arrête.
+
+### Dans l'app
+
+Profil → Capteurs → **Régler la vitesse pendant les séances : Oui** (le choix apparaît quand le boîtier est connecté). Pendant une séance guidée, la vitesse de chaque bloc est alors envoyée au boîtier. Démarre toujours le tapis sur la console : la vitesse se règle dès que la bande tourne. Les tests d'allure, où tu cherches toi-même ta vitesse, restent à régler à la main.
+
+### Ce que fait le boîtier, et ce qu'il refuse
+
+- Il **ne démarre jamais** le tapis : une consigne est refusée tant que la bande est arrêtée.
+- Il part de la vitesse mesurée, appuie (un appui toutes les 0,35 s), attend la stabilisation, puis corrige au plus deux fois. La précision dépend donc de l'étalonnage du § 5.
+- Si quelqu'un change la vitesse sur la console, il **lâche la main** au bout de 3 s et n'appuie plus.
+- Si la bande s'arrête (stop, clé retirée), il abandonne la consigne.
+- Si l'application se déconnecte, il arrête d'appuyer : le tapis garde sa vitesse.
+- Si la vitesse mesurée dépasse 15 km/h pendant 2 s, il appuie sur **stop**.
+- La clé de sécurité n'est jamais touchée et reste le moyen d'arrêt prioritaire.
+
+**Non vérifié** : le câblage sur une vraie console de Run100 (polarité des touches, clavier en matrice ou non), la prise en compte des appuis de 150 ms par la console, et la commande depuis une application. La logique de réglage est testée sur PC avec un tapis simulé.
