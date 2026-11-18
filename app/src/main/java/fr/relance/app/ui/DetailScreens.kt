@@ -188,6 +188,7 @@ fun SensorsScreen(vm: AppViewModel) {
     val incline by ble.incline.collectAsState()
     val found by ble.found.collectAsState()
     val scanning by ble.scanning.collectAsState()
+    val canControl by ble.canControlSpeed.collectAsState()
     var granted by remember { mutableStateOf(ble.hasPermissions()) }
     val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
         granted = result.values.all { it }
@@ -225,7 +226,15 @@ fun SensorsScreen(vm: AppViewModel) {
                         Btn("Étalonner le tapis", filled = true, height = 48.dp) { vm.open(Screen.Calibration) }
                     Btn("Oublier ce tapis", filled = false, height = 48.dp) { vm.forgetTreadmill() }
                 }
-                Small("Lecture seule : l'app ne commande jamais le tapis.")
+                if (profile.treadmillAddress.isNotBlank() && (canControl || profile.autoSpeed)) {
+                    Strong("Régler la vitesse pendant les séances")
+                    ChipRow(listOf("Oui", "Non"), if (profile.autoSpeed) 0 else 1) { i -> vm.updateProfile { it.copy(autoSpeed = i == 0) } }
+                    Small(
+                        "Le tapis prend la vitesse de chaque bloc, sauf pendant les tests où tu cherches toi-même ton allure. " +
+                            "Il ne démarre jamais seul : lance-le sur la console. Si tu changes la vitesse à la console, l'app la laisse jusqu'au bloc suivant. " +
+                            "La clé de sécurité reste le moyen d'arrêt prioritaire."
+                    )
+                } else Small("Lecture seule : l'app ne commande pas ce tapis.")
             }
             Label("Appareils à proximité")
             if (!granted) Body("L'app a besoin de l'autorisation Bluetooth pour chercher tes capteurs.", C.Muted)

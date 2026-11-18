@@ -68,6 +68,8 @@ fun SessionScreen(vm: AppViewModel) {
     val hr by vm.ble.hr.collectAsState()
     val measured by vm.ble.speed.collectAsState()
     val incline by vm.ble.incline.collectAsState()
+    val canControl by vm.ble.canControlSpeed.collectAsState()
+    val speedNotice by vm.ble.speedNotice.collectAsState()
 
     val view = LocalView.current
     DisposableEffect(Unit) {
@@ -114,7 +116,13 @@ fun SessionScreen(vm: AppViewModel) {
                 Text(if (measured != null) "suit le tapis" else "suit la consigne", color = C.NightMuted, fontSize = 13.sp)
             }
         }
-        val targetLabel = if (block.kind == BlockKind.TEST) "Repère de départ" else "Vitesse à régler"
+        // Réglage automatique en cours : le tapis reçoit la vitesse du bloc.
+        val auto = profile.autoSpeed && canControl && !e.paused && block.kind != BlockKind.TEST
+        val targetLabel = when {
+            block.kind == BlockKind.TEST -> "Repère de départ"
+            auto -> "Réglée par l'app"
+            else -> "Vitesse à régler"
+        }
         if (measured != null) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 NightCard(Modifier.weight(1f)) { BigValue(targetLabel, Fmt.kmh(block.speedKmh), "km/h") }
@@ -133,6 +141,8 @@ fun SessionScreen(vm: AppViewModel) {
                 )
             }
         }
+        val notice = speedNotice
+        if (profile.autoSpeed && canControl && notice != null) Text(notice, color = C.Orange, fontSize = 14.sp)
         NightCard(Modifier.fillMaxWidth()) {
             val h = hr
             if (h != null) {

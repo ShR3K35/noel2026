@@ -37,7 +37,8 @@ Le coureur animé, à l'arrêt, en marche, au trot et en course rapide :
 - **Historique** : statistiques par séance (durée, distance, allure, cardio et zones, calories estimées), courbes, cumuls et records.
 - **Export** : chaque séance en TCX (accepté par Strava et Garmin Connect) ou en CSV.
 - **Santé Connect** : chaque séance est écrite dans Santé Connect (exercice sur tapis, distance, calories actives estimées, vitesse, fréquence cardiaque) pour apparaître dans Google Health et les autres apps de santé. Envoi automatique après chaque séance, envoi de l'historique en un geste, depuis Profil › Santé Connect. Relance écrit seulement, elle ne lit rien.
-- **Capteurs Bluetooth** : ceinture cardio standard, et tapis ou boîtier ESP32 parlant FTMS, en lecture seule.
+- **Capteurs Bluetooth** : ceinture cardio standard, et tapis ou boîtier ESP32 parlant FTMS.
+- **Vitesse réglée par l'app** (option, Profil › Capteurs) : avec un boîtier équipé des optocoupleurs ou un tapis FTMS qui accepte une consigne, le tapis prend la vitesse de chaque bloc. Il ne démarre jamais seul ; si la vitesse est changée à la console, l'app la laisse jusqu'au bloc suivant. Pas encore dans l'APK 0.10.2 : il faut reconstruire l'app.
 - **Fréquence cardiaque de repos** : bouton « Mesurer avec ma ceinture » dans le profil. Assis, 2 minutes d'écoute, puis la valeur est enregistrée et les zones cardiaques recalculées.
 - **Étalonnage du boîtier** : trois paliers de marche, bande à vide, pour caler la vitesse mesurée sur celle de la console.
 
@@ -62,19 +63,19 @@ Le Run100 classique n'est pas connecté : un boîtier ESP32 (environ 20 €) com
 - Export au format FIT.
 - Rappels par notification.
 - Mesure de l'inclinaison par le boîtier (l'app utilise l'inclinaison prévue par la séance).
-- Envoi automatique de la vitesse de chaque bloc au boîtier par l'app : le boîtier sait la recevoir, l'app ne l'envoie pas encore.
 
 ## État des vérifications
 
 L'app a été construite et testée sans téléphone ni émulateur :
 
 - le moteur de coaching, l'export, l'étalonnage et le décodage Bluetooth sont couverts par 40 tests unitaires, et la conversion d'une séance pour Santé Connect par 2 autres ;
+- le réglage automatique de la vitesse (trames FTMS, attente du démarrage, reprise en main à la console, pause, reconnexion, tapis qui refuse) est couvert par 14 tests ; ces tests et le code Bluetooth ont été compilés hors Gradle, l'interface et l'APK n'ont pas été reconstruits ;
 - le programme du boîtier compilait pour ESP32 avant l'ajout du réglage de vitesse, et sa logique de mesure passe 7 tests ; une trame qu'il produit est décodée par l'app dans les tests ;
 - le réglage de vitesse du boîtier passe 13 tests sur un tapis simulé (montée, descente, erreur d'étalonnage, appuis perdus, consigne changée en cours, reprise en main à la console, arrêt, survitesse, commandes FTMS) ; le programme modifié n'a été vérifié que pour la syntaxe C++, il reste à le recompiler avec PlatformIO ;
 - la calibration des allures est couverte par 36 tests (classement des réponses, arrondis du tapis, trois protocoles, limite de 20 minutes sur 400 parcours aléatoires, interruptions, migration, distances, analyse acoustique et bruit, parcours complet aux boutons) ; la reconnaissance Vosk a été vérifiée hors réseau sur PC avec des voix de synthèse ([détail](docs/CALIBRATION.md#vérifications-faites-et-restant-à-faire)) ;
 - des tests parcourent toute l'interface (bilan de départ, séance, bilan, fiche, arrêt de programme, étalonnage, mesure de la FC de repos, carte Santé Connect, saisie d'une séance faite sans le téléphone, planning détaillé, séance faite en avance puis annulée et refaite) et produisent les captures ci-dessus.
 
-**Non vérifié sur un vrai appareil** : le micro et la reconnaissance vocale pendant un vrai test sur tapis (voix humaines, bruit réel, micro Bluetooth, appels), le téléchargement du modèle vocal, l'envoi réel vers Santé Connect et l'affichage dans Google Health, le boîtier monté sur un vrai tapis, le réglage de vitesse par les touches de la console, la connexion Bluetooth à une ceinture ou au boîtier, les annonces vocales, l'enregistrement du fichier d'export, et le comportement quand l'app passe en arrière-plan pendant une séance (garde l'écran de séance ouvert : il reste allumé).
+**Non vérifié sur un vrai appareil** : le micro et la reconnaissance vocale pendant un vrai test sur tapis (voix humaines, bruit réel, micro Bluetooth, appels), le téléchargement du modèle vocal, l'envoi réel vers Santé Connect et l'affichage dans Google Health, le boîtier monté sur un vrai tapis, le réglage de vitesse par les touches de la console et depuis l'app pendant une séance, la connexion Bluetooth à une ceinture ou au boîtier, les annonces vocales, l'enregistrement du fichier d'export, et le comportement quand l'app passe en arrière-plan pendant une séance (garde l'écran de séance ouvert : il reste allumé).
 
 ## Construire l'APK
 

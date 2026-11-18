@@ -18,7 +18,9 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.ParcelUuid
+import fr.relance.app.core.AutoSpeed
 import fr.relance.app.core.BleParsers
+import fr.relance.app.core.FtmsControl
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.UUID
 
@@ -27,8 +29,9 @@ enum class Link(val label: String) { OFF("Non connecté"), CONNECTING("Recherche
 data class FoundDevice(val address: String, val name: String, val isHeartRate: Boolean, val isTreadmill: Boolean)
 
 /**
- * Capteurs Bluetooth Low Energy, en lecture seule : ceinture cardio (profil Heart Rate) et
- * tapis ou boîtier ESP32 parlant FTMS (Treadmill Data). Rien n'est jamais envoyé au tapis.
+ * Capteurs Bluetooth Low Energy : ceinture cardio (profil Heart Rate) et tapis ou boîtier ESP32 parlant
+ * FTMS (Treadmill Data). Si le tapis l'accepte et que l'option est activée, la consigne de vitesse de chaque
+ * bloc lui est envoyée (FTMS Control Point) ; le tapis n'est jamais démarré à distance.
  */
 @SuppressLint("MissingPermission")
 class BleManager(private val ctx: Context) {
@@ -41,6 +44,8 @@ class BleManager(private val ctx: Context) {
         /** Service propre au boîtier Relance : distance parcourue par la bande pour un tour de rouleau. */
         val CALIB_SERVICE: UUID = UUID.fromString("6f1e0001-5c3a-4b8e-9d2f-7a1c0e5b9a01")
         val CALIB_CHAR: UUID = UUID.fromString("6f1e0002-5c3a-4b8e-9d2f-7a1c0e5b9a01")
+        val CONTROL_POINT: UUID = UUID.fromString("00002ad9-0000-1000-8000-00805f9b34fb")
+        val MACHINE_STATUS: UUID = UUID.fromString("00002ada-0000-1000-8000-00805f9b34fb")
     }
 
     val hr = MutableStateFlow<Int?>(null)
@@ -54,9 +59,20 @@ class BleManager(private val ctx: Context) {
     val calibrationUm = MutableStateFlow<Long?>(null)
     /** Dernier envoi d'étalonnage : null tant que rien n'est envoyé, puis true ou false. */
     val calibrationSaved = MutableStateFlow<Boolean?>(null)
+    /** Le tapis connecté accepte une consigne de vitesse (FTMS Control Point présent). */
+    val canControlSpeed = MutableStateFlow(false)
+    /** Message du réglage automatique de la vitesse, à afficher pendant la séance. */
+    val speedNotice = MutableStateFlow<String?>(null)
 
     private var hrGatt: BluetoothGatt? = null
     private var treadmillGatt: BluetoothGatt? = null
+
+    // Le tapis n'accepte qu'une opération GATT à la fois : abonnements, lecture et écritures passent par une file.
+    // Le verrou protège aussi le réglage automatique, appelé depuis l'interface et depuis les rappels Bluetooth.
+    private val lock = Any()
+    private val ops = ArrayDeque<(BluetoothGatt) -> Boolean>()
+    private var opBusy = false
+    private val autoSpeed = AutoSpeed()
 
     private val adapter: BluetoothAdapter?
         get() = (ctx.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager)?.adapter
@@ -125,6 +141,7 @@ class BleManager(private val ctx: Context) {
     fun disconnectTreadmill() {
         close(treadmillGatt); treadmillGatt = null; speed.value = null; incline.value = null; treadmillLink.value = Link.OFF
         calibrationUm.value = null
+        controlLost()
     }
 
     fun shutdown() {
@@ -135,21 +152,104 @@ class BleManager(private val ctx: Context) {
     fun writeCalibration(um: Long): Boolean {
         val gatt = treadmillGatt ?: return false
         if (!hasPermissions()) return false
-        val ch = gatt.getService(CALIB_SERVICE)?.getCharacteristic(CALIB_CHAR) ?: return false
+        if (gatt.getService(CALIB_SERVICE)?.getCharacteristic(CALIB_CHAR) == null) return false
         val bytes = fr.relance.app.core.Calibration.encode(um)
         calibrationSaved.value = null
-        return try {
-            if (Build.VERSION.SDK_INT >= 33) {
-                gatt.writeCharacteristic(ch, bytes, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT) == 0
-            } else {
-                @Suppress("DEPRECATION")
-                ch.value = bytes
-                ch.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-                @Suppress("DEPRECATION")
-                gatt.writeCharacteristic(ch)
+        enqueue { g ->
+            val ch = g.getService(CALIB_SERVICE)?.getCharacteristic(CALIB_CHAR)
+            val started = ch != null && write(g, ch, bytes)
+            if (!started) calibrationSaved.value = false
+            started
+        }
+        return true
+    }
+
+    /**
+     * Consigne de vitesse du bloc en cours, pour le réglage automatique ; null pour ne rien régler.
+     * Peut être appelée à chaque seconde : seul un changement de bloc ou de consigne envoie quelque chose.
+     */
+    fun setAutoSpeed(kmh: Double?, block: Int) {
+        val frames = synchronized(lock) { autoSpeed.target(kmh, block) }
+        sendControl(frames)
+    }
+
+    private fun sendControl(frames: List<ByteArray>) {
+        synchronized(lock) { speedNotice.value = autoSpeed.notice }
+        frames.forEach { bytes ->
+            enqueue { g ->
+                val ch = g.getService(FTMS_SERVICE)?.getCharacteristic(CONTROL_POINT)
+                ch != null && write(g, ch, bytes)
             }
-        } catch (e: Exception) {
-            false
+        }
+    }
+
+    private fun controlLost() {
+        synchronized(lock) {
+            autoSpeed.disconnected()
+            ops.clear()
+            opBusy = false
+        }
+        canControlSpeed.value = false
+    }
+
+    private fun enqueue(op: (BluetoothGatt) -> Boolean) {
+        synchronized(lock) { ops.addLast(op) }
+        pump()
+    }
+
+    /** Lance la prochaine opération en attente si aucune n'est en cours. */
+    private fun pump() {
+        while (true) {
+            val (gatt, op) = synchronized(lock) {
+                if (opBusy || ops.isEmpty()) return
+                val g = treadmillGatt
+                if (g == null || !hasPermissions()) {
+                    ops.clear()
+                    return
+                }
+                opBusy = true
+                g to ops.removeFirst()
+            }
+            val started = try {
+                op(gatt)
+            } catch (e: Exception) {
+                false
+            }
+            if (started) return
+            // Opération impossible (caractéristique absente, liaison coupée) : on passe à la suivante.
+            synchronized(lock) { opBusy = false }
+        }
+    }
+
+    /** Fin de l'opération en cours, signalée par un rappel Bluetooth. */
+    private fun completeOp() {
+        synchronized(lock) { opBusy = false }
+        pump()
+    }
+
+    private fun write(gatt: BluetoothGatt, ch: BluetoothGattCharacteristic, bytes: ByteArray): Boolean =
+        if (Build.VERSION.SDK_INT >= 33) {
+            gatt.writeCharacteristic(ch, bytes, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT) == 0
+        } else {
+            @Suppress("DEPRECATION")
+            ch.value = bytes
+            ch.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+            @Suppress("DEPRECATION")
+            gatt.writeCharacteristic(ch)
+        }
+
+    /** Active les notifications (ou les indications) d'une caractéristique. */
+    private fun subscribe(gatt: BluetoothGatt, ch: BluetoothGattCharacteristic, indicate: Boolean): Boolean {
+        gatt.setCharacteristicNotification(ch, true)
+        val descriptor = ch.getDescriptor(CCCD) ?: return false
+        val value = if (indicate) BluetoothGattDescriptor.ENABLE_INDICATION_VALUE else BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+        return if (Build.VERSION.SDK_INT >= 33) {
+            gatt.writeDescriptor(descriptor, value) == 0
+        } else {
+            @Suppress("DEPRECATION")
+            descriptor.value = value
+            @Suppress("DEPRECATION")
+            gatt.writeDescriptor(descriptor)
         }
     }
 
@@ -183,14 +283,19 @@ class BleManager(private val ctx: Context) {
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 if (heartRate) hr.value = null else {
                     speed.value = null; incline.value = null
+                    controlLost()
                 }
                 link.value = Link.CONNECTING
             }
         }
 
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
-            val service = gatt.getService(if (heartRate) HR_SERVICE else FTMS_SERVICE) ?: return
-            val ch = service.getCharacteristic(if (heartRate) HR_MEASUREMENT else TREADMILL_DATA) ?: return
+            if (!heartRate) {
+                treadmillServicesDiscovered(gatt)
+                return
+            }
+            val service = gatt.getService(HR_SERVICE) ?: return
+            val ch = service.getCharacteristic(HR_MEASUREMENT) ?: return
             gatt.setCharacteristicNotification(ch, true)
             val descriptor = ch.getDescriptor(CCCD) ?: return
             if (Build.VERSION.SDK_INT >= 33) {
@@ -204,27 +309,54 @@ class BleManager(private val ctx: Context) {
             link.value = Link.CONNECTED
         }
 
+        /** Tapis : abonnements, lecture de l'étalonnage puis consigne en attente, une opération à la fois. */
+        private fun treadmillServicesDiscovered(gatt: BluetoothGatt) {
+            val ftms = gatt.getService(FTMS_SERVICE) ?: return
+            if (ftms.getCharacteristic(TREADMILL_DATA) == null) return
+            val control = ftms.getCharacteristic(CONTROL_POINT)
+            synchronized(lock) {
+                ops.clear()
+                opBusy = false
+            }
+            enqueue { g -> g.getService(FTMS_SERVICE)?.getCharacteristic(TREADMILL_DATA)?.let { subscribe(g, it, false) } ?: false }
+            if (control != null) {
+                enqueue { g -> g.getService(FTMS_SERVICE)?.getCharacteristic(CONTROL_POINT)?.let { subscribe(g, it, true) } ?: false }
+                if (ftms.getCharacteristic(MACHINE_STATUS) != null)
+                    enqueue { g -> g.getService(FTMS_SERVICE)?.getCharacteristic(MACHINE_STATUS)?.let { subscribe(g, it, false) } ?: false }
+            }
+            if (gatt.getService(CALIB_SERVICE)?.getCharacteristic(CALIB_CHAR) != null)
+                enqueue { g -> g.getService(CALIB_SERVICE)?.getCharacteristic(CALIB_CHAR)?.let { g.readCharacteristic(it) } ?: false }
+            link.value = Link.CONNECTED
+            canControlSpeed.value = control != null
+            if (control != null) sendControl(synchronized(lock) { autoSpeed.connected() })
+        }
+
         override fun onDescriptorWrite(gatt: BluetoothGatt, descriptor: BluetoothGattDescriptor, status: Int) {
-            // Une opération GATT à la fois : la lecture de l'étalonnage attend la fin de l'abonnement.
-            if (heartRate) return
-            val ch = gatt.getService(CALIB_SERVICE)?.getCharacteristic(CALIB_CHAR) ?: return
-            gatt.readCharacteristic(ch)
+            if (!heartRate) completeOp()
         }
 
         @Deprecated("Appelé avant Android 13")
         override fun onCharacteristicRead(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, status: Int) {
             @Suppress("DEPRECATION")
-            if (status == BluetoothGatt.GATT_SUCCESS) handleCalibration(characteristic.uuid, characteristic.value ?: return)
+            val value = characteristic.value
+            if (status == BluetoothGatt.GATT_SUCCESS && value != null) handleCalibration(characteristic.uuid, value)
+            if (!heartRate) completeOp()
         }
 
         override fun onCharacteristicRead(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, value: ByteArray, status: Int) {
             if (status == BluetoothGatt.GATT_SUCCESS) handleCalibration(characteristic.uuid, value)
+            if (!heartRate) completeOp()
         }
 
         override fun onCharacteristicWrite(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic, status: Int) {
-            if (characteristic.uuid != CALIB_CHAR) return
-            calibrationSaved.value = status == BluetoothGatt.GATT_SUCCESS
-            if (status == BluetoothGatt.GATT_SUCCESS) gatt.readCharacteristic(characteristic)
+            if (heartRate) return
+            if (characteristic.uuid == CALIB_CHAR) {
+                calibrationSaved.value = status == BluetoothGatt.GATT_SUCCESS
+                // Relecture de la valeur gardée par le boîtier.
+                if (status == BluetoothGatt.GATT_SUCCESS)
+                    enqueue { g -> g.getService(CALIB_SERVICE)?.getCharacteristic(CALIB_CHAR)?.let { g.readCharacteristic(it) } ?: false }
+            }
+            completeOp()
         }
 
         private fun handleCalibration(uuid: UUID, value: ByteArray) {
@@ -246,8 +378,17 @@ class BleManager(private val ctx: Context) {
                 BleParsers.heartRate(value)?.let { if (it in 25..240) hr.value = it }
             } else if (uuid == TREADMILL_DATA) {
                 val t = BleParsers.treadmill(value) ?: return
-                t.speedKmh?.let { speed.value = it }
+                t.speedKmh?.let { kmh ->
+                    speed.value = kmh
+                    sendControl(synchronized(lock) { autoSpeed.measured(kmh) })
+                }
                 t.inclinePct?.let { incline.value = it }
+            } else if (uuid == CONTROL_POINT) {
+                val r = FtmsControl.response(value) ?: return
+                sendControl(synchronized(lock) { autoSpeed.response(r) })
+            } else if (uuid == MACHINE_STATUS) {
+                val s = FtmsControl.status(value) ?: return
+                sendControl(synchronized(lock) { autoSpeed.status(s) })
             }
         }
     }

@@ -247,6 +247,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         tick = 0
         stack += Screen.Session
         announce(session.blocks.first().kind, session.blocks.first().seconds, session.blocks.first().speedKmh, "C'est parti. ")
+        syncAutoSpeed()
         tickJob?.cancel()
         tickJob = viewModelScope.launch {
             var last = SystemClock.elapsedRealtime()
@@ -265,6 +266,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                         else announce(e.current.kind, e.current.seconds, e.current.speedKmh, "")
                     }
                 }
+                syncAutoSpeed()
                 tick++
                 if (e.finished && stack.lastOrNull() == Screen.Session) {
                     stack.removeAt(stack.size - 1)
@@ -277,11 +279,13 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun togglePause() {
         val e = engine ?: return
         e.paused = !e.paused
+        syncAutoSpeed()
         tick++
     }
 
     fun easeOff() {
         engine?.easeOff()
+        syncAutoSpeed()
         say("D'accord, on allège la suite.")
         tick++
     }
@@ -289,6 +293,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun endSession() {
         val e = engine ?: return
         e.stop()
+        syncAutoSpeed()
         if (stack.lastOrNull() == Screen.Session) stack.removeAt(stack.size - 1)
         // Moins d'une minute : rien à enregistrer.
         if (e.elapsed < 60) discardSession() else stack += Screen.Bilan
@@ -297,6 +302,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     fun discardSession() {
         tickJob?.cancel()
         engine = null
+        syncAutoSpeed()
         while (stack.size > 1) stack.removeAt(stack.size - 1)
     }
 
@@ -549,6 +555,17 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             updateProfile { it.copy(hrAddress = d.address, hrName = d.name) }
             ble.connectHeartRate(d.address)
         }
+    }
+
+    /**
+     * Réglage automatique de la vitesse : consigne du bloc en cours, ou rien (option désactivée, bloc de test
+     * où la personne cherche elle-même son allure, pause, séance finie). Le tapis n'est jamais arrêté ni démarré.
+     */
+    private fun syncAutoSpeed() {
+        val e = engine
+        val on = state.profile?.autoSpeed == true
+        val kmh = if (on && e != null && !e.finished && !e.paused && e.current.kind != BlockKind.TEST) e.current.speedKmh else null
+        ble.setAutoSpeed(kmh, e?.index ?: -1)
     }
 
     fun forgetHeartRate() {

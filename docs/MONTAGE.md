@@ -116,6 +116,10 @@ Carte en USB, `pio device monitor` ouvert, tapis démarré à 3 km/h sur la cons
 - `v 4` : le boîtier enchaîne les appuis, attend que la bande se stabilise, corrige si besoin et affiche « Consigne atteinte » ;
 - `s` : le tapis s'arrête.
 
+### Dans l'app
+
+Profil → Capteurs → **Régler la vitesse pendant les séances : Oui** (le choix apparaît quand le boîtier est connecté). Pendant une séance guidée, la vitesse de chaque bloc est alors envoyée au boîtier. Démarre toujours le tapis sur la console : la vitesse se règle dès que la bande tourne. Les tests d'allure, où tu cherches toi-même ta vitesse, restent à régler à la main.
+
 ### Ce que fait le boîtier, et ce qu'il refuse
 
 - Il **ne démarre jamais** le tapis : une consigne est refusée tant que la bande est arrêtée.
