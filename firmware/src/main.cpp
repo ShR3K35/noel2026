@@ -1,35 +1,60 @@
 // Boîtier Relance pour Domyos Run100.
 // Un aimant sur un rouleau et un capteur à effet Hall comptent les tours ; le boîtier publie la vitesse
-// et la distance en Bluetooth au standard FTMS (Treadmill Data). Lecture seule : il ne commande jamais le tapis.
+// et la distance en Bluetooth au standard FTMS (Treadmill Data).
+// Option : trois optocoupleurs branchés sur les touches +, − et stop de la console lui permettent de régler
+// la vitesse (FTMS Control Point, Set Target Speed). Il ne démarre jamais le tapis : start n'est pas câblé.
 
 #include <Arduino.h>
 #include <NimBLEDevice.h>
 #include <Preferences.h>
 
+#include "control.h"
+#include "ftms.h"
 #include "speed.h"
 
 using namespace relance;
 
-// Câblage : module Hall (A3144 / KY-003) alimenté en 5 V (VIN), signal sur GPIO 27, masse commune.
-// Sa sortie est à collecteur ouvert : la résistance de tirage interne de l'ESP32 la ramène en 3,3 V.
+// Câblage : module Hall KY-003 alimenté en 3,3 V, signal sur GPIO 27, masse commune (voir docs/MONTAGE.md).
 static const int HALL_PIN = 27;
 static const int LED_PIN = 2;  // LED bleue de la carte : clignote à chaque tour de rouleau
+// Touches de la console, par optocoupleur. L'entrée IN de chaque voie est au 5 V, sa borne G sur le GPIO :
+// GPIO à l'état bas = touche appuyée, à l'état haut = relâchée.
+static const int PLUS_PIN = 25;
+static const int MINUS_PIN = 26;
+static const int STOP_PIN = 32;
 static const char* DEVICE_NAME = "Relance Run100";
 
 // Service d'étalonnage propre à Relance : distance parcourue par la bande pour un tour de rouleau.
 static const char* CALIB_SERVICE = "6f1e0001-5c3a-4b8e-9d2f-7a1c0e5b9a01";
 static const char* CALIB_CHAR = "6f1e0002-5c3a-4b8e-9d2f-7a1c0e5b9a01";
 
+static const uint16_t NO_CONN = 0xFFFF;
+
 static SpeedMeter meter;
+static SpeedController controller;
 static Preferences prefs;
 static NimBLECharacteristic* treadmillData = nullptr;
 static NimBLECharacteristic* calibChar = nullptr;
+static NimBLECharacteristic* controlPoint = nullptr;
+static NimBLECharacteristic* machineStatus = nullptr;
 static volatile bool connected = false;
+// Connexion qui a demandé la main sur le tapis (FTMS Request Control).
+static uint16_t controlOwner = NO_CONN;
 
 // Impulsions relevées sous interruption, consommées dans la boucle principale.
 static volatile uint32_t pulseTimes[32];
 static volatile uint8_t pulseHead = 0;
 static uint8_t pulseTail = 0;
+
+// Écritures sur le Control Point et déconnexions : reçues dans la tâche Bluetooth, traitées dans loop()
+// pour que le réglage de vitesse ne soit manipulé que par une seule tâche.
+struct BleEvent {
+  uint8_t data[20];
+  uint8_t len;
+  uint16_t conn;
+  bool disconnect;
+};
+static QueueHandle_t bleEvents = nullptr;
 
 void IRAM_ATTR onHall() {
   pulseTimes[pulseHead] = millis();
@@ -41,14 +66,25 @@ static void writeUint32(NimBLECharacteristic* c, uint32_t v) {
   c->setValue(b, 4);
 }
 
+// Toutes les touches relâchées, puis au plus une enfoncée.
+static void holdButton(Button b) {
+  digitalWrite(PLUS_PIN, b == Button::Plus ? LOW : HIGH);
+  digitalWrite(MINUS_PIN, b == Button::Minus ? LOW : HIGH);
+  digitalWrite(STOP_PIN, b == Button::Stop ? LOW : HIGH);
+}
+
 class ServerCallbacks : public NimBLEServerCallbacks {
   void onConnect(NimBLEServer* server) override {
     connected = true;
     // On continue d'annoncer : une deuxième application (Zwift par exemple) peut se connecter.
     NimBLEDevice::startAdvertising();
   }
-  void onDisconnect(NimBLEServer* server) override {
+  void onDisconnect(NimBLEServer* server, ble_gap_conn_desc* desc) override {
     connected = server->getConnectedCount() > 0;
+    BleEvent e = {};
+    e.conn = desc->conn_handle;
+    e.disconnect = true;
+    xQueueSend(bleEvents, &e, 0);
     NimBLEDevice::startAdvertising();
   }
 };
@@ -69,10 +105,117 @@ class CalibCallbacks : public NimBLECharacteristicCallbacks {
   }
 };
 
+class ControlPointCallbacks : public NimBLECharacteristicCallbacks {
+  void onWrite(NimBLECharacteristic* c, ble_gap_conn_desc* desc) override {
+    std::string v = c->getValue();
+    BleEvent e = {};
+    e.len = v.size() > sizeof(e.data) ? sizeof(e.data) : v.size();
+    memcpy(e.data, v.data(), e.len);
+    e.conn = desc->conn_handle;
+    e.disconnect = false;
+    xQueueSend(bleEvents, &e, 0);
+  }
+};
+
+static void sendStatus(const FtmsMessage& m) {
+  if (m.len == 0) return;
+  machineStatus->setValue(m.data, m.len);
+  if (connected) machineStatus->notify();
+}
+
+static void handleBleEvent(const BleEvent& e, double kmh, uint32_t now) {
+  if (e.disconnect) {
+    if (e.conn == controlOwner) {
+      // L'application qui réglait la vitesse est partie : on arrête d'appuyer, le tapis garde sa vitesse.
+      controlOwner = NO_CONN;
+      controller.cancel();
+      Serial.println("Application déconnectée : réglage de vitesse abandonné.");
+    }
+    return;
+  }
+  bool granted = controlOwner == e.conn;
+  // Une seule application à la fois a la main ; une autre peut la reprendre en la demandant.
+  FtmsMessage status;
+  FtmsMessage r = handleControlPoint(e.data, e.len, granted, controller, kmh, now, status);
+  if (granted) controlOwner = e.conn;
+  else if (controlOwner == e.conn) controlOwner = NO_CONN;
+  if (r.len > 0) {
+    controlPoint->setValue(r.data, r.len);
+    controlPoint->indicate();
+  }
+  sendStatus(status);
+  if (e.len > 0 && e.data[0] == ftms::OP_SET_TARGET_SPEED && r.data[2] == ftms::RESULT_SUCCESS) {
+    Serial.printf("Consigne reçue : %.1f km/h\n", controller.target());
+  } else if (e.len > 0 && r.data[2] != ftms::RESULT_SUCCESS) {
+    Serial.printf("Commande FTMS 0x%02X refusée (résultat %u)\n", e.data[0], r.data[2]);
+  }
+}
+
+static void reportEvent(ControlEvent e, double kmh) {
+  switch (e) {
+    case ControlEvent::None:
+      return;
+    case ControlEvent::Reached:
+      Serial.printf("Consigne atteinte : %.1f km/h (mesuré %.2f)\n", controller.target(), kmh);
+      return;
+    case ControlEvent::BeltStopped:
+      Serial.println("Bande arrêtée : réglage abandonné.");
+      sendStatus(statusStopped());
+      return;
+    case ControlEvent::ManualOverride:
+      Serial.printf("Vitesse changée sur la console (%.1f km/h) : le boîtier lâche la main.\n", kmh);
+      sendStatus(statusTargetSpeed(kmh));
+      return;
+    case ControlEvent::OverspeedStop:
+      Serial.printf("Vitesse excessive (%.1f km/h) : stop appuyé.\n", kmh);
+      sendStatus(statusStopped());
+      return;
+  }
+}
+
+// Commandes au clavier, depuis `pio device monitor`, pour vérifier le câblage sans application :
+//   v 6.5  consigne à 6,5 km/h   + / -  un appui   s  stop   x  abandonner la consigne
+static void handleSerial(double kmh, uint32_t now) {
+  static char line[24];
+  static uint8_t n = 0;
+  while (Serial.available()) {
+    char ch = (char)Serial.read();
+    if (ch != '\n' && ch != '\r') {
+      if (n < sizeof(line) - 1) line[n++] = ch;
+      continue;
+    }
+    line[n] = 0;
+    n = 0;
+    if (line[0] == '+') controller.nudge(1, now);
+    else if (line[0] == '-') controller.nudge(-1, now);
+    else if (line[0] == 's') controller.stop(now);
+    else if (line[0] == 'x') controller.cancel();
+    else if (line[0] == 'v') {
+      double target = atof(line + 1);
+      SetResult r = controller.setTarget(target, kmh, now);
+      if (r == SetResult::Accepted) Serial.printf("Consigne : %.1f km/h\n", controller.target());
+      else if (r == SetResult::BeltStopped) Serial.println("Refusé : démarre d'abord le tapis sur la console.");
+      else Serial.printf("Refusé : consigne entre %.0f et %.0f km/h.\n", MIN_TARGET_KMH, MAX_TARGET_KMH);
+    } else if (line[0] != 0) {
+      Serial.println("Commandes : v 6.5 | + | - | s | x");
+    }
+  }
+}
+
 void setup() {
+  // Touches relâchées avant tout le reste : aucun appui fantôme au démarrage.
+  digitalWrite(PLUS_PIN, HIGH);
+  digitalWrite(MINUS_PIN, HIGH);
+  digitalWrite(STOP_PIN, HIGH);
+  pinMode(PLUS_PIN, OUTPUT);
+  pinMode(MINUS_PIN, OUTPUT);
+  pinMode(STOP_PIN, OUTPUT);
+  holdButton(Button::None);
+
   Serial.begin(115200);
   pinMode(LED_PIN, OUTPUT);
   pinMode(HALL_PIN, INPUT_PULLUP);
+  bleEvents = xQueueCreate(8, sizeof(BleEvent));
 
   prefs.begin("relance", false);
   meter.setUmPerRev(prefs.getUInt("umPerRev", DEFAULT_UM_PER_REV));
@@ -83,17 +226,20 @@ void setup() {
   NimBLEServer* server = NimBLEDevice::createServer();
   server->setCallbacks(new ServerCallbacks());
 
-  NimBLEService* ftms = server->createService("1826");
-  // Fitness Machine Feature : distance totale (bit 2) ; aucune fonction de commande.
-  NimBLECharacteristic* feature = ftms->createCharacteristic("2ACC", NIMBLE_PROPERTY::READ);
-  uint8_t features[8] = {0x04, 0, 0, 0, 0, 0, 0, 0};
+  NimBLEService* ftmsService = server->createService("1826");
+  // Fitness Machine Feature : distance totale (bit 2) ; consigne de vitesse (bit 0 des Target Settings).
+  NimBLECharacteristic* feature = ftmsService->createCharacteristic("2ACC", NIMBLE_PROPERTY::READ);
+  uint8_t features[8] = {0x04, 0, 0, 0, 0x01, 0, 0, 0};
   feature->setValue(features, 8);
-  // Supported Speed Range : 0,8 à 14 km/h par pas de 0,1 (unités de 0,01 km/h).
-  NimBLECharacteristic* range = ftms->createCharacteristic("2AD4", NIMBLE_PROPERTY::READ);
-  uint8_t speedRange[6] = {80, 0, 0x78, 0x05, 10, 0};
+  // Supported Speed Range : 1 à 14 km/h par pas de 0,1 (unités de 0,01 km/h).
+  NimBLECharacteristic* range = ftmsService->createCharacteristic("2AD4", NIMBLE_PROPERTY::READ);
+  uint8_t speedRange[6] = {100, 0, 0x78, 0x05, 10, 0};
   range->setValue(speedRange, 6);
-  treadmillData = ftms->createCharacteristic("2ACD", NIMBLE_PROPERTY::NOTIFY);
-  ftms->start();
+  treadmillData = ftmsService->createCharacteristic("2ACD", NIMBLE_PROPERTY::NOTIFY);
+  controlPoint = ftmsService->createCharacteristic("2AD9", NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::INDICATE);
+  controlPoint->setCallbacks(new ControlPointCallbacks());
+  machineStatus = ftmsService->createCharacteristic("2ADA", NIMBLE_PROPERTY::NOTIFY);
+  ftmsService->start();
 
   NimBLEService* calib = server->createService(CALIB_SERVICE);
   calibChar = calib->createCharacteristic(CALIB_CHAR, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);
@@ -110,7 +256,7 @@ void setup() {
   adv->start();
 
   attachInterrupt(digitalPinToInterrupt(HALL_PIN), onHall, FALLING);
-  Serial.println("Annonce Bluetooth lancée.");
+  Serial.println("Annonce Bluetooth lancée. Commandes : v 6.5 | + | - | s | x");
 }
 
 void loop() {
@@ -119,17 +265,26 @@ void loop() {
     pulseTail = (pulseTail + 1) % 32;
   }
 
-  static uint32_t lastNotify = 0;
   uint32_t now = millis();
+  double kmh = meter.speedKmh(now);
+
+  BleEvent e;
+  while (xQueueReceive(bleEvents, &e, 0) == pdTRUE) handleBleEvent(e, kmh, now);
+  handleSerial(kmh, now);
+
+  holdButton(controller.update(kmh, now));
+  reportEvent(controller.takeEvent(), kmh);
+
+  static uint32_t lastNotify = 0;
   if (now - lastNotify >= 1000) {
     lastNotify = now;
-    double kmh = meter.speedKmh(now);
     if (kmh == 0.0) digitalWrite(LED_PIN, LOW);
     uint8_t frame[TREADMILL_FRAME_LEN];
     encodeTreadmillData(kmh, meter.totalMeters(), frame);
     treadmillData->setValue(frame, TREADMILL_FRAME_LEN);
     if (connected) treadmillData->notify();
-    Serial.printf("%.2f km/h · %.0f m%s\n", kmh, meter.totalMeters(), connected ? " · connecté" : "");
+    Serial.printf("%.2f km/h · %.0f m%s%s\n", kmh, meter.totalMeters(), connected ? " · connecté" : "",
+                  controller.hasTarget() ? " · consigne active" : "");
   }
   delay(5);
 }

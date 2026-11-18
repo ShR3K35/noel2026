@@ -51,7 +51,7 @@ Un programme peut aussi être **importé depuis un fichier JSON**, par exemple g
 
 ## Boîtier pour Domyos Run100
 
-Le Run100 classique n'est pas connecté : un boîtier ESP32 (environ 20 €) compte les tours d'un rouleau grâce à un aimant et un capteur à effet Hall, et envoie vitesse et distance à l'app.
+Le Run100 classique n'est pas connecté : un boîtier ESP32 (environ 20 €) compte les tours d'un rouleau grâce à un aimant et un capteur à effet Hall, et envoie vitesse et distance à l'app. En option, trois optocoupleurs sur les touches de la console lui permettent de régler la vitesse (consigne FTMS) ; il ne démarre jamais le tapis.
 
 - [Guide de montage](docs/MONTAGE.md) : liste d'achat, câblage, pose, mise en service.
 - [Programme du boîtier](firmware/README.md) : à charger une fois dans l'ESP32 avec PlatformIO.
@@ -62,17 +62,19 @@ Le Run100 classique n'est pas connecté : un boîtier ESP32 (environ 20 €) com
 - Export au format FIT.
 - Rappels par notification.
 - Mesure de l'inclinaison par le boîtier (l'app utilise l'inclinaison prévue par la séance).
+- Envoi automatique de la vitesse de chaque bloc au boîtier par l'app : le boîtier sait la recevoir, l'app ne l'envoie pas encore.
 
 ## État des vérifications
 
 L'app a été construite et testée sans téléphone ni émulateur :
 
 - le moteur de coaching, l'export, l'étalonnage et le décodage Bluetooth sont couverts par 40 tests unitaires, et la conversion d'une séance pour Santé Connect par 2 autres ;
-- le programme du boîtier compile pour ESP32 et sa logique de mesure passe 7 tests ; une trame qu'il produit est décodée par l'app dans les tests ;
+- le programme du boîtier compilait pour ESP32 avant l'ajout du réglage de vitesse, et sa logique de mesure passe 7 tests ; une trame qu'il produit est décodée par l'app dans les tests ;
+- le réglage de vitesse du boîtier passe 13 tests sur un tapis simulé (montée, descente, erreur d'étalonnage, appuis perdus, consigne changée en cours, reprise en main à la console, arrêt, survitesse, commandes FTMS) ; le programme modifié n'a été vérifié que pour la syntaxe C++, il reste à le recompiler avec PlatformIO ;
 - la calibration des allures est couverte par 36 tests (classement des réponses, arrondis du tapis, trois protocoles, limite de 20 minutes sur 400 parcours aléatoires, interruptions, migration, distances, analyse acoustique et bruit, parcours complet aux boutons) ; la reconnaissance Vosk a été vérifiée hors réseau sur PC avec des voix de synthèse ([détail](docs/CALIBRATION.md#vérifications-faites-et-restant-à-faire)) ;
 - des tests parcourent toute l'interface (bilan de départ, séance, bilan, fiche, arrêt de programme, étalonnage, mesure de la FC de repos, carte Santé Connect, saisie d'une séance faite sans le téléphone, planning détaillé, séance faite en avance puis annulée et refaite) et produisent les captures ci-dessus.
 
-**Non vérifié sur un vrai appareil** : le micro et la reconnaissance vocale pendant un vrai test sur tapis (voix humaines, bruit réel, micro Bluetooth, appels), le téléchargement du modèle vocal, l'envoi réel vers Santé Connect et l'affichage dans Google Health, le boîtier monté sur un vrai tapis, la connexion Bluetooth à une ceinture ou au boîtier, les annonces vocales, l'enregistrement du fichier d'export, et le comportement quand l'app passe en arrière-plan pendant une séance (garde l'écran de séance ouvert : il reste allumé).
+**Non vérifié sur un vrai appareil** : le micro et la reconnaissance vocale pendant un vrai test sur tapis (voix humaines, bruit réel, micro Bluetooth, appels), le téléchargement du modèle vocal, l'envoi réel vers Santé Connect et l'affichage dans Google Health, le boîtier monté sur un vrai tapis, le réglage de vitesse par les touches de la console, la connexion Bluetooth à une ceinture ou au boîtier, les annonces vocales, l'enregistrement du fichier d'export, et le comportement quand l'app passe en arrière-plan pendant une séance (garde l'écran de séance ouvert : il reste allumé).
 
 ## Construire l'APK
 
