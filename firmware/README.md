@@ -17,6 +17,14 @@ pio device monitor       # journal : vitesse, distance, état de la connexion
 pio test -e native       # logique de mesure et de réglage, sur l'ordinateur
 ```
 
+Module optocoupleur à masse d'entrée commune (G d'entrée reliés entre voies, voir [le guide de montage](../docs/MONTAGE.md)) : G commun sur GND, IN sur les GPIO, et charger la variante dédiée :
+
+```bash
+pio run -e esp32dev_masse_commune -t upload
+```
+
+Au démarrage, le moniteur série affiche la variante chargée (« Touches : masse commune… »).
+
 ## Commandes au clavier
 
 Dans `pio device monitor`, pour vérifier le câblage des touches sans application (tapis démarré sur la console) :

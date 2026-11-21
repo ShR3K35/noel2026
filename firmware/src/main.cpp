@@ -22,6 +22,16 @@ static const int LED_PIN = 2;  // LED bleue de la carte : clignote à chaque tou
 static const int PLUS_PIN = 25;
 static const int MINUS_PIN = 26;
 static const int STOP_PIN = 32;
+// Module à masse d'entrée commune (les G d'entrée des voies sont reliés) : G commun sur GND, IN de chaque voie
+// sur son GPIO, et l'ESP32 appuie en mettant le GPIO à l'état haut. Activé par l'environnement
+// esp32dev_masse_commune de platformio.ini.
+#ifdef RELANCE_OPTO_MASSE_COMMUNE
+static const uint8_t PRESSED = HIGH;
+static const uint8_t RELEASED = LOW;
+#else
+static const uint8_t PRESSED = LOW;
+static const uint8_t RELEASED = HIGH;
+#endif
 static const char* DEVICE_NAME = "Relance Run100";
 
 // Service d'étalonnage propre à Relance : distance parcourue par la bande pour un tour de rouleau.
@@ -73,9 +83,9 @@ static void writeUint32(NimBLECharacteristic* c, uint32_t v) {
 
 // Toutes les touches relâchées, puis au plus une enfoncée.
 static void holdButton(Button b) {
-  digitalWrite(PLUS_PIN, b == Button::Plus ? LOW : HIGH);
-  digitalWrite(MINUS_PIN, b == Button::Minus ? LOW : HIGH);
-  digitalWrite(STOP_PIN, b == Button::Stop ? LOW : HIGH);
+  digitalWrite(PLUS_PIN, b == Button::Plus ? PRESSED : RELEASED);
+  digitalWrite(MINUS_PIN, b == Button::Minus ? PRESSED : RELEASED);
+  digitalWrite(STOP_PIN, b == Button::Stop ? PRESSED : RELEASED);
 }
 
 class ServerCallbacks : public NimBLEServerCallbacks {
@@ -232,9 +242,9 @@ static void handleSerial(double kmh, uint32_t now) {
 
 void setup() {
   // Touches relâchées avant tout le reste : aucun appui fantôme au démarrage.
-  digitalWrite(PLUS_PIN, HIGH);
-  digitalWrite(MINUS_PIN, HIGH);
-  digitalWrite(STOP_PIN, HIGH);
+  digitalWrite(PLUS_PIN, RELEASED);
+  digitalWrite(MINUS_PIN, RELEASED);
+  digitalWrite(STOP_PIN, RELEASED);
   pinMode(PLUS_PIN, OUTPUT);
   pinMode(MINUS_PIN, OUTPUT);
   pinMode(STOP_PIN, OUTPUT);
@@ -248,6 +258,8 @@ void setup() {
   prefs.begin("relance", false);
   meter.setUmPerRev(prefs.getUInt("umPerRev", DEFAULT_UM_PER_REV));
   Serial.printf("Relance Run100 : %.2f mm par tour de rouleau\n", meter.umPerRev() / 1000.0);
+  Serial.println(PRESSED == HIGH ? "Touches : masse commune, appui = GPIO à l'état haut"
+                                 : "Touches : IN au 5 V, appui = GPIO à l'état bas");
 
   NimBLEDevice::init(DEVICE_NAME);
   NimBLEDevice::setPower(ESP_PWR_LVL_P9);
