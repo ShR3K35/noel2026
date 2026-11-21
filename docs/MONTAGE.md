@@ -132,6 +132,8 @@ Carte en USB, `pio device monitor` ouvert, tapis démarré à 3 km/h sur la cons
 
 ### Dans l'app
 
+Pour vérifier les optocoupleurs : Profil → Capteurs → **Étalonner le tapis**, carte « Tester les optocoupleurs ». Chaque appui sur − ou + appuie une fois sur la touche de la console (0,1 km/h) ; la vitesse mesurée doit suivre en quelques secondes. Le boîtier n'appuie jamais sur start.
+
 Profil → Capteurs → **Régler la vitesse pendant les séances : Oui** (le choix apparaît quand le boîtier est connecté). Pendant une séance guidée, la vitesse de chaque bloc est alors envoyée au boîtier. Démarre toujours le tapis sur la console : la vitesse se règle dès que la bande tourne. Les tests d'allure, où tu cherches toi-même ta vitesse, restent à régler à la main.
 
 ### Ce que fait le boîtier, et ce qu'il refuse

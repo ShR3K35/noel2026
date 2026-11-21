@@ -38,6 +38,7 @@ Dans `pio device monitor`, pour vérifier le câblage des touches sans applicati
 | | Fitness Machine Control Point `0x2AD9` (écriture, indication) | Request Control, Reset, Set Target Speed, Start (refusé si la bande est arrêtée), Stop/Pause |
 | | Fitness Machine Status `0x2ADA` (notification) | consigne changée, arrêt, remise à zéro |
 | Relance `6f1e0001-…` | Distance par tour `6f1e0002-…` (lecture, écriture) | uint32 en micromètres, gardé en mémoire flash |
+| | Test des touches `6f1e0003-…` (écriture) | int8 : nombre d'appuis sur + (positif) ou − (négatif), de 1 à 10 ; + refusé à 14 km/h ou plus |
 
 - Le nom annoncé est « Relance Run100 ».
 - La distance par tour vaut par défaut π × 50 mm ; l'app la corrige à l'étalonnage. Les valeurs hors 60–380 mm sont refusées.

@@ -13,8 +13,8 @@ android {
         applicationId = "fr.relance.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 15
-        versionName = "0.10.3"
+        versionCode = 16
+        versionName = "0.10.4"
         // Adresse du catalogue publié depuis l'interface coach.
         // Reconnaissance vocale locale (Vosk) : bibliothèques natives des téléphones ARM seulement (un émulateur x86 tourne sans la voix).
         ndk { abiFilters += listOf("arm64-v8a", "armeabi-v7a") }

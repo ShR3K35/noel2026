@@ -44,6 +44,8 @@ class BleManager(private val ctx: Context) {
         /** Service propre au boîtier Relance : distance parcourue par la bande pour un tour de rouleau. */
         val CALIB_SERVICE: UUID = UUID.fromString("6f1e0001-5c3a-4b8e-9d2f-7a1c0e5b9a01")
         val CALIB_CHAR: UUID = UUID.fromString("6f1e0002-5c3a-4b8e-9d2f-7a1c0e5b9a01")
+        /** Appuis directs sur + ou − de la console (test des optocoupleurs) : un octet signé. */
+        val NUDGE_CHAR: UUID = UUID.fromString("6f1e0003-5c3a-4b8e-9d2f-7a1c0e5b9a01")
         val CONTROL_POINT: UUID = UUID.fromString("00002ad9-0000-1000-8000-00805f9b34fb")
         val MACHINE_STATUS: UUID = UUID.fromString("00002ada-0000-1000-8000-00805f9b34fb")
     }
@@ -61,6 +63,8 @@ class BleManager(private val ctx: Context) {
     val calibrationSaved = MutableStateFlow<Boolean?>(null)
     /** Le tapis connecté accepte une consigne de vitesse (FTMS Control Point présent). */
     val canControlSpeed = MutableStateFlow(false)
+    /** Le boîtier accepte des appuis directs sur + et − (test des optocoupleurs). */
+    val canNudge = MutableStateFlow(false)
     /** Message du réglage automatique de la vitesse, à afficher pendant la séance. */
     val speedNotice = MutableStateFlow<String?>(null)
 
@@ -164,6 +168,19 @@ class BleManager(private val ctx: Context) {
         return true
     }
 
+    /** Un appui sur + (n > 0) ou − (n < 0) de la console, par les optocoupleurs du boîtier. */
+    fun nudge(n: Int): Boolean {
+        val gatt = treadmillGatt ?: return false
+        if (n == 0 || !hasPermissions()) return false
+        if (gatt.getService(CALIB_SERVICE)?.getCharacteristic(NUDGE_CHAR) == null) return false
+        val bytes = byteArrayOf(n.coerceIn(-10, 10).toByte())
+        enqueue { g ->
+            val ch = g.getService(CALIB_SERVICE)?.getCharacteristic(NUDGE_CHAR)
+            ch != null && write(g, ch, bytes)
+        }
+        return true
+    }
+
     /**
      * Consigne de vitesse du bloc en cours, pour le réglage automatique ; null pour ne rien régler.
      * Peut être appelée à chaque seconde : seul un changement de bloc ou de consigne envoie quelque chose.
@@ -190,6 +207,7 @@ class BleManager(private val ctx: Context) {
             opBusy = false
         }
         canControlSpeed.value = false
+        canNudge.value = false
     }
 
     private fun enqueue(op: (BluetoothGatt) -> Boolean) {
@@ -328,6 +346,7 @@ class BleManager(private val ctx: Context) {
                 enqueue { g -> g.getService(CALIB_SERVICE)?.getCharacteristic(CALIB_CHAR)?.let { g.readCharacteristic(it) } ?: false }
             link.value = Link.CONNECTED
             canControlSpeed.value = control != null
+            canNudge.value = gatt.getService(CALIB_SERVICE)?.getCharacteristic(NUDGE_CHAR) != null
             if (control != null) sendControl(synchronized(lock) { autoSpeed.connected() })
         }
 

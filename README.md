@@ -4,7 +4,7 @@ App Android de remise au sport sur tapis de course : un coach qui s'adapte à to
 
 ## Installer l'app
 
-**[Télécharger l'APK (relance.apk)](apk/relance.apk?raw=true)** — version 0.10.3, Android 8 ou plus récent.
+**[Télécharger l'APK (relance.apk)](apk/relance.apk?raw=true)** — version 0.10.4, Android 8 ou plus récent.
 
 1. Ouvre ce lien depuis le téléphone, ou copie le fichier `apk/relance.apk` dessus.
 2. Ouvre le fichier et accepte l'installation depuis cette source (Android le demande pour toute app hors Play Store).
@@ -41,6 +41,7 @@ Le coureur animé, à l'arrêt, en marche, au trot et en course rapide :
 - **Vitesse réglée par l'app** (option, Profil › Capteurs) : avec un boîtier équipé des optocoupleurs ou un tapis FTMS qui accepte une consigne, le tapis prend la vitesse de chaque bloc. Il ne démarre jamais seul ; si la vitesse est changée à la console, l'app la laisse jusqu'au bloc suivant.
 - **Fréquence cardiaque de repos** : bouton « Mesurer avec ma ceinture » dans le profil. Assis, 2 minutes d'écoute, puis la valeur est enregistrée et les zones cardiaques recalculées.
 - **Étalonnage du boîtier** : trois paliers de marche, bande à vide, pour caler la vitesse mesurée sur celle de la console.
+- **Test des optocoupleurs** : sur l'écran d'étalonnage, deux boutons − et + font appuyer le boîtier une fois sur la touche de la console, pour vérifier le câblage et que la vitesse mesurée suit (programme du boîtier à recharger pour cette version).
 
 ## Interface coach
 

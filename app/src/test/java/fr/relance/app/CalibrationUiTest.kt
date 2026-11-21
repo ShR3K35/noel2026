@@ -51,11 +51,15 @@ class CalibrationUiTest {
             vm.completeOnboarding(Profile(treadmillAddress = "AA:BB:CC:DD:EE:FF", treadmillName = "Relance Run100"), ProgramType.RUN_30, false)
             vm.ble.treadmillLink.value = Link.CONNECTED
             vm.ble.calibrationUm.value = 157_080
+            vm.ble.canNudge.value = true
             vm.open(Screen.Sensors)
         }
         rule.onNodeWithText("Étalonner le tapis").performClick()
         rule.waitForIdle()
         rule.onRoot().captureRoboImage("build/shots/30-etalonnage-vide.png")
+        rule.onNodeWithText("Tester les optocoupleurs".uppercase()).assertExists()
+        rule.onNodeWithText("+").assertExists()
+        rule.onNodeWithText("−").assertExists()
         for ((i, v) in Calibration.STEPS.withIndex()) {
             rule.runOnIdle { vm.ble.speed.value = v * 1.1 }
             rule.mainClock.advanceTimeBy(6500)

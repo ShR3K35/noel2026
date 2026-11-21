@@ -27,6 +27,10 @@ static const char* DEVICE_NAME = "Relance Run100";
 // Service d'étalonnage propre à Relance : distance parcourue par la bande pour un tour de rouleau.
 static const char* CALIB_SERVICE = "6f1e0001-5c3a-4b8e-9d2f-7a1c0e5b9a01";
 static const char* CALIB_CHAR = "6f1e0002-5c3a-4b8e-9d2f-7a1c0e5b9a01";
+// Appuis directs sur + ou −, pour tester les optocoupleurs depuis l'app : un octet signé, nombre d'appuis
+// (positif : +, négatif : −), de 1 à MAX_NUDGE.
+static const char* NUDGE_CHAR = "6f1e0003-5c3a-4b8e-9d2f-7a1c0e5b9a01";
+static const int MAX_NUDGE = 10;
 
 static const uint16_t NO_CONN = 0xFFFF;
 
@@ -53,6 +57,7 @@ struct BleEvent {
   uint8_t len;
   uint16_t conn;
   bool disconnect;
+  int8_t nudge;  // appuis demandés par la caractéristique de test, 0 pour une écriture FTMS
 };
 static QueueHandle_t bleEvents = nullptr;
 
@@ -117,6 +122,19 @@ class ControlPointCallbacks : public NimBLECharacteristicCallbacks {
   }
 };
 
+class NudgeCallbacks : public NimBLECharacteristicCallbacks {
+  void onWrite(NimBLECharacteristic* c, ble_gap_conn_desc* desc) override {
+    std::string v = c->getValue();
+    if (v.size() != 1) return;
+    int8_t n = (int8_t)v[0];
+    if (n == 0 || n > MAX_NUDGE || n < -MAX_NUDGE) return;
+    BleEvent e = {};
+    e.conn = desc->conn_handle;
+    e.nudge = n;
+    xQueueSend(bleEvents, &e, 0);
+  }
+};
+
 static void sendStatus(const FtmsMessage& m) {
   if (m.len == 0) return;
   machineStatus->setValue(m.data, m.len);
@@ -124,6 +142,16 @@ static void sendStatus(const FtmsMessage& m) {
 }
 
 static void handleBleEvent(const BleEvent& e, double kmh, uint32_t now) {
+  if (e.nudge != 0) {
+    // Test des touches : jamais de + au-delà de la vitesse maximale ; la consigne en cours est abandonnée.
+    if (e.nudge > 0 && kmh >= MAX_TARGET_KMH) {
+      Serial.println("Appui sur + refusé : vitesse maximale atteinte.");
+      return;
+    }
+    controller.nudge(e.nudge, now);
+    Serial.printf("Test des touches : %d appui(s) sur %c\n", e.nudge > 0 ? e.nudge : -e.nudge, e.nudge > 0 ? '+' : '-');
+    return;
+  }
   if (e.disconnect) {
     if (e.conn == controlOwner) {
       // L'application qui réglait la vitesse est partie : on arrête d'appuyer, le tapis garde sa vitesse.
@@ -245,6 +273,8 @@ void setup() {
   calibChar = calib->createCharacteristic(CALIB_CHAR, NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE);
   calibChar->setCallbacks(new CalibCallbacks());
   writeUint32(calibChar, meter.umPerRev());
+  NimBLECharacteristic* nudgeChar = calib->createCharacteristic(NUDGE_CHAR, NIMBLE_PROPERTY::WRITE);
+  nudgeChar->setCallbacks(new NudgeCallbacks());
   calib->start();
 
   NimBLEAdvertising* adv = NimBLEDevice::getAdvertising();

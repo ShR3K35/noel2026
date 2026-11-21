@@ -44,6 +44,8 @@ fun CalibrationScreen(vm: AppViewModel) {
     val speed by ble.speed.collectAsState()
     val current by ble.calibrationUm.collectAsState()
     val saved by ble.calibrationSaved.collectAsState()
+    val canNudge by ble.canNudge.collectAsState()
+    var presses by remember { mutableStateOf(0) }
     val points = remember { mutableStateListOf<Calibration.Point>() }
     val recent = remember { mutableStateListOf<Double>() }
     var sent by remember { mutableStateOf<Long?>(null) }
@@ -113,6 +115,31 @@ fun CalibrationScreen(vm: AppViewModel) {
                 when {
                     sent != null && saved == true && current == sent -> Card(color = C.Soft) { Strong("Étalonnage enregistré dans le boîtier.") }
                     sent != null && saved == false -> Body("L'envoi a échoué. Rapproche le téléphone du boîtier et réessaie.", C.Ink)
+                }
+            }
+            Label("Tester les optocoupleurs")
+            Card {
+                if (!canNudge) {
+                    Body("Le programme du boîtier ne connaît pas encore les appuis depuis l'app : recharge-le (voir le guide de montage).", C.Muted)
+                } else {
+                    Small("Chaque appui sur − ou + appuie une fois sur la touche de la console : elle doit changer de 0,1 km/h, et la vitesse mesurée suivre en quelques secondes.")
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Btn("−", Modifier.weight(1f), filled = false, height = 64.dp) {
+                            if (ble.nudge(-1)) presses--
+                        }
+                        Column(Modifier.weight(1.4f), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(Fmt.kmh(speed ?: 0.0), fontSize = 32.sp, fontWeight = FontWeight.Bold, color = C.Ink)
+                            Small("km/h mesurés")
+                        }
+                        Btn("+", Modifier.weight(1f), filled = false, height = 64.dp, enabled = (speed ?: 0.0) < 14.0) {
+                            if (ble.nudge(1)) presses++
+                        }
+                    }
+                    if (presses != 0) {
+                        val d = presses / 10.0
+                        Small("Appuis envoyés : la console devrait afficher ${if (d > 0) "+" else ""}${mm(d)} km/h par rapport au départ.")
+                    }
+                    Small("Ces appuis changent la vitesse de la console : pendant l'étalonnage, remets-la sur la vitesse du palier avant de valider.")
                 }
             }
         }
