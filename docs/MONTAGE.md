@@ -85,17 +85,30 @@ L'ESP32 « appuie » sur les touches de la console à travers des optocoupleurs 
 | Élément | Détail | Prix |
 |---|---|---|
 | Modules optocoupleur PC817, 2 voies | type « 817 Module 2 Channel Isolation » (Hailege ou équivalent) ; 2 modules pour 3 voies | ~6 € les 2 |
-| Fil fin | 6 fils souples d'environ 30 cm vers la console, fer à souder | — |
+| Fil fin | 4 à 6 fils souples d'environ 30 cm vers la console, fer à souder | — |
+
+### Le clavier du Run100
+
+Les touches sont une membrane plate (sans course, mais à pression : un crayon suffit), reliée à la carte de la console par une nappe sur le connecteur **KEY**. C'est une matrice : chaque touche relie une colonne K1…K6 à une ligne S1…S4. Mesuré sur un Run100 (programme `V18_20200728_run100`) :
+
+- **colonnes K** à 5 V au repos (entrées tirées vers le haut), **lignes S** scrutées (environ 1,5 V en moyenne au multimètre) ;
+- **+ = K2–S1**, **− = K1–S1** ;
+- stop : paire à repérer (voir ci-dessous).
+
+Les pastilles dorées juste au-dessus du connecteur KEY, marquées K6…K1 et S1…S4, servent de points de soudure. L'emplacement vide **H_SPD** (K2, S5, K1), prévu pour des touches de vitesse sur les poignées, ne fonctionne pas : la ligne S5 est scrutée mais le programme de la console ignore ces touches. H_INC sert à une inclinaison motorisée que ce modèle n'a pas.
 
 ### Câblage
 
-Pour chaque voie, l'entrée (IN, G) est côté ESP32, la sortie côté console.
+Pour chaque voie, l'entrée (IN, G) est côté ESP32, la sortie côté console. Le courant va de la colonne K vers la ligne S : la sortie OUT va sur la pastille K, le G de sortie sur la pastille S.
 
 | Touche | Voie | IN | G (entrée) | Sortie OUT | G (sortie) |
 |---|---|---|---|---|---|
-| + | module 1, voie 1 | VIN (5 V) | GPIO 25 | côté + du bouton | côté − du bouton |
-| − | module 1, voie 2 | VIN (5 V) | GPIO 26 | côté + du bouton | côté − du bouton |
-| stop | module 2, voie 1 | VIN (5 V) | GPIO 32 | côté + du bouton | côté − du bouton |
+| + | module 1, voie 1 | VIN (5 V) | GPIO 25 | pastille K2 | pastille S1 |
+| − | module 1, voie 2 | VIN (5 V) | GPIO 26 | pastille K1 | pastille S1 |
+| stop (facultatif) | module 2, voie 1 | VIN (5 V) | GPIO 32 | pastille K de la paire stop | pastille S de la paire stop |
+
+- Les deux G de sortie de + et − arrivent sur la même pastille S1.
+- Sans la voie stop, tout fonctionne : seul l'appui sur stop en cas de survitesse est sans effet, et la clé de sécurité reste l'arrêt prioritaire.
 
 - « Sortie OUT » : la borne de sortie qui n'est ni V/VCC ni G (son nom varie selon les modules). La borne V/VCC de sortie reste vide. La quatrième voie reste libre : **start n'est volontairement pas câblé**, le boîtier ne peut pas démarrer le tapis.
 - Pourquoi IN au 5 V et G sur le GPIO : ces modules demandent au moins 3,6 V en entrée, une sortie de l'ESP32 n'en donne que 3,3. L'ESP32 met donc la borne G à la masse pour « appuyer » (GPIO à l'état bas) ; à l'état haut, il reste trop peu de tension pour allumer l'optocoupleur.
@@ -104,9 +117,10 @@ Pour chaque voie, l'entrée (IN, G) est côté ESP32, la sortie côté console.
 
 1. **Retire les cavaliers jaunes** des deux modules. Selon les versions, ils relient la masse d'entrée à celle de sortie ou ajoutent une résistance de tirage en sortie : dans les deux cas, ils sont à enlever.
 2. **Vérifie que les G d'entrée sont séparés** : au multimètre en mode continuité, entre le G de la voie 1 et celui de la voie 2 d'un même module. S'ils sont reliés, ce câblage ne convient pas (un appui déclencherait les deux voies) : il faut alors un transistor NPN par voie.
-3. **Débranche le tapis**, ouvre la console et repère les deux pastilles de chaque touche.
-4. **Repère la polarité** : console rebranchée et allumée, mesure la tension continue entre les deux pastilles de chaque touche. La pastille positive reçoit la sortie OUT, l'autre le G de sortie. Si la tension est nulle ou instable, le clavier est lu en matrice : essaie quand même, et si l'appui n'est pas pris en compte, remplace le PC817 par un relais statique PhotoMOS (AQY212, TLP222A), qui conduit dans les deux sens.
-5. **Soude en parallèle** des touches, sans couper les pistes. Fais sortir les fils par un passage existant, à l'écart de la bande.
+3. **Repère la paire stop** (si tu la câbles) : tapis débranché, nappe sortie du connecteur KEY. Ses contacts sont dans l'ordre K6, K5, K4, K3, K2, K1, S1, S2, S3, S4. Multimètre en continuité ou en résistance, maintiens STOP enfoncé et cherche la paire K–S qui conduit.
+4. **Vérifie chaque paire avant de souder** : nappe rebranchée, bande à 1 km/h, relie franchement les deux pastilles pendant une demi-seconde avec un fil : la vitesse doit changer.
+5. **Soude** les fils sur les pastilles au-dessus du connecteur KEY, sans toucher à la nappe. Fais sortir les fils par un passage existant, à l'écart de la bande.
+6. **Si la console ne réagit pas aux appuis de l'ESP32**, inverse les deux fils de sortie de la voie (OUT et G). Si ça ne suffit pas, remplace le PC817 par un relais statique PhotoMOS (AQY212, TLP222A), qui conduit dans les deux sens.
 
 ### Essai sans application
 
@@ -130,4 +144,4 @@ Profil → Capteurs → **Régler la vitesse pendant les séances : Oui** (le ch
 - Si la vitesse mesurée dépasse 15 km/h pendant 2 s, il appuie sur **stop**.
 - La clé de sécurité n'est jamais touchée et reste le moyen d'arrêt prioritaire.
 
-**Non vérifié** : le câblage sur une vraie console de Run100 (polarité des touches, clavier en matrice ou non), la prise en compte des appuis de 150 ms par la console, et la commande depuis une application. La logique de réglage est testée sur PC avec un tapis simulé.
+**Vérifié sur un Run100** : les paires + (K2–S1) et − (K1–S1), en reliant les pastilles à la main. **Non vérifié** : les appuis par optocoupleur et leur durée de 150 ms, la touche stop, et la commande depuis une application. La logique de réglage est testée sur PC avec un tapis simulé.
