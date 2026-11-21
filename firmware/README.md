@@ -1,6 +1,6 @@
 # Programme du boîtier Relance Run100
 
-Programme pour carte ESP32 : il compte les tours de rouleau (capteur à effet Hall sur GPIO 27) et publie vitesse et distance en Bluetooth Low Energy, au standard FTMS (*Treadmill Data*). Si les optocoupleurs de l'option « réglage de la vitesse » sont câblés (GPIO 25, 26, 32), il accepte aussi une consigne de vitesse (FTMS *Control Point*). Le montage est décrit dans [`docs/MONTAGE.md`](../docs/MONTAGE.md).
+Programme pour carte ESP32 : il compte les tours de rouleau (capteur à effet Hall sur GPIO 27) et publie vitesse et distance en Bluetooth Low Energy, au standard FTMS (*Treadmill Data*). Si les relais PhotoMOS de l'option « réglage de la vitesse » sont câblés (GPIO 25, 26, 32), il accepte aussi une consigne de vitesse (FTMS *Control Point*). Le montage est décrit dans [`docs/MONTAGE.md`](../docs/MONTAGE.md).
 
 ## Charger le programme
 
@@ -17,13 +17,13 @@ pio device monitor       # journal : vitesse, distance, état de la connexion
 pio test -e native       # logique de mesure et de réglage, sur l'ordinateur
 ```
 
-Module optocoupleur à masse d'entrée commune (G d'entrée reliés entre voies, voir [le guide de montage](../docs/MONTAGE.md)) : G commun sur GND, IN sur les GPIO, et charger la variante dédiée :
+Par défaut, le boîtier appuie sur une touche en mettant son GPIO **à l'état haut** : c'est ce qu'attendent les relais statiques PhotoMOS du [guide de montage](../docs/MONTAGE.md). Pour un module relais qui se déclenche à l'état bas, charger la variante dédiée :
 
 ```bash
-pio run -e esp32dev_masse_commune -t upload
+pio run -e esp32dev_appui_bas -t upload
 ```
 
-Au démarrage, le moniteur série affiche la variante chargée (« Touches : masse commune… »).
+Au démarrage, le moniteur série affiche la variante chargée (« Touches : appui = GPIO à l'état haut » ou « … bas »).
 
 ## Commandes au clavier
 
@@ -52,7 +52,7 @@ Dans `pio device monitor`, pour vérifier le câblage des touches sans applicati
 - La distance par tour vaut par défaut π × 50 mm ; l'app la corrige à l'étalonnage. Les valeurs hors 60–380 mm sont refusées.
 - Une application doit d'abord demander la main (*Request Control*) ; une seule l'a à la fois. Si elle se déconnecte, le boîtier arrête d'appuyer et le tapis garde sa vitesse.
 - *Start* ne démarre jamais le tapis : il réussit si la bande tourne déjà, échoue sinon. Une consigne est refusée bande arrêtée (*Operation Failed*).
-- Sans optocoupleurs câblés, les commandes sont acceptées mais sans effet sur le tapis.
+- Sans touches câblées, les commandes sont acceptées mais sans effet sur le tapis.
 
 ## Réglages dans `include/speed.h`
 

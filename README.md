@@ -38,10 +38,10 @@ Le coureur animé, à l'arrêt, en marche, au trot et en course rapide :
 - **Export** : chaque séance en TCX (accepté par Strava et Garmin Connect) ou en CSV.
 - **Santé Connect** : chaque séance est écrite dans Santé Connect (exercice sur tapis, distance, calories actives estimées, vitesse, fréquence cardiaque) pour apparaître dans Google Health et les autres apps de santé. Envoi automatique après chaque séance, envoi de l'historique en un geste, depuis Profil › Santé Connect. Relance écrit seulement, elle ne lit rien.
 - **Capteurs Bluetooth** : ceinture cardio standard, et tapis ou boîtier ESP32 parlant FTMS.
-- **Vitesse réglée par l'app** (option, Profil › Capteurs) : avec un boîtier équipé des optocoupleurs ou un tapis FTMS qui accepte une consigne, le tapis prend la vitesse de chaque bloc. Il ne démarre jamais seul ; si la vitesse est changée à la console, l'app la laisse jusqu'au bloc suivant.
+- **Vitesse réglée par l'app** (option, Profil › Capteurs) : avec un boîtier équipé des relais PhotoMOS sur les touches ou un tapis FTMS qui accepte une consigne, le tapis prend la vitesse de chaque bloc. Il ne démarre jamais seul ; si la vitesse est changée à la console, l'app la laisse jusqu'au bloc suivant.
 - **Fréquence cardiaque de repos** : bouton « Mesurer avec ma ceinture » dans le profil. Assis, 2 minutes d'écoute, puis la valeur est enregistrée et les zones cardiaques recalculées.
 - **Étalonnage du boîtier** : trois paliers de marche, bande à vide, pour caler la vitesse mesurée sur celle de la console.
-- **Test des optocoupleurs** : sur l'écran d'étalonnage, deux boutons − et + font appuyer le boîtier une fois sur la touche de la console, pour vérifier le câblage et que la vitesse mesurée suit (programme du boîtier à recharger pour cette version).
+- **Test des touches du boîtier** : sur l'écran d'étalonnage, deux boutons − et + font appuyer le boîtier une fois sur la touche de la console, pour vérifier le câblage et que la vitesse mesurée suit (programme du boîtier à recharger pour cette version).
 
 ## Interface coach
 
@@ -53,7 +53,7 @@ Un programme peut aussi être **importé depuis un fichier JSON**, par exemple g
 
 ## Boîtier pour Domyos Run100
 
-Le Run100 classique n'est pas connecté : un boîtier ESP32 (environ 20 €) compte les tours d'un rouleau grâce à un aimant et un capteur à effet Hall, et envoie vitesse et distance à l'app. En option, trois optocoupleurs sur les touches de la console lui permettent de régler la vitesse (consigne FTMS) ; il ne démarre jamais le tapis.
+Le Run100 classique n'est pas connecté : un boîtier ESP32 (environ 20 €) compte les tours d'un rouleau grâce à un aimant et un capteur à effet Hall, et envoie vitesse et distance à l'app. En option, des relais statiques PhotoMOS sur les touches de la console lui permettent de régler la vitesse (consigne FTMS) ; il ne démarre jamais le tapis. Les optocoupleurs PC817, essayés d'abord, ne fonctionnent pas avec le clavier du Run100 (voir le guide).
 
 - [Guide de montage](docs/MONTAGE.md) : liste d'achat, câblage, pose, mise en service.
 - [Programme du boîtier](firmware/README.md) : à charger une fois dans l'ESP32 avec PlatformIO.

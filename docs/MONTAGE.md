@@ -2,7 +2,7 @@
 
 Le Run100 classique n'est pas connecté. Ce boîtier compte les tours d'un rouleau et envoie la vitesse et la distance au téléphone en Bluetooth, au standard FTMS. Dans sa version de base, il **lit seulement** : il ne se branche pas sur l'électronique du tapis et ne le commande jamais.
 
-En option (§ 7), trois optocoupleurs soudés sur les touches +, − et stop de la console lui permettent aussi de **régler la vitesse**. Même alors, il ne démarre jamais le tapis, et la console et la clé de sécurité restent prioritaires.
+En option (§ 7), des relais statiques PhotoMOS soudés sur les touches +, − et stop de la console lui permettent aussi de **régler la vitesse**. Même alors, il ne démarre jamais le tapis, et la console et la clé de sécurité restent prioritaires.
 
 > Un Run100**E** (version connectée) émet déjà ces données : pas de boîtier à fabriquer.
 
@@ -73,18 +73,22 @@ Si tu changes l'aimant de place ou de rouleau, refais l'étalonnage.
 
 - **Inclinaison** : elle n'est pas mesurée. L'app utilise l'inclinaison prévue par la séance (0 ou 3 % sur le Run100).
 - **Autres applications** : le boîtier parle le standard FTMS ; Zwift ou Kinomap devraient le voir comme un tapis connecté (non testé).
-- **Ne jamais** toucher à la carte de contrôle ni au moteur du tapis, ni alimenter l'ESP32 depuis le tapis. L'option du § 7 ne touche qu'aux touches de la console, en basse tension, à travers des optocoupleurs.
+- **Ne jamais** toucher à la carte de contrôle ni au moteur du tapis, ni alimenter l'ESP32 depuis le tapis. L'option du § 7 ne touche qu'aux touches de la console, en basse tension, à travers des relais statiques PhotoMOS (isolés).
 - **Ce qui n'a pas été vérifié** : le montage sur un vrai Run100 (accès à l'embout du rouleau, place pour le capteur), la détection de l'aimant et la connexion Bluetooth avec le téléphone. Le programme est compilé et sa logique de calcul est testée, mais il n'a pas tourné sur une vraie carte.
 
 ## 7. Option : régler la vitesse depuis le boîtier
 
-L'ESP32 « appuie » sur les touches de la console à travers des optocoupleurs : il n'y a aucun lien électrique entre la carte et le tapis. Les touches d'origine continuent de fonctionner.
+L'ESP32 « appuie » sur les touches de la console à travers des **relais statiques PhotoMOS** : une LED interne commande un interrupteur à MOSFET, sans aucun lien électrique entre la carte et le tapis. Les touches d'origine continuent de fonctionner.
+
+> **Pourquoi pas des optocoupleurs PC817 ?** Ils ont été essayés sur un vrai Run100 et **ne fonctionnent pas** : LED allumée (même à 5 V), sortie branchée dans un sens puis dans l'autre, la console ne voit aucun appui, alors qu'un simple fil entre les mêmes bornes change la vitesse. La sortie d'un PC817 est un transistor : il ne conduit que dans un sens, garde une chute de tension et ne laisse passer qu'environ 1 mA. Le clavier du Run100 attend un vrai contact, comme celui de la membrane. Un PhotoMOS se comporte comme ce contact : quelques ohms au plus, dans les deux sens.
 
 ### Ce qu'il faut en plus
 
 | Élément | Détail | Prix |
 |---|---|---|
-| Modules optocoupleur PC817, 2 voies | type « 817 Module 2 Channel Isolation » (Hailege ou équivalent) ; 2 modules pour 3 voies | ~6 € les 2 |
+| Relais statiques PhotoMOS | **AQY212** (AQY212GH, AQY212EH) ou **TLP222A**, boîtier DIP-4 ; un par touche, donc 2 (ou 3 avec stop) | ~1 € pièce |
+| Résistances 330 Ω | une par PhotoMOS, ¼ W | quelques centimes |
+| Petite plaque à pastilles ou plaque d'essai | pour poser les PhotoMOS près de l'ESP32 | ~2 € |
 | Fil fin | 4 à 6 fils souples d'environ 30 cm vers la console, fer à souder | — |
 
 ### Le clavier du Run100
@@ -99,28 +103,36 @@ Les pastilles dorées juste au-dessus du connecteur KEY, marquées K6…K1 et S1
 
 ### Câblage
 
-Pour chaque voie, l'entrée (IN, G) est côté ESP32, la sortie côté console. Le courant va de la colonne K vers la ligne S : la sortie OUT va sur la pastille K, le G de sortie sur la pastille S.
+Pour chaque touche, l'entrée du PhotoMOS (broches 1 et 2) est côté ESP32, la sortie (broches 3 et 4) côté console. La broche 1 est repérée par un point ou une encoche sur le composant.
 
-| Touche | Voie | IN | G (entrée) | Sortie OUT | G (sortie) |
-|---|---|---|---|---|---|
-| + | module 1, voie 1 | VIN (5 V) | GPIO 25 | pastille K2 | pastille S1 |
-| − | module 1, voie 2 | VIN (5 V) | GPIO 26 | pastille K1 | pastille S1 |
-| stop (facultatif) | module 2, voie 1 | VIN (5 V) | GPIO 32 | pastille K de la paire stop | pastille S de la paire stop |
+```
+GPIO 25 ──[330 Ω]── broche 1 (anode)       broche 4 ── pastille K2
+GND ────────────── broche 2 (cathode)      broche 3 ── pastille S1
+```
 
-- Les deux G de sortie de + et − arrivent sur la même pastille S1.
+| Touche | GPIO (via 330 Ω) → broche 1 | Broche 2 | Broches 3 et 4 (sans sens) |
+|---|---|---|---|
+| + | GPIO 25 | GND | pastilles **K2** et **S1** |
+| − | GPIO 26 | GND | pastilles **K1** et **S1** |
+| stop (facultatif) | GPIO 32 | GND | pastilles de la paire stop |
+
+- La sortie n'a pas de sens : l'ordre K / S sur les broches 3 et 4 est indifférent.
+- + et − partagent la pastille S1 : un seul fil peut y arriver et desservir les deux PhotoMOS.
+- L'ESP32 appuie en mettant le GPIO **à l'état haut** : (3,3 V − 1,2 V) / 330 Ω ≈ 6 mA dans la LED, au-dessus des 3 mA nécessaires. C'est le programme standard (`pio run -t upload`).
 - Sans la voie stop, tout fonctionne : seul l'appui sur stop en cas de survitesse est sans effet, et la clé de sécurité reste l'arrêt prioritaire.
-
-- « Sortie OUT » : la borne de sortie qui n'est ni V/VCC ni G (son nom varie selon les modules). La borne V/VCC de sortie reste vide. La quatrième voie reste libre : **start n'est volontairement pas câblé**, le boîtier ne peut pas démarrer le tapis.
-- Pourquoi IN au 5 V et G sur le GPIO : ces modules demandent au moins 3,6 V en entrée, une sortie de l'ESP32 n'en donne que 3,3. L'ESP32 met donc la borne G à la masse pour « appuyer » (GPIO à l'état bas) ; à l'état haut, il reste trop peu de tension pour allumer l'optocoupleur.
+- **Start n'est volontairement pas câblé** : le boîtier ne peut pas démarrer le tapis.
 
 ### Avant de souder
 
-1. **Retire les cavaliers jaunes** des deux modules. Selon les versions, ils relient la masse d'entrée à celle de sortie ou ajoutent une résistance de tirage en sortie : dans les deux cas, ils sont à enlever.
-2. **Vérifie que les G d'entrée sont séparés** : au multimètre en mode continuité, entre le G de la voie 1 et celui de la voie 2 d'un même module. S'ils sont reliés (module à masse d'entrée commune), un appui déclencherait les deux voies : câble alors le G commun sur **GND** de l'ESP32, l'IN de chaque voie sur son GPIO (25, 26, 32) à la place du 5 V, et charge le programme avec `pio run -e esp32dev_masse_commune -t upload` (appui = GPIO à l'état haut). L'ESP32 ne sort que 3,3 V, sous les 3,6 V annoncés par ces modules : vérifie que la console réagit bien ; sinon, prends des modules à une voie ou des relais statiques PhotoMOS.
-3. **Repère la paire stop** (si tu la câbles) : tapis débranché, nappe sortie du connecteur KEY. Ses contacts sont dans l'ordre K6, K5, K4, K3, K2, K1, S1, S2, S3, S4. Multimètre en continuité ou en résistance, maintiens STOP enfoncé et cherche la paire K–S qui conduit.
-4. **Vérifie chaque paire avant de souder** : nappe rebranchée, bande à 1 km/h, relie franchement les deux pastilles pendant une demi-seconde avec un fil : la vitesse doit changer.
-5. **Soude** les fils sur les pastilles au-dessus du connecteur KEY, sans toucher à la nappe. Fais sortir les fils par un passage existant, à l'écart de la bande.
-6. **Si la console ne réagit pas aux appuis de l'ESP32**, inverse les deux fils de sortie de la voie (OUT et G). Si ça ne suffit pas, remplace le PC817 par un relais statique PhotoMOS (AQY212, TLP222A), qui conduit dans les deux sens.
+1. **Repère la paire stop** (si tu la câbles) : tapis débranché, nappe sortie du connecteur KEY. Ses contacts sont dans l'ordre K6, K5, K4, K3, K2, K1, S1, S2, S3, S4. Multimètre en continuité ou en résistance, maintiens STOP enfoncé et cherche la paire K–S qui conduit.
+2. **Vérifie chaque paire avant de souder** : nappe rebranchée, bande à 1 km/h, relie franchement les deux pastilles pendant une demi-seconde avec un fil : la vitesse doit changer.
+3. **Vérifie chaque PhotoMOS hors tapis** : multimètre en résistance entre les broches 3 et 4, ESP32 en USB. Au repos, circuit ouvert ; pendant un appui depuis l'app (écran d'étalonnage, bouton + ou −), quelques ohms. L'appui ne dure que 150 ms : la valeur passe vite, utilise plutôt le mode continuité (bip).
+4. **Soude** les fils sur les pastilles au-dessus du connecteur KEY, sans toucher à la nappe. Fais sortir les fils par un passage existant, à l'écart de la bande.
+
+### Autres composants possibles
+
+- **Module relais 2 voies 5 V** (contact mécanique) : il fait aussi comme un fil, mais claque à chaque appui. Beaucoup de ces modules se déclenchent à l'état **bas** et pas tous avec les 3,3 V d'un GPIO : charge alors le programme `pio run -e esp32dev_appui_bas -t upload`.
+- **Optocoupleurs à transistor (PC817 et modules « 817 »)** : à éviter sur le Run100, voir plus haut.
 
 ### Essai sans application
 
@@ -132,7 +144,7 @@ Carte en USB, `pio device monitor` ouvert, tapis démarré à 3 km/h sur la cons
 
 ### Dans l'app
 
-Pour vérifier les optocoupleurs : Profil → Capteurs → **Étalonner le tapis**, carte « Tester les optocoupleurs ». Chaque appui sur − ou + appuie une fois sur la touche de la console (0,1 km/h) ; la vitesse mesurée doit suivre en quelques secondes. Le boîtier n'appuie jamais sur start.
+Pour vérifier le câblage des touches : Profil → Capteurs → **Étalonner le tapis**, carte « Tester les optocoupleurs ». Chaque appui sur − ou + appuie une fois sur la touche de la console (0,1 km/h) ; la vitesse mesurée doit suivre en quelques secondes. Le boîtier n'appuie jamais sur start.
 
 Profil → Capteurs → **Régler la vitesse pendant les séances : Oui** (le choix apparaît quand le boîtier est connecté). Pendant une séance guidée, la vitesse de chaque bloc est alors envoyée au boîtier. Démarre toujours le tapis sur la console : la vitesse se règle dès que la bande tourne. Les tests d'allure, où tu cherches toi-même ta vitesse, restent à régler à la main.
 
@@ -146,4 +158,4 @@ Profil → Capteurs → **Régler la vitesse pendant les séances : Oui** (le ch
 - Si la vitesse mesurée dépasse 15 km/h pendant 2 s, il appuie sur **stop**.
 - La clé de sécurité n'est jamais touchée et reste le moyen d'arrêt prioritaire.
 
-**Vérifié sur un Run100** : les paires + (K2–S1) et − (K1–S1), en reliant les pastilles à la main. **Non vérifié** : les appuis par optocoupleur et leur durée de 150 ms, la touche stop, et la commande depuis une application. La logique de réglage est testée sur PC avec un tapis simulé.
+**Vérifié sur un Run100** : les paires + (K2–S1) et − (K1–S1), en reliant les pastilles à la main ; l'échec des modules PC817 (voir plus haut). **Non vérifié** : les appuis par PhotoMOS et leur durée de 150 ms, la touche stop, et le réglage de vitesse pendant une séance. La logique de réglage est testée sur PC avec un tapis simulé.

@@ -1,7 +1,7 @@
 // Boîtier Relance pour Domyos Run100.
 // Un aimant sur un rouleau et un capteur à effet Hall comptent les tours ; le boîtier publie la vitesse
 // et la distance en Bluetooth au standard FTMS (Treadmill Data).
-// Option : trois optocoupleurs branchés sur les touches +, − et stop de la console lui permettent de régler
+// Option : trois relais statiques PhotoMOS branchés sur les touches +, − et stop de la console lui permettent de régler
 // la vitesse (FTMS Control Point, Set Target Speed). Il ne démarre jamais le tapis : start n'est pas câblé.
 
 #include <Arduino.h>
@@ -17,27 +17,26 @@ using namespace relance;
 // Câblage : module Hall KY-003 alimenté en 3,3 V, signal sur GPIO 27, masse commune (voir docs/MONTAGE.md).
 static const int HALL_PIN = 27;
 static const int LED_PIN = 2;  // LED bleue de la carte : clignote à chaque tour de rouleau
-// Touches de la console, par optocoupleur. L'entrée IN de chaque voie est au 5 V, sa borne G sur le GPIO :
-// GPIO à l'état bas = touche appuyée, à l'état haut = relâchée.
+// Touches de la console, par relais statique PhotoMOS (AQY212, TLP222A) : GPIO → 330 Ω → LED du PhotoMOS → GND.
+// GPIO à l'état haut = touche appuyée. Les optocoupleurs PC817 ne conviennent pas au clavier du Run100
+// (voir docs/MONTAGE.md).
 static const int PLUS_PIN = 25;
 static const int MINUS_PIN = 26;
 static const int STOP_PIN = 32;
-// Module à masse d'entrée commune (les G d'entrée des voies sont reliés) : G commun sur GND, IN de chaque voie
-// sur son GPIO, et l'ESP32 appuie en mettant le GPIO à l'état haut. Activé par l'environnement
-// esp32dev_masse_commune de platformio.ini.
-#ifdef RELANCE_OPTO_MASSE_COMMUNE
-static const uint8_t PRESSED = HIGH;
-static const uint8_t RELEASED = LOW;
-#else
+// Module relais déclenché à l'état bas : environnement esp32dev_appui_bas de platformio.ini.
+#ifdef RELANCE_APPUI_BAS
 static const uint8_t PRESSED = LOW;
 static const uint8_t RELEASED = HIGH;
+#else
+static const uint8_t PRESSED = HIGH;
+static const uint8_t RELEASED = LOW;
 #endif
 static const char* DEVICE_NAME = "Relance Run100";
 
 // Service d'étalonnage propre à Relance : distance parcourue par la bande pour un tour de rouleau.
 static const char* CALIB_SERVICE = "6f1e0001-5c3a-4b8e-9d2f-7a1c0e5b9a01";
 static const char* CALIB_CHAR = "6f1e0002-5c3a-4b8e-9d2f-7a1c0e5b9a01";
-// Appuis directs sur + ou −, pour tester les optocoupleurs depuis l'app : un octet signé, nombre d'appuis
+// Appuis directs sur + ou −, pour tester le câblage des touches depuis l'app : un octet signé, nombre d'appuis
 // (positif : +, négatif : −), de 1 à MAX_NUDGE.
 static const char* NUDGE_CHAR = "6f1e0003-5c3a-4b8e-9d2f-7a1c0e5b9a01";
 static const int MAX_NUDGE = 10;
@@ -258,8 +257,7 @@ void setup() {
   prefs.begin("relance", false);
   meter.setUmPerRev(prefs.getUInt("umPerRev", DEFAULT_UM_PER_REV));
   Serial.printf("Relance Run100 : %.2f mm par tour de rouleau\n", meter.umPerRev() / 1000.0);
-  Serial.println(PRESSED == HIGH ? "Touches : masse commune, appui = GPIO à l'état haut"
-                                 : "Touches : IN au 5 V, appui = GPIO à l'état bas");
+  Serial.println(PRESSED == HIGH ? "Touches : appui = GPIO à l'état haut" : "Touches : appui = GPIO à l'état bas");
 
   NimBLEDevice::init(DEVICE_NAME);
   NimBLEDevice::setPower(ESP_PWR_LVL_P9);

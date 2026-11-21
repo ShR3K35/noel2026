@@ -1,4 +1,4 @@
-// Réglage de la vitesse du tapis par appuis simulés sur les touches + et − de la console (optocoupleurs).
+// Réglage de la vitesse du tapis par appuis simulés sur les touches + et − de la console (relais statiques PhotoMOS).
 // Sans dépendance matérielle : testable sur PC (pio test -e native).
 //
 // Le boîtier ne connaît pas la consigne affichée par la console : il part de la vitesse mesurée par le
